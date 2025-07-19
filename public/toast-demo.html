@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Toast Notifications Demo - Botrix</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 40px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .demo-section {
+            margin: 20px 0;
+            padding: 20px;
+            border: 1px solid #e5e7eb;
+            border-radius: 8px;
+        }
+        .demo-button {
+            background: #2563eb;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            margin: 5px;
+            transition: background-color 0.2s;
+        }
+        .demo-button:hover {
+            background: #1d4ed8;
+        }
+        .demo-button.success {
+            background: #10b981;
+        }
+        .demo-button.success:hover {
+            background: #059669;
+        }
+        .demo-button.error {
+            background: #ef4444;
+        }
+        .demo-button.error:hover {
+            background: #dc2626;
+        }
+        .demo-button.warning {
+            background: #f59e0b;
+        }
+        .demo-button.warning:hover {
+            background: #d97706;
+        }
+        .note {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 6px;
+            border-left: 4px solid #2563eb;
+            margin-top: 20px;
+            font-size: 14px;
+            color: #666;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎯 Toast Notifications Demo</h1>
+        
+        <div class="demo-section">
+            <h3>Success Toasts</h3>
+            <p>For successful operations like login, signup, creating bots, etc.</p>
+            <button class="demo-button success" onclick="showSuccessToast()">Login Successful</button>
+            <button class="demo-button success" onclick="showBotCreatedToast()">Bot Created</button>
+            <button class="demo-button success" onclick="showSettingsSavedToast()">Settings Saved</button>
+        </div>
+
+        <div class="demo-section">
+            <h3>Error Toasts</h3>
+            <p>For errors, validation failures, and network issues.</p>
+            <button class="demo-button error" onclick="showErrorToast()">Login Failed</button>
+            <button class="demo-button error" onclick="showNetworkErrorToast()">Network Error</button>
+            <button class="demo-button error" onclick="showValidationErrorToast()">Validation Error</button>
+        </div>
+
+        <div class="demo-section">
+            <h3>Loading Toasts</h3>
+            <p>For ongoing operations that take time.</p>
+            <button class="demo-button" onclick="showLoadingToast()">Creating Bot...</button>
+            <button class="demo-button" onclick="showSigningInToast()">Signing In...</button>
+        </div>
+
+        <div class="demo-section">
+            <h3>Custom Toasts</h3>
+            <p>Special toasts with custom styling and actions.</p>
+            <button class="demo-button warning" onclick="showInfoToast()">Info Message</button>
+            <button class="demo-button warning" onclick="showActionToast()">Toast with Action</button>
+        </div>
+
+        <div class="demo-section">
+            <h3>Controls</h3>
+            <button class="demo-button" onclick="dismissAllToasts()">Dismiss All Toasts</button>
+        </div>
+
+        <div class="note">
+            <strong>Note:</strong> These are the same toast notifications used throughout the Botrix dashboard. 
+            No more ugly browser dialogs - just beautiful, modern toast notifications!
+        </div>
+    </div>
+
+    <script>
+        // Mock toast functions for demo (in real app these come from react-hot-toast)
+        function createToast(message, type = 'default', duration = 4000) {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 16px;
+                border-radius: 8px;
+                color: white;
+                font-size: 14px;
+                max-width: 400px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateX(100%);
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                margin-bottom: 8px;
+            `;
+
+            const colors = {
+                success: '#10b981',
+                error: '#ef4444',
+                loading: '#6b7280',
+                info: '#3b82f6',
+                default: '#363636'
+            };
+
+            toast.style.background = colors[type] || colors.default;
+            toast.textContent = message;
+
+            // Add icon
+            const icons = {
+                success: '✅',
+                error: '❌',
+                loading: '⏳',
+                info: '💡',
+                default: '💬'
+            };
+
+            toast.textContent = `${icons[type] || icons.default} ${message}`;
+
+            document.body.appendChild(toast);
+
+            // Animate in
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+
+            // Auto remove
+            setTimeout(() => {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            }, duration);
+
+            return toast;
+        }
+
+        // Demo functions
+        function showSuccessToast() {
+            createToast('Login successful! Redirecting to dashboard...', 'success', 3000);
+        }
+
+        function showBotCreatedToast() {
+            createToast('Bot created successfully! Redirecting...', 'success', 3000);
+        }
+
+        function showSettingsSavedToast() {
+            createToast('Settings saved successfully!', 'success', 3000);
+        }
+
+        function showErrorToast() {
+            createToast('Login failed. Please check your credentials.', 'error', 5000);
+        }
+
+        function showNetworkErrorToast() {
+            createToast('Network error. Please check your connection and try again.', 'error', 5000);
+        }
+
+        function showValidationErrorToast() {
+            createToast('Passwords do not match!', 'error', 5000);
+        }
+
+        function showLoadingToast() {
+            const toast = createToast('Creating your bot...', 'loading', 8000);
+            // Simulate completion
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+                createToast('Bot created successfully!', 'success', 3000);
+            }, 3000);
+        }
+
+        function showSigningInToast() {
+            const toast = createToast('Signing you in...', 'loading', 8000);
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.parentNode.removeChild(toast);
+                }
+                createToast('Welcome back!', 'success', 3000);
+            }, 2000);
+        }
+
+        function showInfoToast() {
+            createToast('This is an info message with useful tips!', 'info', 4000);
+        }
+
+        function showActionToast() {
+            const toast = document.createElement('div');
+            toast.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                padding: 12px 16px;
+                border-radius: 8px;
+                background: #363636;
+                color: white;
+                font-size: 14px;
+                max-width: 400px;
+                z-index: 10000;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                transform: translateX(100%);
+                transition: transform 0.3s ease, opacity 0.3s ease;
+                margin-bottom: 8px;
+                display: flex;
+                align-items: center;
+                gap: 12px;
+            `;
+
+            toast.innerHTML = `
+                <span>🗑️ Bot deleted successfully</span>
+                <button style="
+                    background: #3b82f6;
+                    color: white;
+                    border: none;
+                    padding: 4px 12px;
+                    border-radius: 4px;
+                    font-size: 12px;
+                    cursor: pointer;
+                " onclick="this.parentNode.parentNode.removeChild(this.parentNode); createToast('Bot restored!', 'success', 2000);">
+                    Undo
+                </button>
+            `;
+
+            document.body.appendChild(toast);
+
+            setTimeout(() => {
+                toast.style.transform = 'translateX(0)';
+            }, 100);
+
+            setTimeout(() => {
+                if (toast.parentNode) {
+                    toast.style.transform = 'translateX(100%)';
+                    setTimeout(() => {
+                        if (toast.parentNode) {
+                            toast.parentNode.removeChild(toast);
+                        }
+                    }, 300);
+                }
+            }, 6000);
+        }
+
+        function dismissAllToasts() {
+            const toasts = document.querySelectorAll('div[style*="position: fixed"][style*="top: 20px"]');
+            toasts.forEach(toast => {
+                toast.style.transform = 'translateX(100%)';
+                toast.style.opacity = '0';
+                setTimeout(() => {
+                    if (toast.parentNode) {
+                        toast.parentNode.removeChild(toast);
+                    }
+                }, 300);
+            });
+        }
+    </script>
+</body>
+</html> 
