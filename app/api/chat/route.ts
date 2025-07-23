@@ -135,7 +135,8 @@ export async function POST(request: NextRequest) {
           _id: conversation._id,
           sender: "bot",
           type: "text",
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
         }
       ];
 
@@ -320,7 +321,8 @@ export async function POST(request: NextRequest) {
           _id: conversation._id,
           sender: "bot",
           type: "text",
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
         }
       ];
 
@@ -349,7 +351,8 @@ export async function POST(request: NextRequest) {
           _id: conversation._id,
           sender: "bot",
           type: "text",
-          createdAt: new Date().toISOString()
+          createdAt: new Date().toISOString(),
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
         }
       ];
 

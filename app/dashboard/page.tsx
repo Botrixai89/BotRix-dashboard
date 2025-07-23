@@ -57,10 +57,9 @@ export default function DashboardPage() {
       {/* Sidebar */}
       <div className="w-64 bg-white/80 backdrop-blur-sm border-r border-purple-100 shadow-sm">
         <div className="flex items-center px-6 py-6 border-b border-purple-100">
-          <div className="p-2 rounded-xl gradient-primary mr-3">
-            <Bot className="h-6 w-6 text-white" />
+          <div className="flex items-center mr-3">
+            <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-8 w-auto" />
           </div>
-          <span className="text-xl font-bold gradient-text">Botrix</span>
         </div>
         
         <nav className="mt-6 px-4">

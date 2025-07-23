@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const FlowNodeSchema = new Schema({
   id: {
@@ -107,4 +107,4 @@ const BotFlowSchema = new Schema({
 BotFlowSchema.index({ botId: 1, version: -1 });
 BotFlowSchema.index({ botId: 1, isActive: 1 });
 
-export default models.BotFlow || model('BotFlow', BotFlowSchema); 
+export default (mongoose.models?.BotFlow as mongoose.Model<any>) || model('BotFlow', BotFlowSchema); 

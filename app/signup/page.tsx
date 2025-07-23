@@ -1,5 +1,4 @@
 'use client'
-
 import Link from 'next/link'
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
@@ -25,8 +24,6 @@ export default function SignupPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setIsLoading(true)
-
-    // Basic validation
     if (formData.password !== formData.confirmPassword) {
       showError(toastMessages.passwordMismatch)
       setIsLoading(false)
@@ -38,9 +35,10 @@ export default function SignupPage() {
       
       if (result.success) {
         showSuccess(toastMessages.signupSuccess)
+        // Use window.location.href for more reliable redirect after signup
         setTimeout(() => {
-          router.push('/dashboard')
-        }, 1000)
+          window.location.href = '/dashboard'
+        }, 500) // Reduced timeout for faster redirect
       } else {
         showError(result.error || toastMessages.signupFailed)
       }
@@ -71,10 +69,9 @@ export default function SignupPage() {
           {/* Header */}
           <div className="flex flex-col items-center text-center space-y-4">
             <Link href="/" className="flex items-center space-x-3 group">
-              <div className="p-3 rounded-xl gradient-primary group-hover:scale-110 transition-transform duration-300">
-                <Bot className="h-7 w-7 text-white" />
+              <div className="flex items-center group-hover:scale-110 transition-transform duration-300">
+                <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-10 w-auto" />
               </div>
-              <span className="text-3xl font-bold gradient-text">Botrix</span>
             </Link>
             <div className="space-y-2">
               <h1 className="text-2xl font-bold text-gray-900">Join Botrix today</h1>

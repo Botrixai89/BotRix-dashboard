@@ -5,7 +5,7 @@ import dbConnect from './mongodb';
 import User from '@/models/User';
 
 const JWT_SECRET = process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production';
-const JWT_EXPIRES_IN = '7d';
+const JWT_EXPIRES_IN = '30d'; // Simple long expiry
 
 export interface JWTPayload {
   userId: string;
@@ -83,28 +83,14 @@ export async function requireAuth(request: NextRequest): Promise<{ user: any; er
   return { user };
 }
 
-// Check if user owns a resource
-export async function requireOwnership(request: NextRequest, resourceUserId: string): Promise<{ user: any; error?: string }> {
-  const authResult = await requireAuth(request);
-  
-  if (authResult.error) {
-    return authResult;
-  }
-  
-  if (authResult.user._id.toString() !== resourceUserId) {
-    return { user: null, error: 'Access denied' };
-  }
-  
-  return authResult;
-}
-
 // Set authentication cookies
 export function setAuthCookies(response: NextResponse, token: string): NextResponse {
   response.cookies.set('auth-token', token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === 'production',
     sameSite: 'lax',
-    maxAge: 7 * 24 * 60 * 60, // 7 days
+    maxAge: 30 * 24 * 60 * 60, // 30 days
+    path: '/',
   });
   
   return response;
@@ -116,7 +102,17 @@ export function clearAuthCookies(response: NextResponse): NextResponse {
   return response;
 }
 
-// Get token from cookies (for SSR)
+// Get token from cookies
 export function getTokenFromCookies(request: NextRequest): string | null {
   return request.cookies.get('auth-token')?.value || null;
+}
+
+// Hash password
+export async function hashPassword(password: string): Promise<string> {
+  return bcrypt.hash(password, 12);
+}
+
+// Compare password
+export async function comparePassword(plainPassword: string, hashedPassword: string): Promise<boolean> {
+  return bcrypt.compare(plainPassword, hashedPassword);
 } 

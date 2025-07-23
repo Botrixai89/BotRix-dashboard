@@ -57,6 +57,13 @@ export interface Conversation {
   updatedAt: Date;
 }
 
+export interface VoiceSettings {
+  voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
+  speed: number;
+  pitch: number;
+  language: string;
+}
+
 export interface Message {
   _id: string;
   content: string;
@@ -64,6 +71,7 @@ export interface Message {
   timestamp: Date;
   type: 'text' | 'image' | 'file' | 'button';
   metadata?: any;
+  voiceSettings?: VoiceSettings;
 }
 
 // Bot Builder types

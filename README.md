@@ -12,6 +12,7 @@ A comprehensive chatbot platform built with Next.js, TypeScript, Tailwind CSS, a
 - **Live Chat Inbox**: Real-time conversation management with filtering
 - **Analytics**: Performance metrics and user engagement tracking
 - **Embed Code**: Easy website integration with customizable widget
+- **Voice Synthesis**: Text-to-speech functionality with customizable voices
 - **Modern UI**: Built with Shadcn/UI and Tailwind CSS
 
 ### Phase 2 - Enhanced Features (Planned)
@@ -20,6 +21,29 @@ A comprehensive chatbot platform built with Next.js, TypeScript, Tailwind CSS, a
 - **AI Integration**: Natural Language Processing for smarter responses
 - **Advanced Analytics**: Detailed reports and goal tracking
 - **Integrations**: Webhooks, Zapier, Slack, and CRM connections
+
+## 🎤 Voice Features
+
+### Text-to-Speech Integration
+Botrix now includes comprehensive voice synthesis capabilities:
+
+- **Multiple Voice Types**: Choose from 6 different voice personalities (Alloy, Echo, Fable, Onyx, Nova, Shimmer)
+- **Customizable Settings**: Adjust speed (0.25x - 4.0x), pitch (0.25x - 4.0x), and language
+- **Multi-language Support**: English (US/UK), Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese
+- **Real-time Voice**: Bot responses are automatically spoken aloud when enabled
+- **Voice Controls**: Users can toggle voice on/off in the chat widget
+- **Voice Preview**: Test voice settings in the bot builder before deploying
+
+### How to Enable Voice
+1. Go to your bot's Builder page
+2. Scroll to the "Voice Settings" section
+3. Enable "Voice Responses"
+4. Choose your preferred voice type and settings
+5. Test the voice with the preview button
+6. Save your settings
+
+### Voice Testing
+Visit `/voice-test.html` to test different voice configurations and hear how your bot will sound.
 
 ## 🛠️ Tech Stack
 

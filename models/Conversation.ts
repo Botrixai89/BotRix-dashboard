@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const MessageSchema = new Schema({
   content: {
@@ -59,4 +59,4 @@ const ConversationSchema = new Schema({
   timestamps: true,
 });
 
-export default models.Conversation || model('Conversation', ConversationSchema); 
+export default (mongoose.models?.Conversation as mongoose.Model<any>) || model('Conversation', ConversationSchema); 

@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const TeamMemberSchema = new Schema({
   botId: {
@@ -146,4 +146,4 @@ TeamMemberSchema.methods.canExportData = function(): boolean {
   return this.hasPermission('export_data');
 };
 
-export default models.TeamMember || model('TeamMember', TeamMemberSchema); 
+export default (mongoose.models?.TeamMember as mongoose.Model<any>) || model('TeamMember', TeamMemberSchema); 

@@ -1,4 +1,4 @@
-import mongoose, { Schema, model, models } from 'mongoose';
+import mongoose, { Schema, model } from 'mongoose';
 
 const BotSettingsSchema = new Schema({
   welcomeMessage: {
@@ -24,6 +24,34 @@ const BotSettingsSchema = new Schema({
   webhookUrl: {
     type: String,
     default: 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat',
+  },
+  // Voice settings
+  voiceEnabled: {
+    type: Boolean,
+    default: false,
+  },
+  voiceSettings: {
+    voice: {
+      type: String,
+      enum: ['alloy', 'echo', 'fable', 'onyx', 'nova', 'shimmer'],
+      default: 'alloy',
+    },
+    speed: {
+      type: Number,
+      min: 0.25,
+      max: 4.0,
+      default: 1.0,
+    },
+    pitch: {
+      type: Number,
+      min: 0.25,
+      max: 4.0,
+      default: 1.0,
+    },
+    language: {
+      type: String,
+      default: 'en-US',
+    },
   },
 });
 
@@ -81,4 +109,4 @@ const BotSchema = new Schema({
   timestamps: true,
 });
 
-export default models.Bot || model('Bot', BotSchema); 
+export default (mongoose.models?.Bot as mongoose.Model<any>) || model('Bot', BotSchema); 

@@ -9,10 +9,9 @@ export default function HomePage() {
       {/* Header */}
       <header className="px-4 lg:px-6 h-16 flex items-center backdrop-blur-sm bg-white/80 border-b border-gray-200/50 sticky top-0 z-50">
         <Link className="flex items-center justify-center" href="/">
-          <div className="p-2 rounded-xl gradient-primary mr-3">
-            <Bot className="h-5 w-5 text-white" />
+          <div className="flex items-center mr-3">
+            <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-8 w-auto" />
           </div>
-          <span className="font-bold text-xl gradient-text">Botrix</span>
         </Link>
         <nav className="ml-auto flex gap-3">
           <Link href="/login">
@@ -191,10 +190,9 @@ export default function HomePage() {
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
             <div className="space-y-4">
               <div className="flex items-center">
-                <div className="p-2 rounded-xl gradient-primary mr-3">
-                  <Bot className="h-5 w-5 text-white" />
+                <div className="flex items-center mr-3">
+                  <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-8 w-auto" />
                 </div>
-                <span className="font-bold text-xl text-white">Botrix</span>
               </div>
               <p className="text-gray-400 leading-relaxed">
                 The most powerful no-code chatbot platform for modern businesses.

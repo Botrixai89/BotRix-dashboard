@@ -5,11 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Edit, Trash2, MessageSquare, Save, Settings, Zap, Globe, Palette, TestTube, AlertTriangle, CheckCircle, XCircle } from 'lucide-react'
+import { Plus, Edit, Trash2, MessageSquare, Save, Settings, Zap, Globe, Palette, TestTube, AlertTriangle, CheckCircle, XCircle, Volume2, VolumeX, Play, Pause } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { showSuccess, showError } from '@/lib/toast'
+import { getVoiceService } from '@/lib/voice-service'
 
 interface Bot {
   _id: string;
@@ -20,6 +21,13 @@ interface Bot {
     welcomeMessage: string;
     fallbackMessage: string;
     primaryColor: string;
+    voiceEnabled: boolean;
+    voiceSettings: {
+      voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
+      speed: number;
+      pitch: number;
+      language: string;
+    };
   };
 }
 
@@ -47,7 +55,14 @@ export default function BuilderPage() {
     webhookUrl: '',
     welcomeMessage: '',
     fallbackMessage: '',
-    primaryColor: ''
+    primaryColor: '',
+    voiceEnabled: false,
+    voiceSettings: {
+      voice: 'alloy' as const,
+      speed: 1.0,
+      pitch: 1.0,
+      language: 'en-US'
+    }
   })
 
   useEffect(() => {
@@ -65,7 +80,14 @@ export default function BuilderPage() {
           webhookUrl: result.bot.settings.webhookUrl || '',
           welcomeMessage: result.bot.settings.welcomeMessage || '',
           fallbackMessage: result.bot.settings.fallbackMessage || '',
-          primaryColor: result.bot.settings.primaryColor || '#7c3aed'
+          primaryColor: result.bot.settings.primaryColor || '#7c3aed',
+          voiceEnabled: result.bot.settings.voiceEnabled || false,
+          voiceSettings: {
+            voice: result.bot.settings.voiceSettings?.voice || 'alloy',
+            speed: result.bot.settings.voiceSettings?.speed || 1.0,
+            pitch: result.bot.settings.voiceSettings?.pitch || 1.0,
+            language: result.bot.settings.voiceSettings?.language || 'en-US'
+          }
         })
       } else {
         setError(result.error || 'Failed to fetch bot')
@@ -373,6 +395,182 @@ export default function BuilderPage() {
           </CardContent>
         </Card>
 
+        {/* Voice Settings */}
+        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+          <CardHeader>
+            <div className="flex items-center space-x-3">
+              <div className="w-10 h-10 bg-purple-500 text-white rounded-lg flex items-center justify-center">
+                <Volume2 className="h-5 w-5" />
+              </div>
+              <div>
+                <CardTitle className="text-xl">Voice Settings</CardTitle>
+                <CardDescription>
+                  Enable text-to-speech for your bot responses
+                </CardDescription>
+              </div>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            <div className="space-y-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-sm font-semibold text-gray-700">
+                    Enable Voice Responses
+                  </Label>
+                  <p className="text-sm text-gray-600">
+                    Allow your bot to speak its responses aloud
+                  </p>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="checkbox"
+                    id="voiceEnabled"
+                    checked={formData.voiceEnabled}
+                    onChange={(e) => handleInputChange('voiceEnabled', e.target.checked)}
+                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
+                  />
+                  <Label htmlFor="voiceEnabled" className="text-sm font-medium text-gray-700">
+                    {formData.voiceEnabled ? 'Enabled' : 'Disabled'}
+                  </Label>
+                </div>
+              </div>
+            </div>
+
+            {formData.voiceEnabled && (
+              <>
+                <div className="space-y-3">
+                  <Label htmlFor="voice" className="text-sm font-semibold text-gray-700">
+                    Voice Type
+                  </Label>
+                  <select
+                    id="voice"
+                    value={formData.voiceSettings.voice}
+                    onChange={(e) => handleInputChange('voiceSettings', {
+                      ...formData.voiceSettings,
+                      voice: e.target.value as any
+                    })}
+                    className="w-full h-12 border border-gray-200 rounded-lg px-3 focus:border-purple-300 focus:ring-purple-200"
+                  >
+                    <option value="alloy">Alloy - Balanced & Clear</option>
+                    <option value="echo">Echo - Deep & Authoritative</option>
+                    <option value="fable">Fable - Warm & Friendly</option>
+                    <option value="onyx">Onyx - Professional & Calm</option>
+                    <option value="nova">Nova - Energetic & Engaging</option>
+                    <option value="shimmer">Shimmer - Soft & Gentle</option>
+                  </select>
+                  <p className="text-sm text-gray-600">
+                    Choose the voice personality for your bot
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-3">
+                    <Label htmlFor="speed" className="text-sm font-semibold text-gray-700">
+                      Speed
+                    </Label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="range"
+                        id="speed"
+                        min="0.25"
+                        max="4.0"
+                        step="0.25"
+                        value={formData.voiceSettings.speed}
+                        onChange={(e) => handleInputChange('voiceSettings', {
+                          ...formData.voiceSettings,
+                          speed: parseFloat(e.target.value)
+                        })}
+                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <span className="text-sm font-medium text-gray-700 w-12">
+                        {formData.voiceSettings.speed}x
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-3">
+                    <Label htmlFor="pitch" className="text-sm font-semibold text-gray-700">
+                      Pitch
+                    </Label>
+                    <div className="flex items-center space-x-3">
+                      <input
+                        type="range"
+                        id="pitch"
+                        min="0.25"
+                        max="4.0"
+                        step="0.25"
+                        value={formData.voiceSettings.pitch}
+                        onChange={(e) => handleInputChange('voiceSettings', {
+                          ...formData.voiceSettings,
+                          pitch: parseFloat(e.target.value)
+                        })}
+                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      />
+                      <span className="text-sm font-medium text-gray-700 w-12">
+                        {formData.voiceSettings.pitch}x
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="language" className="text-sm font-semibold text-gray-700">
+                    Language
+                  </Label>
+                  <select
+                    id="language"
+                    value={formData.voiceSettings.language}
+                    onChange={(e) => handleInputChange('voiceSettings', {
+                      ...formData.voiceSettings,
+                      language: e.target.value
+                    })}
+                    className="w-full h-12 border border-gray-200 rounded-lg px-3 focus:border-purple-300 focus:ring-purple-200"
+                  >
+                    <option value="en-US">English (US)</option>
+                    <option value="en-GB">English (UK)</option>
+                    <option value="es-ES">Spanish</option>
+                    <option value="fr-FR">French</option>
+                    <option value="de-DE">German</option>
+                    <option value="it-IT">Italian</option>
+                    <option value="pt-BR">Portuguese (Brazil)</option>
+                    <option value="ja-JP">Japanese</option>
+                    <option value="ko-KR">Korean</option>
+                    <option value="zh-CN">Chinese (Simplified)</option>
+                  </select>
+                  <p className="text-sm text-gray-600">
+                    Select the language for voice synthesis
+                  </p>
+                </div>
+
+                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
+                  <div className="flex items-center space-x-3 mb-3">
+                    <Volume2 className="h-5 w-5 text-purple-600" />
+                    <h4 className="font-semibold text-purple-900">Voice Preview</h4>
+                  </div>
+                  <p className="text-sm text-purple-700 mb-3">
+                    Test how your bot will sound with the current settings
+                  </p>
+                  <Button
+                    onClick={() => {
+                      const voiceService = getVoiceService();
+                      if (voiceService.isSpeechSupported()) {
+                        voiceService.speak(
+                          "Hello! This is how your bot will sound. I'm here to help you with any questions.",
+                          formData.voiceSettings
+                        );
+                      }
+                    }}
+                    className="bg-purple-600 text-white hover:bg-purple-700 border-0"
+                  >
+                    <Play className="h-4 w-4 mr-2" />
+                    Test Voice
+                  </Button>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+
         {/* Webhook Setup Guide */}
         <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
           <CardHeader>
@@ -415,4 +613,47 @@ export default function BuilderPage() {
       </main>
     </div>
   )
+}
+
+// Add custom styles for the range sliders
+const styles = `
+  .slider::-webkit-slider-thumb {
+    appearance: none;
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #7c3aed;
+    cursor: pointer;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .slider::-moz-range-thumb {
+    height: 20px;
+    width: 20px;
+    border-radius: 50%;
+    background: #7c3aed;
+    cursor: pointer;
+    border: none;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  }
+
+  .slider::-webkit-slider-track {
+    background: #e5e7eb;
+    height: 8px;
+    border-radius: 4px;
+  }
+
+  .slider::-moz-range-track {
+    background: #e5e7eb;
+    height: 8px;
+    border-radius: 4px;
+    border: none;
+  }
+`;
+
+// Inject styles
+if (typeof document !== 'undefined') {
+  const styleSheet = document.createElement('style');
+  styleSheet.textContent = styles;
+  document.head.appendChild(styleSheet);
 } 
