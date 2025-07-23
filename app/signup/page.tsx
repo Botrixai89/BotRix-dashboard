@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Bot, ArrowLeft, Lock, Mail, User, Sparkles } from 'lucide-react'
+import { Bot, ArrowLeft, Lock, Mail, User, Sparkles, Eye, EyeOff, CheckCircle } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { showSuccess, showError, toastMessages } from '@/lib/toast'
 import { useAuth } from '@/lib/auth-context'
@@ -19,6 +19,8 @@ export default function SignupPage() {
     confirmPassword: ''
   })
   const [isLoading, setIsLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const router = useRouter()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -56,6 +58,30 @@ export default function SignupPage() {
       [e.target.id]: e.target.value
     }))
   }
+
+  // Password strength checker
+  const getPasswordStrength = () => {
+    const password = formData.password
+    if (!password) return { strength: 0, color: 'gray', text: '' }
+    
+    let strength = 0
+    if (password.length >= 8) strength++
+    if (/[A-Z]/.test(password)) strength++
+    if (/[a-z]/.test(password)) strength++
+    if (/\d/.test(password)) strength++
+    if (/[!@#$%^&*(),.?":{}|<>]/.test(password)) strength++
+    
+    const colors = ['red', 'orange', 'yellow', 'lightgreen', 'green']
+    const texts = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong']
+    
+    return {
+      strength,
+      color: colors[strength - 1] || 'gray',
+      text: texts[strength - 1] || ''
+    }
+  }
+
+  const passwordStrength = getPasswordStrength()
   
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
@@ -74,7 +100,7 @@ export default function SignupPage() {
               </div>
             </Link>
             <div className="space-y-2">
-              <h1 className="text-2xl font-bold text-gray-900">Join Botrix today</h1>
+              <h1 className="text-3xl font-bold text-gray-900">Join Botrix today</h1>
               <p className="text-gray-600">
                 Create your account and start building amazing chatbots
               </p>
@@ -96,7 +122,12 @@ export default function SignupPage() {
           {/* Signup Card */}
           <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
             <CardHeader className="text-center pb-6">
-              <CardTitle className="text-xl">Create your account</CardTitle>
+              <div className="flex justify-center mb-4">
+                <div className="p-3 rounded-full gradient-primary">
+                  <Bot className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl">Create your account</CardTitle>
               <CardDescription className="text-gray-600">
                 Get started with your free Botrix account
               </CardDescription>
@@ -147,14 +178,73 @@ export default function SignupPage() {
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       id="password"
-                      type="password"
+                      type={showPassword ? "text" : "password"}
                       placeholder="Create a password"
                       value={formData.password}
                       onChange={handleChange}
-                      className="pl-10 h-11 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                      className="pl-10 pr-10 h-11 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
+                  
+                  {/* Password Strength Indicator */}
+                  {formData.password && (
+                    <div className="space-y-2">
+                      <div className="flex items-center gap-2">
+                        <div className="flex-1 bg-gray-200 rounded-full h-2">
+                          <div 
+                            className={`h-2 rounded-full transition-all duration-300 ${
+                              passwordStrength.color === 'red' ? 'bg-red-500' :
+                              passwordStrength.color === 'orange' ? 'bg-orange-500' :
+                              passwordStrength.color === 'yellow' ? 'bg-yellow-500' :
+                              passwordStrength.color === 'lightgreen' ? 'bg-lime-500' :
+                              passwordStrength.color === 'green' ? 'bg-green-500' : 'bg-gray-500'
+                            }`}
+                            style={{ width: `${(passwordStrength.strength / 5) * 100}%` }}
+                          ></div>
+                        </div>
+                        <span className={`text-xs font-medium ${
+                          passwordStrength.color === 'red' ? 'text-red-600' :
+                          passwordStrength.color === 'orange' ? 'text-orange-600' :
+                          passwordStrength.color === 'yellow' ? 'text-yellow-600' :
+                          passwordStrength.color === 'lightgreen' ? 'text-lime-600' :
+                          passwordStrength.color === 'green' ? 'text-green-600' : 'text-gray-600'
+                        }`}>
+                          {passwordStrength.text}
+                        </span>
+                      </div>
+                      
+                      <div className="grid grid-cols-2 gap-2 text-xs text-gray-600">
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className={`h-3 w-3 ${formData.password.length >= 8 ? 'text-green-500' : 'text-gray-300'}`} />
+                          At least 8 characters
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className={`h-3 w-3 ${/[A-Z]/.test(formData.password) ? 'text-green-500' : 'text-gray-300'}`} />
+                          One uppercase letter
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className={`h-3 w-3 ${/[a-z]/.test(formData.password) ? 'text-green-500' : 'text-gray-300'}`} />
+                          One lowercase letter
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <CheckCircle className={`h-3 w-3 ${/\d/.test(formData.password) ? 'text-green-500' : 'text-gray-300'}`} />
+                          One number
+                        </div>
+                        <div className="flex items-center gap-1 col-span-2">
+                          <CheckCircle className={`h-3 w-3 ${/[!@#$%^&*(),.?":{}|<>]/.test(formData.password) ? 'text-green-500' : 'text-gray-300'}`} />
+                          One special character
+                        </div>
+                      </div>
+                    </div>
+                  )}
                 </div>
                 
                 <div className="space-y-2">
@@ -165,14 +255,24 @@ export default function SignupPage() {
                     <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
                     <Input
                       id="confirmPassword"
-                      type="password"
+                      type={showConfirmPassword ? "text" : "password"}
                       placeholder="Confirm your password"
                       value={formData.confirmPassword}
                       onChange={handleChange}
-                      className="pl-10 h-11 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                      className="pl-10 pr-10 h-11 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
                       required
                     />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-600 transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                    </button>
                   </div>
+                  {formData.confirmPassword && formData.password !== formData.confirmPassword && (
+                    <p className="text-xs text-red-600">Passwords do not match</p>
+                  )}
                 </div>
                 
                 <Button 
@@ -180,7 +280,14 @@ export default function SignupPage() {
                   className="w-full gradient-primary text-white border-0 h-11 hover:shadow-lg hover:scale-[1.02] transition-all duration-300" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Creating Account...' : 'Create Account'}
+                  {isLoading ? (
+                    <div className="flex items-center">
+                      <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
+                      Creating Account...
+                    </div>
+                  ) : (
+                    'Create Account'
+                  )}
                 </Button>
               </form>
 

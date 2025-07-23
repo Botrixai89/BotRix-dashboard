@@ -5,7 +5,9 @@ import toast from 'react-hot-toast'
 export const toastMessages = {
   // Success messages
   loginSuccess: 'Login successful! Redirecting to dashboard...',
-  signupSuccess: 'Account created successfully! Redirecting to dashboard...',
+  signupSuccess: 'Account created successfully! Please check your email to verify your account.',
+  passwordResetSent: 'Password reset link sent to your email!',
+  passwordResetSuccess: 'Password reset successfully! You can now log in with your new password.',
   botCreated: 'Bot created successfully! Redirecting...',
   botUpdated: 'Bot updated successfully!',
   botDeleted: 'Bot deleted successfully!',
@@ -14,11 +16,14 @@ export const toastMessages = {
   // Error messages
   loginFailed: 'Login failed. Please check your credentials.',
   signupFailed: 'Registration failed. Please try again.',
+  passwordResetFailed: 'Password reset failed. Please try again.',
+  invalidResetToken: 'Invalid or expired reset token.',
   networkError: 'Network error. Please check your connection and try again.',
   botNotFound: 'Bot not found. Please check the bot configuration.',
   serverError: 'Server error. Our team has been notified.',
   validationError: 'Please check your input and try again.',
   passwordMismatch: 'Passwords do not match!',
+  accountLocked: 'Account is temporarily locked due to too many failed login attempts.',
   
   // Loading messages
   creatingBot: 'Creating your bot...',

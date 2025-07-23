@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
     const payload = verifyToken(token)
     if (!payload) {
       return NextResponse.json(
-        { error: 'Invalid token' },
+        { error: 'Invalid or expired token' },
         { status: 401 }
       )
     }
@@ -42,11 +42,22 @@ export async function GET(request: NextRequest) {
         name: user.name,
         email: user.email,
         avatar: user.avatar,
+        isEmailVerified: user.isEmailVerified,
         createdAt: user.createdAt,
+        lastLogin: user.lastLogin,
       }
     })
   } catch (error) {
     console.error('Auth check error:', error)
+    
+    // Handle MongoDB connection errors
+    if (error instanceof Error && error.message.includes('MongoDB')) {
+      return NextResponse.json(
+        { error: 'Database connection failed. Please try again later.' },
+        { status: 503 }
+      )
+    }
+    
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

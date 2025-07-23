@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
-import { generateToken, setAuthCookies } from '@/lib/auth'
+import { generateToken, setAuthCookies, validateEmail } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -12,6 +12,14 @@ export async function POST(request: NextRequest) {
     if (!email || !password) {
       return NextResponse.json(
         { error: 'Email and password are required' },
+        { status: 400 }
+      )
+    }
+
+    // Validate email format
+    if (!validateEmail(email)) {
+      return NextResponse.json(
+        { error: 'Invalid email format' },
         { status: 400 }
       )
     }
@@ -28,14 +36,28 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Check if account is locked
+    if (user.isLocked) {
+      return NextResponse.json(
+        { error: 'Account is temporarily locked due to too many failed login attempts. Please try again later.' },
+        { status: 423 }
+      )
+    }
+
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.password)
     if (!isPasswordValid) {
+      // Increment login attempts
+      await user.incLoginAttempts()
+      
       return NextResponse.json(
         { error: 'Invalid email or password' },
         { status: 401 }
       )
     }
+
+    // Reset login attempts on successful login
+    await user.resetLoginAttempts()
 
     // Generate JWT token
     const token = generateToken(user)
@@ -49,6 +71,7 @@ export async function POST(request: NextRequest) {
           name: user.name,
           email: user.email,
           avatar: user.avatar,
+          isEmailVerified: user.isEmailVerified,
           createdAt: user.createdAt,
         },
       },
@@ -59,6 +82,15 @@ export async function POST(request: NextRequest) {
     return setAuthCookies(response, token)
   } catch (error) {
     console.error('Login error:', error)
+    
+    // Handle MongoDB connection errors
+    if (error instanceof Error && error.message.includes('MongoDB')) {
+      return NextResponse.json(
+        { error: 'Database connection failed. Please try again later.' },
+        { status: 503 }
+      )
+    }
+
     return NextResponse.json(
       { error: 'Internal server error' },
       { status: 500 }

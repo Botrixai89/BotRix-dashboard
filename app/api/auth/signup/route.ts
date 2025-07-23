@@ -2,7 +2,13 @@ import { NextRequest, NextResponse } from 'next/server'
 import bcrypt from 'bcryptjs'
 import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
-import { generateToken, setAuthCookies } from '@/lib/auth'
+import { 
+  generateToken, 
+  setAuthCookies, 
+  validatePassword, 
+  validateEmail,
+  generateEmailVerificationToken 
+} from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -17,18 +23,26 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-    if (!emailRegex.test(email)) {
+    if (!validateEmail(email)) {
       return NextResponse.json(
         { error: 'Invalid email format' },
         { status: 400 }
       )
     }
 
-    // Validate password length
-    if (password.length < 6) {
+    // Validate password strength
+    const passwordValidation = validatePassword(password)
+    if (!passwordValidation.isValid) {
       return NextResponse.json(
-        { error: 'Password must be at least 6 characters long' },
+        { error: 'Password requirements not met', details: passwordValidation.errors },
+        { status: 400 }
+      )
+    }
+
+    // Validate name length
+    if (name.trim().length < 2) {
+      return NextResponse.json(
+        { error: 'Name must be at least 2 characters long' },
         { status: 400 }
       )
     }
@@ -46,14 +60,19 @@ export async function POST(request: NextRequest) {
     }
 
     // Hash password
-    const saltRounds = 12
-    const hashedPassword = await bcrypt.hash(password, saltRounds)
+    const hashedPassword = await bcrypt.hash(password, 12)
+
+    // Generate email verification token
+    const emailVerificationToken = generateEmailVerificationToken()
+    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
 
     // Create new user
     const newUser = new User({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
+      emailVerificationToken,
+      emailVerificationExpires,
     })
 
     // Save user to database
@@ -65,12 +84,13 @@ export async function POST(request: NextRequest) {
     // Create response with user data
     const response = NextResponse.json(
       {
-        message: 'User created successfully',
+        message: 'User created successfully. Please check your email to verify your account.',
         user: {
           _id: savedUser._id,
           name: savedUser.name,
           email: savedUser.email,
           avatar: savedUser.avatar,
+          isEmailVerified: savedUser.isEmailVerified,
           createdAt: savedUser.createdAt,
         },
       },
@@ -82,6 +102,14 @@ export async function POST(request: NextRequest) {
   } catch (error) {
     console.error('Signup error:', error)
     
+    // Handle MongoDB connection errors
+    if (error instanceof Error && error.message.includes('MongoDB')) {
+      return NextResponse.json(
+        { error: 'Database connection failed. Please try again later.' },
+        { status: 503 }
+      )
+    }
+    
     // Handle MongoDB duplicate key error
     if (error instanceof Error && 'code' in error && error.code === 11000) {
       return NextResponse.json(
@@ -90,8 +118,17 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Handle validation errors
+    if (error instanceof Error && error.name === 'ValidationError') {
+      const validationErrors = Object.values((error as any).errors).map((err: any) => err.message)
+      return NextResponse.json(
+        { error: 'Validation failed', details: validationErrors },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error. Please try again.' },
       { status: 500 }
     )
   }
