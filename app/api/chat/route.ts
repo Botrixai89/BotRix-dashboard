@@ -200,9 +200,10 @@ export async function POST(request: NextRequest) {
             await new Promise(resolve => setTimeout(resolve, 1000));
           }
           
-        } catch (fetchError) {
-          lastError = fetchError.message;
-          console.error(`❌ Webhook attempt ${attempt} failed:`, fetchError.message);
+        } catch (fetchError: unknown) {
+          const errorMessage = fetchError instanceof Error ? fetchError.message : String(fetchError);
+          lastError = errorMessage;
+          console.error(`❌ Webhook attempt ${attempt} failed:`, errorMessage);
           
           if (attempt < maxRetries) {
             console.log(`⏳ Retrying in 1 second... (attempt ${attempt}/${maxRetries})`);
@@ -266,12 +267,13 @@ export async function POST(request: NextRequest) {
             try {
               const errorJson = JSON.parse(errorText);
               errorDetails = errorJson.message || errorJson.error || errorText;
-            } catch (e) {
+            } catch (e: unknown) {
               // If not JSON, use the raw text
               errorDetails = errorText;
             }
-          } catch (e) {
-            console.error('❌ Could not read error response:', e.message);
+          } catch (e: unknown) {
+            const errorMessage = e instanceof Error ? e.message : String(e);
+            console.error('❌ Could not read error response:', errorMessage);
           }
         }
         
@@ -330,7 +332,7 @@ export async function POST(request: NextRequest) {
         headers: corsHeaders,
       });
 
-    } catch (webhookError) {
+    } catch (webhookError: unknown) {
       console.error('💥 Error calling webhook:', webhookError);
       
       // Add fallback message to conversation
@@ -361,7 +363,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('💥 Error processing chat message:', error);
     return NextResponse.json(
       { error: 'Failed to process message' },

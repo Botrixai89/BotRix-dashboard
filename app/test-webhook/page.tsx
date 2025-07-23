@@ -32,10 +32,11 @@ export default function TestWebhookPage() {
 
       const data = await response.json()
       setResult(data)
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       setResult({
         success: false,
-        error: error.message,
+        error: errorMessage,
         message: 'Failed to test webhook'
       })
     } finally {

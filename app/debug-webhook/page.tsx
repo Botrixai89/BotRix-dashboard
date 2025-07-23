@@ -66,18 +66,20 @@ export default function DebugWebhookPage() {
           response: parsedDirectData,
           headers: Object.fromEntries(directResponse.headers.entries())
         })
-      } catch (directError) {
+      } catch (directError: unknown) {
+        const errorMessage = directError instanceof Error ? directError.message : String(directError);
         setDirectResult({
           success: false,
-          error: directError.message,
+          error: errorMessage,
           message: 'Direct webhook call failed'
         })
       }
 
-    } catch (error) {
+    } catch (error: unknown) {
+      const errorMessage = error instanceof Error ? error.message : String(error);
       setResult({
         success: false,
-        error: error.message,
+        error: errorMessage,
         message: 'Failed to test webhook'
       })
     } finally {

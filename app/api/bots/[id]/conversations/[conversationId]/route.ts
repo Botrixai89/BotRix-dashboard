@@ -4,6 +4,16 @@ import Conversation from '@/models/Conversation';
 import { requireAuth } from '@/lib/auth';
 import mongoose from 'mongoose';
 
+// Define the message interface to match the schema
+interface Message {
+  _id: string;
+  content: string;
+  sender: 'bot' | 'user' | 'agent';
+  timestamp: Date;
+  type?: 'text' | 'image' | 'file' | 'button';
+  metadata?: any;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string; conversationId: string } }
@@ -59,8 +69,8 @@ export async function GET(
     
     console.log('✅ Found conversation with', conversation.messages.length, 'messages');
     
-    // Transform messages for frontend
-    const messages = conversation.messages.map(msg => ({
+    // Transform messages for frontend with proper typing
+    const messages = conversation.messages.map((msg: Message) => ({
       _id: msg._id,
       content: msg.content,
       sender: msg.sender,
@@ -81,7 +91,7 @@ export async function GET(
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error fetching conversation messages:', error);
     console.error('❌ Error details:', {
       message: error.message,

@@ -59,16 +59,12 @@ const TeamMemberSchema = new Schema({
 // Compound index to ensure unique bot-user combinations
 TeamMemberSchema.index({ botId: 1, userId: 1 }, { unique: true });
 
-// Pre-save middleware to set default permissions based on role
-TeamMemberSchema.pre('save', function(next) {
-  if (this.isModified('role')) {
-    this.permissions = this.getDefaultPermissions(this.role);
-  }
-  next();
-});
+// Define permission types
+type Permission = 'view_bot' | 'edit_bot' | 'delete_bot' | 'view_conversations' | 'reply_conversations' | 'assign_conversations' | 'view_analytics' | 'manage_team' | 'export_data';
 
-TeamMemberSchema.methods.getDefaultPermissions = function(role: string): string[] {
-  const permissionMap = {
+// Define the getDefaultPermissions function
+const getDefaultPermissions = function(role: string): Permission[] {
+  const permissionMap: Record<string, Permission[]> = {
     admin: [
       'view_bot',
       'edit_bot',
@@ -103,8 +99,19 @@ TeamMemberSchema.methods.getDefaultPermissions = function(role: string): string[
     ]
   };
 
-  return permissionMap[role as keyof typeof permissionMap] || permissionMap.viewer;
+  return permissionMap[role] || permissionMap.viewer;
 };
+
+// Pre-save middleware to set default permissions based on role
+TeamMemberSchema.pre('save', function(next) {
+  if (this.isModified('role')) {
+    this.permissions = getDefaultPermissions(this.role);
+  }
+  next();
+});
+
+// Add the method to the schema
+TeamMemberSchema.methods.getDefaultPermissions = getDefaultPermissions;
 
 TeamMemberSchema.methods.hasPermission = function(permission: string): boolean {
   return this.permissions.includes(permission);

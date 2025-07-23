@@ -98,7 +98,7 @@ export class FileUploadService {
       const files: File[] = [];
 
       // Extract all files from form data
-      for (const [key, value] of formData.entries()) {
+      for (const [key, value] of Array.from(formData.entries())) {
         if (value instanceof File) {
           files.push(value);
         }

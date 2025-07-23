@@ -4,6 +4,16 @@ import Conversation from '@/models/Conversation';
 import { requireAuth } from '@/lib/auth';
 import mongoose from 'mongoose';
 
+// Define the message interface to match the schema
+interface Message {
+  _id: string;
+  content: string;
+  sender: 'bot' | 'user' | 'agent';
+  timestamp: Date;
+  type?: 'text' | 'image' | 'file' | 'button';
+  metadata?: any;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -76,8 +86,8 @@ export async function GET(
     // Transform conversations to include summary data
     const transformedConversations = conversations.map(conv => {
       const lastMessage = conv.messages[conv.messages.length - 1];
-      const userMessages = conv.messages.filter(m => m.sender === 'user');
-      const botMessages = conv.messages.filter(m => m.sender === 'bot');
+      const userMessages = conv.messages.filter((m: Message) => m.sender === 'user');
+      const botMessages = conv.messages.filter((m: Message) => m.sender === 'bot');
       
       return {
         _id: conv._id,
@@ -109,7 +119,7 @@ export async function GET(
       }
     });
 
-  } catch (error) {
+  } catch (error: any) {
     console.error('❌ Error fetching conversations:', error);
     console.error('❌ Error details:', {
       message: error.message,

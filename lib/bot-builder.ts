@@ -1,5 +1,6 @@
 import dbConnect from './mongodb';
 import Bot from '@/models/Bot';
+import BotFlowModel from '@/models/BotFlow';
 
 export interface FlowNode {
   id: string;
@@ -48,7 +49,7 @@ export interface Action {
   data: Record<string, any>;
 }
 
-export interface BotFlow {
+export interface BotFlowData {
   _id: string;
   botId: string;
   nodes: FlowNode[];
@@ -71,10 +72,10 @@ export class BotBuilderService {
   /**
    * Create a new bot flow
    */
-  async createFlow(botId: string, flowData: Partial<BotFlow>): Promise<BotFlow> {
+  async createFlow(botId: string, flowData: Partial<BotFlowData>): Promise<BotFlowData> {
     await dbConnect();
 
-    const flow = new BotFlow({
+    const flow = new BotFlowModel({
       botId,
       nodes: flowData.nodes || this.getDefaultNodes(),
       connections: flowData.connections || [],
@@ -125,15 +126,15 @@ export class BotBuilderService {
   /**
    * Get flow by bot ID
    */
-  async getFlow(botId: string): Promise<BotFlow | null> {
+  async getFlow(botId: string): Promise<BotFlowData | null> {
     await dbConnect();
-    return await BotFlow.findOne({ botId }).sort({ version: -1 });
+    return await BotFlowModel.findOne({ botId }).sort({ version: -1 });
   }
 
   /**
    * Update flow
    */
-  async updateFlow(botId: string, flowData: Partial<BotFlow>): Promise<BotFlow> {
+  async updateFlow(botId: string, flowData: Partial<BotFlowData>): Promise<BotFlowData> {
     await dbConnect();
 
     const existingFlow = await this.getFlow(botId);
@@ -142,7 +143,7 @@ export class BotBuilderService {
     }
 
     // Create new version
-    const newFlow = new BotFlow({
+    const newFlow = new BotFlowModel({
       botId,
       nodes: flowData.nodes || existingFlow.nodes,
       connections: flowData.connections || existingFlow.connections,
@@ -157,16 +158,20 @@ export class BotBuilderService {
   /**
    * Activate/deactivate flow
    */
-  async toggleFlow(botId: string, isActive: boolean): Promise<BotFlow> {
+  async toggleFlow(botId: string, isActive: boolean): Promise<BotFlowData> {
     await dbConnect();
 
-    const flow = await this.getFlow(botId);
+    const flow = await BotFlowModel.findOneAndUpdate(
+      { botId },
+      { isActive },
+      { new: true, sort: { version: -1 } }
+    );
+    
     if (!flow) {
       throw new Error('Flow not found');
     }
 
-    flow.isActive = isActive;
-    return await flow.save();
+    return flow.toObject();
   }
 
   /**
@@ -264,7 +269,7 @@ export class BotBuilderService {
       return false;
     };
 
-    for (const nodeId of graph.keys()) {
+    for (const nodeId of Array.from(graph.keys())) {
       if (!visited.has(nodeId)) {
         if (hasCycleDFS(nodeId)) return true;
       }
@@ -320,7 +325,7 @@ export class BotBuilderService {
    * Execute flow logic
    */
   async executeFlow(
-    flow: BotFlow,
+    flow: BotFlowData,
     userInput: string,
     context: Record<string, any> = {}
   ): Promise<{
@@ -329,7 +334,7 @@ export class BotBuilderService {
     variables: Record<string, any>;
     actions: Action[];
   }> {
-    const variables = { ...context };
+    let variables = { ...context };
     const actions: Action[] = [];
 
     // Find start node
@@ -343,7 +348,7 @@ export class BotBuilderService {
     }
 
     // Execute flow logic
-    let currentNode = startNode;
+    let currentNode: FlowNode | null = startNode;
     let response = '';
 
     while (currentNode) {
@@ -353,9 +358,10 @@ export class BotBuilderService {
       actions.push(...result.actions);
 
       // Find next node
-      const nextConnection = flow.connections.find(conn => conn.source === currentNode.id);
+      const nextConnection = flow.connections.find(conn => conn.source === currentNode!.id);
       if (nextConnection) {
-        currentNode = flow.nodes.find(node => node.id === nextConnection.target);
+        const nextNode = flow.nodes.find(node => node.id === nextConnection.target);
+        currentNode = nextNode || null;
       } else {
         currentNode = null;
       }

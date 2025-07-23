@@ -52,7 +52,7 @@ export const showInfo = (message: string) => {
 }
 
 // Promise toast - great for async operations
-export const showPromiseToast = <T>(
+export const showPromiseToast = <T,>(
   promise: Promise<T>,
   messages: {
     loading: string

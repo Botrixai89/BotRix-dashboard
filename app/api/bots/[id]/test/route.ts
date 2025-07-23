@@ -2,6 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Bot from '@/models/Bot';
 
+// Define the webhook test result interface
+interface WebhookTestResult {
+  status: 'not_tested' | 'success' | 'error' | 'demo_mode';
+  message: string;
+  statusCode?: number;
+  response?: any;
+  error?: string;
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -18,7 +27,7 @@ export async function GET(
     }
 
     // Test webhook connectivity
-    let webhookTest = { status: 'not_tested', message: 'Webhook not tested' };
+    let webhookTest: WebhookTestResult = { status: 'not_tested', message: 'Webhook not tested' };
     
     if (bot.settings.webhookUrl && 
         !bot.settings.webhookUrl.includes('placeholder') && 
@@ -57,7 +66,7 @@ export async function GET(
             message: `Webhook returned ${testResponse.status} error`
           };
         }
-      } catch (error) {
+      } catch (error: any) {
         webhookTest = {
           status: 'error',
           error: error.message,
@@ -97,7 +106,7 @@ export async function GET(
       ]
     });
 
-  } catch (error) {
+  } catch (error: unknown) {
     console.error('Error testing bot:', error);
     return NextResponse.json(
       { error: 'Failed to test bot configuration' },
