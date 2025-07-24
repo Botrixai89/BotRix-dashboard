@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Bot from '@/models/Bot';
 import Conversation from '@/models/Conversation';
+import { getRandomName } from '@/lib/utils';
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -55,6 +56,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
+    // Get IP and userAgent from request headers if not provided
+    const ip = userInfo?.ip && userInfo.ip !== 'client-ip' ? userInfo.ip : request.headers.get('x-forwarded-for') || request.headers.get('x-real-ip') || request.ip || 'unknown';
+    const userAgent = userInfo?.userAgent || request.headers.get('user-agent') || 'unknown';
+
     // Get bot with webhook URL
     const bot = await Bot.findById(botId);
     if (!bot) {
@@ -75,16 +80,30 @@ export async function POST(request: NextRequest) {
       isDemoWebhook: bot.settings.webhookUrl === 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat'
     });
 
-    // Get or create conversation
+    // Find or create conversation
     let conversation;
     if (conversationId) {
       conversation = await Conversation.findById(conversationId);
     }
-    
+    // If no conversationId, try to find by botId, ip, and userAgent (not closed)
+    if (!conversation) {
+      conversation = await Conversation.findOne({
+        botId,
+        'userInfo.ip': ip,
+        'userInfo.userAgent': userAgent,
+        status: { $ne: 'closed' },
+      });
+    }
+    // If still not found, create new
     if (!conversation) {
       conversation = new Conversation({
         botId,
-        userInfo: userInfo || { ip: 'unknown', userAgent: 'unknown' },
+        userInfo: {
+          name: userInfo?.name || null,
+          email: userInfo?.email || null,
+          ip,
+          userAgent,
+        },
         messages: [],
         status: 'new',
         tags: [],
@@ -98,6 +117,60 @@ export async function POST(request: NextRequest) {
       timestamp: new Date(),
     };
     conversation.messages.push(userMessage);
+
+    // If user's name is not set, check if this is a name response
+    if (!conversation.userInfo.name) {
+      // If the last bot message was a name prompt, treat this as the name response
+      const lastBotMsg = conversation.messages.slice(-2, -1)[0];
+      if (lastBotMsg && lastBotMsg.sender === 'bot' && lastBotMsg.content.includes('your name')) {
+        const trimmed = message.trim().toLowerCase();
+        if (!trimmed || ['no', 'skip', 'anonymous', ''].includes(trimmed)) {
+          conversation.userInfo.name = getRandomName();
+        } else {
+          // Use the provided name (capitalize first letter)
+          conversation.userInfo.name = message.charAt(0).toUpperCase() + message.slice(1);
+        }
+      }
+    }
+
+    // If this is the first user message, send greeting and name prompt
+    if (conversation.messages.length === 1) {
+      const greeting = bot.settings.welcomeMessage || 'Hello! How can I help you today?';
+      const botMessage1 = {
+        content: greeting,
+        sender: 'bot' as const,
+        timestamp: new Date(),
+      };
+      const botMessage2 = {
+        content: 'May I know your name please? (You can say "skip" if you prefer a random name)',
+        sender: 'bot' as const,
+        timestamp: new Date(),
+      };
+      conversation.messages.push(botMessage1, botMessage2);
+      await conversation.save();
+      const responseData = [
+        {
+          content: { text: greeting },
+          _id: conversation._id,
+          sender: 'bot',
+          type: 'text',
+          createdAt: new Date().toISOString(),
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+        },
+        {
+          content: { text: 'May I know your name please? (You can say "skip" if you prefer a random name)' },
+          _id: conversation._id,
+          sender: 'bot',
+          type: 'text',
+          createdAt: new Date().toISOString(),
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+        }
+      ];
+      return NextResponse.json(responseData, { headers: corsHeaders });
+    }
+
+    // Save conversation
+    await conversation.save();
 
     // Check if webhook URL is properly configured
     const isDemoWebhook = bot.settings.webhookUrl.includes('placeholder') || 

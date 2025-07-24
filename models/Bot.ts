@@ -87,6 +87,10 @@ const BotSchema = new Schema({
     type: String,
     default: null,
   },
+  companyLogo: {
+    type: String,
+    default: null,
+  },
   status: {
     type: String,
     enum: ['active', 'inactive', 'draft'],

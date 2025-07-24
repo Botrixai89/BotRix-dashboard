@@ -168,8 +168,9 @@
         '👋 Hello',
         '❓ Help',
         '📞 Contact',
-        '💰 Pricing'
+        '�� Pricing'
       ];
+      this.userName = null; // Store the user's name
       
       this.init();
     }
@@ -864,10 +865,28 @@
         avatar.textContent = '🤖';
         messageDiv.appendChild(avatar);
       }
+      // Add avatar and name for user messages
+      if (sender === 'user') {
+        const avatar = document.createElement('div');
+        avatar.className = 'botrix-message-avatar';
+        avatar.textContent = (this.userName && this.userName.length > 0) ? this.userName[0].toUpperCase() : 'U';
+        messageDiv.appendChild(avatar);
+      }
 
       const bubble = document.createElement('div');
       bubble.className = 'botrix-message-bubble';
       bubble.textContent = content;
+
+      // Add user name above user message
+      if (sender === 'user') {
+        const nameDiv = document.createElement('div');
+        nameDiv.className = 'botrix-message-username';
+        nameDiv.style.fontSize = '12px';
+        nameDiv.style.color = '#6b7280';
+        nameDiv.style.marginBottom = '2px';
+        nameDiv.textContent = this.userName || 'You';
+        messageContent.appendChild(nameDiv);
+      }
 
       // Add timestamp if enabled
       if (this.options.showTimestamp) {
@@ -1027,7 +1046,6 @@
           "I'd be happy to help you with that. Let me connect you with the right information.",
         ];
         const randomResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
-        
         setTimeout(() => {
           this.addMessage(randomResponse, 'bot');
           this.input.disabled = false;
@@ -1040,14 +1058,27 @@
       try {
         const response = await this.chatService.sendMessage(message);
         this.hideTyping();
-        
-        if (Array.isArray(response) && response.length > 0) {
-          const firstMessage = response[0];
-          if (firstMessage.content && firstMessage.content.text) {
-            this.addMessage(firstMessage.content.text, 'bot');
-          } else {
-            this.addMessage('I received your message but had trouble processing it. Please try again.', 'bot');
+        // Try to extract user name from the backend response
+        if (Array.isArray(response) && response.length > 0 && response[0]._id) {
+          // Try to fetch conversation info for user name
+          // We'll make a request to get the conversation details (if not already available)
+          // For now, try to extract from response if present
+          if (response[0].userInfo && response[0].userInfo.name) {
+            this.userName = response[0].userInfo.name;
           }
+        }
+        // If the backend sends the name in a different way, you may need to adjust this logic
+        if (Array.isArray(response) && response.length > 0) {
+          response.forEach(msg => {
+            if (msg.userInfo && msg.userInfo.name) {
+              this.userName = msg.userInfo.name;
+            }
+            if (msg.content && msg.content.text) {
+              this.addMessage(msg.content.text, 'bot');
+            } else {
+              this.addMessage('I received your message but had trouble processing it. Please try again.', 'bot');
+            }
+          });
         } else if (response.success && response.response) {
           this.addMessage(response.response, 'bot');
         } else {
@@ -1056,7 +1087,6 @@
       } catch (error) {
         this.hideTyping();
         console.error('Chat error:', error);
-        
         const fallbackResponses = [
           "I'm having trouble connecting right now, but I'm here to help! Try asking me something else.",
           "There seems to be a connection issue. Don't worry, I'll be back online shortly!",

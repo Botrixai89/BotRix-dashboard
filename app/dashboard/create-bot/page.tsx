@@ -9,12 +9,41 @@ import { ArrowLeft, Bot, Sparkles, Zap, Settings, Palette } from 'lucide-react'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { showSuccess, showError, toastMessages } from '@/lib/toast'
+import { useRef } from 'react';
 
 export default function CreateBotPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
   const [primaryColor, setPrimaryColor] = useState('#7c3aed')
+  const [logoUrl, setLogoUrl] = useState<string | null>(null)
+  const [logoUploading, setLogoUploading] = useState(false)
+  const logoInputRef = useRef<HTMLInputElement>(null)
+
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setLogoUploading(true)
+    setError('')
+    try {
+      const formData = new FormData()
+      formData.append('file', file)
+      const res = await fetch('/api/upload', {
+        method: 'POST',
+        body: formData,
+      })
+      const data = await res.json()
+      if (res.ok && data.url) {
+        setLogoUrl(data.url)
+      } else {
+        setError(data.error || 'Failed to upload logo')
+      }
+    } catch (err) {
+      setError('Failed to upload logo')
+    } finally {
+      setLogoUploading(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault()
@@ -28,6 +57,7 @@ export default function CreateBotPage() {
       welcomeMessage: formData.get('welcomeMessage') as string,
       primaryColor: primaryColor,
       webhookUrl: formData.get('webhookUrl') as string,
+      companyLogo: logoUrl,
     }
 
     try {
@@ -112,6 +142,29 @@ export default function CreateBotPage() {
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   {/* Left Column */}
                   <div className="space-y-6">
+                    {/* Logo Upload */}
+                    <div className="space-y-3">
+                      <Label className="text-sm font-semibold text-gray-700 flex items-center">
+                        Company Logo
+                      </Label>
+                      <div className="flex items-center space-x-4">
+                        <input
+                          ref={logoInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="hidden"
+                          onChange={handleLogoChange}
+                        />
+                        <Button type="button" variant="outline" onClick={() => logoInputRef.current?.click()} disabled={logoUploading}>
+                          {logoUploading ? 'Uploading...' : 'Upload Logo'}
+                        </Button>
+                        {logoUrl && (
+                          <img src={logoUrl} alt="Logo Preview" className="w-12 h-12 rounded-lg object-cover border" />
+                        )}
+                      </div>
+                      <p className="text-sm text-gray-500">This logo will appear next to your bot name in the dashboard.</p>
+                    </div>
+
                     <div className="space-y-3">
                       <Label htmlFor="botName" className="text-sm font-semibold text-gray-700 flex items-center">
                         <Sparkles className="w-4 h-4 mr-2 text-purple-500" />

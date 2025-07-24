@@ -16,7 +16,7 @@ export async function POST(request: NextRequest) {
     await dbConnect();
     
     const body = await request.json();
-    const { name, description, welcomeMessage, primaryColor, webhookUrl } = body;
+    const { name, description, welcomeMessage, primaryColor, webhookUrl, companyLogo } = body;
 
     // Validate required fields
     if (!name) {
@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
       name,
       description: description || '',
       userId: authResult.user._id,
+      companyLogo: companyLogo || null,
       settings: {
         welcomeMessage: welcomeMessage || 'Hello! How can I help you today?',
         primaryColor: primaryColor || '#2563eb',

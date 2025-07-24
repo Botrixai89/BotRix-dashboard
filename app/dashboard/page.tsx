@@ -12,6 +12,7 @@ interface BotData {
   name: string;
   description?: string;
   status: 'active' | 'inactive' | 'draft';
+  companyLogo?: string | null;
   metrics: {
     totalConversations: number;
     newMessages24h: number;
@@ -214,7 +215,16 @@ export default function DashboardPage() {
                     <Link href={`/dashboard/bots/${bot._id}`}>
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
-                          <CardTitle className="text-xl text-gray-900">{bot.name}</CardTitle>
+                          <div className="flex items-center space-x-3">
+                            {bot.companyLogo ? (
+                              <img src={bot.companyLogo} alt="Company Logo" className="w-10 h-10 rounded-lg object-cover border" />
+                            ) : (
+                              <div className="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center">
+                                <Bot className="h-5 w-5 text-white" />
+                              </div>
+                            )}
+                            <CardTitle className="text-xl text-gray-900">{bot.name}</CardTitle>
+                          </div>
                           <div className={`px-3 py-1 rounded-full text-xs font-medium ${
                             bot.status === 'active' 
                               ? 'bg-green-100 text-green-800'

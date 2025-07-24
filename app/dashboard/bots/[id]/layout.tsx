@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Bot, BarChart3, MessageSquare, Settings, Users, Code, Wrench } from 'lucide-react'
+import { ArrowLeft, Bot, BarChart3, MessageSquare, Settings, Users, Code, Wrench, Menu, ChevronLeft, ChevronRight } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams, usePathname } from 'next/navigation'
 
@@ -11,6 +11,7 @@ interface BotData {
   _id: string;
   name: string;
   status: 'active' | 'inactive' | 'draft';
+  companyLogo?: string | null;
 }
 
 export default function BotLayout({
@@ -22,6 +23,7 @@ export default function BotLayout({
   const pathname = usePathname()
   const [bot, setBot] = useState<BotData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     fetchBot()
@@ -55,20 +57,31 @@ export default function BotLayout({
   return (
     <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Sidebar */}
-      <div className="w-64 bg-white/80 backdrop-blur-sm border-r border-purple-100 shadow-sm">
+      <div className={`bg-white/80 backdrop-blur-sm border-r border-purple-100 shadow-sm transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
+        {/* Sidebar Toggle */}
+        <div className="flex items-center justify-between px-2 py-2 border-b border-purple-100">
+          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen((v) => !v)} className="hover:bg-purple-50">
+            {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+          </Button>
+          {sidebarOpen && (
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" className="hover:bg-purple-50 text-purple-600">
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Back to Dashboard
+              </Button>
+            </Link>
+          )}
+        </div>
         {/* Header */}
-        <div className="px-6 py-6 border-b border-purple-100">
-          <Link href="/dashboard">
-            <Button variant="ghost" size="sm" className="mb-4 hover:bg-purple-50 text-purple-600">
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Back to Dashboard
-            </Button>
-          </Link>
-          
-          <div className="flex items-center space-x-3">
-            <div className="w-12 h-12 gradient-primary rounded-xl flex items-center justify-center">
-              <Bot className="h-6 w-6 text-white" />
+        <div className={`flex items-center space-x-3 px-6 py-6 border-b border-purple-100 ${sidebarOpen ? '' : 'justify-center px-2 py-4'}`}> 
+          {bot?.companyLogo ? (
+            <img src={bot.companyLogo} alt="Company Logo" className={`object-cover border ${sidebarOpen ? 'w-12 h-12 rounded-xl' : 'w-8 h-8 rounded-lg'}`} />
+          ) : (
+            <div className={`${sidebarOpen ? 'w-12 h-12 rounded-xl' : 'w-8 h-8 rounded-lg'} gradient-primary flex items-center justify-center`}>
+              <Bot className={`${sidebarOpen ? 'h-6 w-6' : 'h-5 w-5'} text-white`} />
             </div>
+          )}
+          {sidebarOpen && (
             <div className="flex-1 min-w-0">
               <h2 className="font-bold text-lg text-gray-900 truncate">
                 {isLoading ? 'Loading...' : (bot?.name || 'Bot')}
@@ -88,11 +101,10 @@ export default function BotLayout({
                 </Badge>
               )}
             </div>
-          </div>
+          )}
         </div>
-
         {/* Navigation */}
-        <nav className="mt-6 px-4">
+        <nav className={`mt-6 ${sidebarOpen ? 'px-4' : 'px-1'}`}>
           <div className="space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon
@@ -101,21 +113,20 @@ export default function BotLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-all ${
+                  className={`flex items-center ${sidebarOpen ? 'px-4 py-3' : 'justify-center py-3'} text-sm font-medium rounded-xl transition-all ${
                     isActive
                       ? 'text-white bg-gradient-to-r from-purple-600 to-blue-600 shadow-md'
                       : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
                   }`}
                 >
-                  <Icon className="mr-3 h-5 w-5" />
-                  {item.name}
+                  <Icon className={`mr-3 h-5 w-5 ${sidebarOpen ? '' : 'mx-auto'}`} />
+                  {sidebarOpen && item.name}
                 </Link>
               )
             })}
           </div>
         </nav>
       </div>
-
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         {children}
