@@ -16,7 +16,7 @@ export interface FileUploadConfig {
   maxSize: number;
   allowedTypes: string[];
   uploadDir: string;
-  baseUrl: string;
+  baseUrl?: string; // Make baseUrl optional since we'll detect it dynamically
 }
 
 const DEFAULT_CONFIG: FileUploadConfig = {
@@ -34,7 +34,7 @@ const DEFAULT_CONFIG: FileUploadConfig = {
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
   ],
   uploadDir: join(process.cwd(), 'public', 'uploads'),
-  baseUrl: process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'
+  // Remove baseUrl from default config since we'll detect it dynamically
 };
 
 export class FileUploadService {
@@ -42,6 +42,22 @@ export class FileUploadService {
 
   constructor(config: Partial<FileUploadConfig> = {}) {
     this.config = { ...DEFAULT_CONFIG, ...config };
+  }
+
+  private getBaseUrl(request: NextRequest): string {
+    // Use environment variable if set, otherwise detect from request headers
+    if (this.config.baseUrl) {
+      return this.config.baseUrl;
+    }
+    
+    if (process.env.NEXT_PUBLIC_BASE_URL) {
+      return process.env.NEXT_PUBLIC_BASE_URL;
+    }
+    
+    // Detect from request headers
+    const host = request.headers.get('host');
+    const protocol = request.headers.get('x-forwarded-proto') || 'https';
+    return `${protocol}://${host}`;
   }
 
   async uploadFile(request: NextRequest): Promise<UploadedFile> {
@@ -75,8 +91,9 @@ export class FileUploadService {
       const buffer = Buffer.from(bytes);
       await writeFile(filePath, buffer);
 
-      // Generate URL
-      const url = `${this.config.baseUrl}/uploads/${filename}`;
+      // Generate URL using dynamic base URL detection
+      const baseUrl = this.getBaseUrl(request);
+      const url = `${baseUrl}/uploads/${filename}`;
 
       return {
         filename,
