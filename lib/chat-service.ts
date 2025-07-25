@@ -83,8 +83,8 @@ export function createChatWidget(botId: string, options: {
     position: fixed;
     ${options.position === 'bottom-left' ? 'left: 20px;' : 'right: 20px;'}
     bottom: 20px;
-    width: 350px;
-    height: 500px;
+    width: 300px;
+    height: 420px;
     background: white;
     border-radius: 12px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.12);
@@ -99,9 +99,10 @@ export function createChatWidget(botId: string, options: {
   header.style.cssText = `
     background: ${options.primaryColor || '#2563eb'};
     color: white;
-    padding: 16px;
+    padding: 14px;
     border-radius: 12px 12px 0 0;
     font-weight: 600;
+    font-size: 14px;
   `;
   header.textContent = 'Chat Support';
 
@@ -109,9 +110,9 @@ export function createChatWidget(botId: string, options: {
   const messagesContainer = document.createElement('div');
   messagesContainer.style.cssText = `
     flex: 1;
-    padding: 16px;
+    padding: 14px;
     overflow-y: auto;
-    max-height: 380px;
+    max-height: 320px;
   `;
 
   // Add welcome message
@@ -122,19 +123,20 @@ export function createChatWidget(botId: string, options: {
   // Create input container
   const inputContainer = document.createElement('div');
   inputContainer.style.cssText = `
-    padding: 16px;
+    padding: 14px;
     border-top: 1px solid #e5e7eb;
     display: flex;
-    gap: 8px;
+    gap: 6px;
   `;
 
   const input = document.createElement('input');
   input.style.cssText = `
     flex: 1;
-    padding: 8px 12px;
+    padding: 7px 10px;
     border: 1px solid #d1d5db;
     border-radius: 6px;
     outline: none;
+    font-size: 13px;
   `;
   input.placeholder = 'Type your message...';
 
@@ -143,17 +145,18 @@ export function createChatWidget(botId: string, options: {
     background: ${options.primaryColor || '#2563eb'};
     color: white;
     border: none;
-    padding: 8px 16px;
+    padding: 7px 12px;
     border-radius: 6px;
     cursor: pointer;
     font-weight: 500;
+    font-size: 13px;
   `;
   sendButton.textContent = 'Send';
 
   function addMessage(content: string, sender: 'user' | 'bot') {
     const messageDiv = document.createElement('div');
     messageDiv.style.cssText = `
-      margin-bottom: 12px;
+      margin-bottom: 10px;
       display: flex;
       ${sender === 'user' ? 'justify-content: flex-end;' : 'justify-content: flex-start;'}
     `;
@@ -161,8 +164,9 @@ export function createChatWidget(botId: string, options: {
     const messageBubble = document.createElement('div');
     messageBubble.style.cssText = `
       max-width: 80%;
-      padding: 8px 12px;
+      padding: 7px 10px;
       border-radius: 12px;
+      font-size: 13px;
       ${sender === 'user' 
         ? `background: ${options.primaryColor || '#2563eb'}; color: white;`
         : 'background: #f3f4f6; color: #374151;'

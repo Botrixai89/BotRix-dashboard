@@ -32,6 +32,14 @@ export function useSocket() {
   const [typingUsers, setTypingUsers] = useState<TypingIndicator[]>([]);
   const [statusUpdates, setStatusUpdates] = useState<ConversationStatusUpdate[]>([]);
 
+  const getAuthToken = (): string | null => {
+    // Get token from cookies or localStorage
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('auth-token') || null;
+    }
+    return null;
+  };
+
   useEffect(() => {
     if (!user) {
       if (socketRef.current) {
@@ -98,14 +106,6 @@ export function useSocket() {
       socket.disconnect();
     };
   }, [user]);
-
-  const getAuthToken = (): string | null => {
-    // Get token from cookies or localStorage
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem('auth-token') || null;
-    }
-    return null;
-  };
 
   const joinBot = (botId: string) => {
     if (socketRef.current && isConnected) {

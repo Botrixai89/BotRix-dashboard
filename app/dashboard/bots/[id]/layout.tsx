@@ -86,18 +86,20 @@ export default function BotLayout({
               <h2 className="font-bold text-lg text-gray-900 truncate">
                 {isLoading ? 'Loading...' : (bot?.name || 'Bot')}
               </h2>
-              {!isLoading && bot && (
+              {!isLoading && bot && bot.status === 'active' && (
                 <Badge 
-                  variant={bot.status === 'active' ? 'default' : 'secondary'}
-                  className={`mt-1 ${
-                    bot.status === 'active' 
-                      ? 'bg-green-100 text-green-800 hover:bg-green-100' 
-                      : bot.status === 'draft'
-                      ? 'bg-yellow-100 text-yellow-800 hover:bg-yellow-100'
-                      : 'bg-gray-100 text-gray-800 hover:bg-gray-100'
-                  }`}
+                  variant="default"
+                  className="mt-1 bg-green-100 text-green-800 hover:bg-green-100"
                 >
-                  {bot.status}
+                  active
+                </Badge>
+              )}
+              {!isLoading && bot && bot.status === 'inactive' && (
+                <Badge 
+                  variant="secondary"
+                  className="mt-1 bg-gray-100 text-gray-800 hover:bg-gray-100"
+                >
+                  inactive
                 </Badge>
               )}
             </div>

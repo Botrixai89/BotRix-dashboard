@@ -2,10 +2,11 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Bot, MessageSquare, TrendingUp, Settings, Sparkles, LogOut, User } from 'lucide-react'
+import { Plus, Bot, MessageSquare, TrendingUp, Settings, Sparkles, LogOut, User, Trash2, MoreVertical } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useAuth, useRequireAuth } from '@/lib/auth-context'
+import { showSuccess, showError } from '@/lib/toast'
 
 interface BotData {
   _id: string;
@@ -27,12 +28,35 @@ export default function DashboardPage() {
   const [bots, setBots] = useState<BotData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
+  const [deletingBotId, setDeletingBotId] = useState<string | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [botToDelete, setBotToDelete] = useState<BotData | null>(null)
+  const [showLogoutModal, setShowLogoutModal] = useState(false)
 
   useEffect(() => {
     if (user && !loading) {
       fetchBots()
     }
   }, [user, loading])
+
+  // Handle escape key to close modals
+  useEffect(() => {
+    const handleEscape = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        if (showDeleteModal) {
+          cancelDelete()
+        }
+        if (showLogoutModal) {
+          cancelLogout()
+        }
+      }
+    }
+
+    if (showDeleteModal || showLogoutModal) {
+      document.addEventListener('keydown', handleEscape)
+      return () => document.removeEventListener('keydown', handleEscape)
+    }
+  }, [showDeleteModal, showLogoutModal])
 
   const fetchBots = async () => {
     try {
@@ -51,6 +75,62 @@ export default function DashboardPage() {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const handleDeleteClick = (bot: BotData, e: React.MouseEvent<HTMLButtonElement>) => {
+    e.preventDefault()
+    e.stopPropagation()
+    setBotToDelete(bot)
+    setShowDeleteModal(true)
+  }
+
+  const deleteBot = async () => {
+    if (!botToDelete) return
+
+    setDeletingBotId(botToDelete._id)
+    try {
+      const response = await fetch(`/api/bots/${botToDelete._id}`, {
+        method: 'DELETE',
+        credentials: 'include'
+      })
+      const result = await response.json()
+
+      if (response.ok) {
+        // Remove the bot from the local state
+        setBots(bots.filter(bot => bot._id !== botToDelete._id))
+        setShowDeleteModal(false)
+        setBotToDelete(null)
+        showSuccess('Bot deleted successfully!')
+      } else {
+        const errorMessage = result.error || 'Failed to delete bot'
+        setError(errorMessage)
+        showError(errorMessage)
+      }
+    } catch (err) {
+      const errorMessage = 'Network error. Please try again.'
+      setError(errorMessage)
+      showError(errorMessage)
+    } finally {
+      setDeletingBotId(null)
+    }
+  }
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false)
+    setBotToDelete(null)
+  }
+
+  const handleLogoutClick = () => {
+    setShowLogoutModal(true)
+  }
+
+  const confirmLogout = () => {
+    setShowLogoutModal(false)
+    logout()
+  }
+
+  const cancelLogout = () => {
+    setShowLogoutModal(false)
   }
 
   return (
@@ -92,7 +172,7 @@ export default function DashboardPage() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={logout}
+                onClick={handleLogoutClick}
                 className="w-full text-xs border-purple-200 text-purple-600 hover:bg-purple-50"
               >
                 <LogOut className="h-3 w-3 mr-2" />
@@ -211,7 +291,25 @@ export default function DashboardPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {bots.map((bot) => (
-                  <Card key={bot._id} className="border-0 shadow-sm hover-lift card-glow bg-white/70 backdrop-blur-sm cursor-pointer">
+                  <Card key={bot._id} className="border-0 shadow-sm hover-lift card-glow bg-white/70 backdrop-blur-sm relative group">
+                    <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="relative">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="h-8 w-8 p-0 hover:bg-red-50 hover:text-red-600"
+                          onClick={(e) => handleDeleteClick(bot, e)}
+                          disabled={deletingBotId === bot._id}
+                        >
+                          {deletingBotId === bot._id ? (
+                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-red-600 border-t-transparent" />
+                          ) : (
+                            <Trash2 className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                    </div>
+                    
                     <Link href={`/dashboard/bots/${bot._id}`}>
                       <CardHeader className="pb-4">
                         <div className="flex items-center justify-between">
@@ -225,15 +323,15 @@ export default function DashboardPage() {
                             )}
                             <CardTitle className="text-xl text-gray-900">{bot.name}</CardTitle>
                           </div>
-                          <div className={`px-3 py-1 rounded-full text-xs font-medium ${
-                            bot.status === 'active' 
-                              ? 'bg-green-100 text-green-800'
-                              : bot.status === 'draft'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-gray-100 text-gray-800'
-                          }`}>
-                            {bot.status}
-                          </div>
+                          {bot.status === 'active' ? (
+                            <div className="px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
+                              active
+                            </div>
+                          ) : bot.status === 'inactive' ? (
+                            <div className="px-3 py-1 rounded-full text-xs font-medium bg-gray-100 text-gray-800">
+                              inactive
+                            </div>
+                          ) : null}
                         </div>
                         <CardDescription className="text-gray-600">
                           {bot.description || 'No description provided'}
@@ -277,6 +375,111 @@ export default function DashboardPage() {
           )}
         </main>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && botToDelete && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={cancelDelete}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                <Trash2 className="h-5 w-5 text-red-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Delete Bot</h3>
+                <p className="text-sm text-gray-600">This action cannot be undone</p>
+              </div>
+            </div>
+            
+            <p className="text-gray-700 mb-6">
+              Are you sure you want to delete <strong>"{botToDelete.name}"</strong>? 
+              This will permanently delete:
+            </p>
+            
+            <ul className="text-sm text-gray-600 mb-6 space-y-1">
+              <li>• All conversations and messages</li>
+              <li>• Bot flows and configurations</li>
+              <li>• Team member associations</li>
+              <li>• All bot data and settings</li>
+            </ul>
+            
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={cancelDelete}
+                className="flex-1"
+                disabled={deletingBotId === botToDelete._id}
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={deleteBot}
+                className="flex-1"
+                disabled={deletingBotId === botToDelete._id}
+              >
+                {deletingBotId === botToDelete._id ? (
+                  <>
+                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                    Deleting...
+                  </>
+                ) : (
+                  'Delete Bot'
+                )}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Logout Confirmation Modal */}
+      {showLogoutModal && (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
+          onClick={cancelLogout}
+        >
+          <div 
+            className="bg-white rounded-lg p-6 max-w-md w-full mx-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-center space-x-3 mb-4">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <LogOut className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <h3 className="text-lg font-semibold text-gray-900">Sign Out</h3>
+                <p className="text-sm text-gray-600">Are you sure you want to sign out?</p>
+              </div>
+            </div>
+            
+            <p className="text-gray-700 mb-6">
+              You will be logged out of your account and redirected to the login page.
+            </p>
+            
+            <div className="flex space-x-3">
+              <Button
+                variant="outline"
+                onClick={cancelLogout}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                variant="default"
+                onClick={confirmLogout}
+                className="flex-1 bg-blue-600 hover:bg-blue-700"
+              >
+                Sign Out
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 } 

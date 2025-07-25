@@ -124,11 +124,24 @@ export async function POST(request: NextRequest) {
       const lastBotMsg = conversation.messages.slice(-2, -1)[0];
       if (lastBotMsg && lastBotMsg.sender === 'bot' && lastBotMsg.content.includes('your name')) {
         const trimmed = message.trim().toLowerCase();
-        if (!trimmed || ['no', 'skip', 'anonymous', ''].includes(trimmed)) {
+        const skipKeywords = ['no', 'skip', 'anonymous', 'none', 'n/a', 'not sure', 'rather not say', 'prefer not to say'];
+        
+        if (!trimmed || skipKeywords.some(keyword => trimmed.includes(keyword))) {
           conversation.userInfo.name = getRandomName();
+          console.log(`User chose to skip name, assigned random name: ${conversation.userInfo.name}`);
         } else {
-          // Use the provided name (capitalize first letter)
-          conversation.userInfo.name = message.charAt(0).toUpperCase() + message.slice(1);
+          // Clean and validate the name
+          const cleanedName = message.trim().replace(/[^\w\s-]/g, ''); // Remove special characters except spaces and hyphens
+          if (cleanedName.length > 0 && cleanedName.length <= 50) {
+            // Capitalize first letter of each word
+            conversation.userInfo.name = cleanedName.split(' ').map(word => 
+              word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
+            ).join(' ');
+            console.log(`User provided name: ${conversation.userInfo.name}`);
+          } else {
+            conversation.userInfo.name = getRandomName();
+            console.log(`Invalid name provided, assigned random name: ${conversation.userInfo.name}`);
+          }
         }
       }
     }
@@ -155,7 +168,8 @@ export async function POST(request: NextRequest) {
           sender: 'bot',
           type: 'text',
           createdAt: new Date().toISOString(),
-          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null,
+          userInfo: conversation.userInfo
         },
         {
           content: { text: 'May I know your name please? (You can say "skip" if you prefer a random name)' },
@@ -163,7 +177,8 @@ export async function POST(request: NextRequest) {
           sender: 'bot',
           type: 'text',
           createdAt: new Date().toISOString(),
-          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null,
+          userInfo: conversation.userInfo
         }
       ];
       return NextResponse.json(responseData, { headers: corsHeaders });
@@ -397,7 +412,8 @@ export async function POST(request: NextRequest) {
           sender: "bot",
           type: "text",
           createdAt: new Date().toISOString(),
-          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null,
+          userInfo: conversation.userInfo
         }
       ];
 
@@ -427,7 +443,8 @@ export async function POST(request: NextRequest) {
           sender: "bot",
           type: "text",
           createdAt: new Date().toISOString(),
-          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null,
+          userInfo: conversation.userInfo
         }
       ];
 

@@ -4,22 +4,12 @@ import Conversation from '@/models/Conversation';
 import { requireAuth } from '@/lib/auth';
 import mongoose from 'mongoose';
 
-// Define the message interface to match the schema
-interface Message {
-  _id: string;
-  content: string;
-  sender: 'bot' | 'user' | 'agent';
-  timestamp: Date;
-  type?: 'text' | 'image' | 'file' | 'button';
-  metadata?: any;
-}
-
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string; conversationId: string } }
 ) {
   try {
-    console.log('🔍 Conversation messages API called with params:', params);
+    console.log('🔍 Conversation API called with params:', params);
     
     const authResult = await requireAuth(request);
     if (authResult.error) {
@@ -53,12 +43,12 @@ export async function GET(
       );
     }
     
-    // Get conversation with messages
+    // Find the conversation
     const conversation = await Conversation.findOne({
       _id: conversationId,
       botId: botId
     }).populate('botId', 'name');
-    
+
     if (!conversation) {
       console.log('❌ Conversation not found');
       return NextResponse.json(
@@ -66,40 +56,46 @@ export async function GET(
         { status: 404 }
       );
     }
-    
-    console.log('✅ Found conversation with', conversation.messages.length, 'messages');
-    
-    // Transform messages for frontend with proper typing
-    const messages = conversation.messages.map((msg: Message) => ({
-      _id: msg._id,
-      content: msg.content,
-      sender: msg.sender,
-      timestamp: msg.timestamp,
-      type: msg.type || 'text'
-    }));
-    
-    return NextResponse.json({
-      success: true,
-      conversation: {
-        _id: conversation._id,
-        status: conversation.status,
-        createdAt: conversation.createdAt,
-        updatedAt: conversation.updatedAt,
-        userInfo: conversation.userInfo || {},
-        botInfo: conversation.botId,
-        messages: messages
-      }
+
+    // Check if user has access to this bot
+    if (conversation.botId.userId.toString() !== authResult.user._id.toString()) {
+      console.log('❌ User does not have access to this bot');
+      return NextResponse.json(
+        { error: 'Access denied' },
+        { status: 403 }
+      );
+    }
+
+    console.log('✅ Conversation found:', {
+      id: conversation._id,
+      userInfo: conversation.userInfo,
+      messageCount: conversation.messages.length,
+      status: conversation.status
     });
 
-  } catch (error: any) {
-    console.error('❌ Error fetching conversation messages:', error);
-    console.error('❌ Error details:', {
-      message: error.message,
-      stack: error.stack,
-      name: error.name
+    return NextResponse.json({
+      _id: conversation._id,
+      status: conversation.status,
+      createdAt: conversation.createdAt,
+      updatedAt: conversation.updatedAt,
+      userInfo: conversation.userInfo,
+      botInfo: {
+        _id: conversation.botId._id,
+        name: conversation.botId.name
+      },
+      messages: conversation.messages.map(msg => ({
+        _id: msg._id,
+        content: msg.content,
+        sender: msg.sender,
+        timestamp: msg.timestamp,
+        type: msg.type || 'text'
+      }))
     });
+
+  } catch (error) {
+    console.error('Error fetching conversation:', error);
     return NextResponse.json(
-      { error: 'Failed to fetch conversation messages', details: error.message },
+      { error: 'Failed to fetch conversation' },
       { status: 500 }
     );
   }

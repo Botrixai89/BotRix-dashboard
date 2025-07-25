@@ -35,7 +35,11 @@ async function dbConnect(): Promise<typeof mongoose> {
       family: 4, // Use IPv4, skip trying IPv6
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI, opts);
+    cached.promise = mongoose.connect(MONGODB_URI, opts).catch((error) => {
+      console.error('MongoDB connection failed:', error);
+      cached.promise = null;
+      throw error;
+    });
   }
 
   try {

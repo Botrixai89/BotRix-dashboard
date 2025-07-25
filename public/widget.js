@@ -58,7 +58,7 @@
     }
   }
 
-  // Voice Service Class
+  // Enhanced Voice Service Class with Google Cloud Integration
   class VoiceService {
     constructor() {
       this.synthesis = window.speechSynthesis;
@@ -67,9 +67,28 @@
       this.voices = [];
       this.selectedVoice = null;
       this.isEnabled = false;
+      this.useGoogleCloud = false; // Toggle between browser and Google Cloud
+      this.googleApiKey = null;
+      this.mediaStream = null;
+      this.mediaRecorder = null;
       
       this.initSpeechRecognition();
       this.initVoices();
+      this.checkGoogleCloudSupport();
+    }
+
+    async checkGoogleCloudSupport() {
+      // Check if Google Cloud API key is available
+      try {
+        const response = await fetch('/api/voice/check-support');
+        const data = await response.json();
+        this.useGoogleCloud = data.supported;
+        this.googleApiKey = data.apiKey;
+        console.log('Google Cloud Voice support:', this.useGoogleCloud);
+      } catch (error) {
+        console.log('Using browser voice services (fallback)');
+        this.useGoogleCloud = false;
+      }
     }
 
     initSpeechRecognition() {
@@ -92,9 +111,17 @@
       this.synthesis.onvoiceschanged = loadVoices;
     }
 
-    speak(text) {
+    async speak(text) {
       if (!this.isEnabled || !text) return;
       
+      if (this.useGoogleCloud && this.googleApiKey) {
+        await this.speakWithGoogleCloud(text);
+      } else {
+        this.speakWithBrowser(text);
+      }
+    }
+
+    speakWithBrowser(text) {
       this.synthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.voice = this.selectedVoice;
@@ -105,7 +132,55 @@
       this.synthesis.speak(utterance);
     }
 
-    startListening() {
+    async speakWithGoogleCloud(text) {
+      try {
+        const response = await fetch('/api/voice/text-to-speech', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            text,
+            settings: {
+              voice: 'alloy',
+              speed: 1.0,
+              pitch: 0,
+              language: 'en-US'
+            },
+            apiKey: this.googleApiKey,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Google Cloud TTS failed: ${response.statusText}`);
+        }
+
+        const audioBlob = await response.blob();
+        const audioUrl = URL.createObjectURL(audioBlob);
+        const audio = new Audio(audioUrl);
+        
+        audio.onended = () => {
+          URL.revokeObjectURL(audioUrl);
+        };
+        
+        await audio.play();
+        
+      } catch (error) {
+        console.error('Google Cloud TTS error:', error);
+        // Fallback to browser TTS
+        this.speakWithBrowser(text);
+      }
+    }
+
+    async startListening() {
+      if (this.useGoogleCloud && this.googleApiKey) {
+        return this.startListeningWithGoogleCloud();
+      } else {
+        return this.startListeningWithBrowser();
+      }
+    }
+
+    startListeningWithBrowser() {
       if (!this.recognition) return Promise.reject('Speech recognition not supported');
       
       return new Promise((resolve, reject) => {
@@ -127,16 +202,106 @@
       });
     }
 
+    async startListeningWithGoogleCloud() {
+      try {
+        // Request microphone access
+        this.mediaStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        
+        // Create MediaRecorder to capture audio
+        this.mediaRecorder = new MediaRecorder(this.mediaStream);
+        const audioChunks = [];
+        
+        return new Promise((resolve, reject) => {
+          this.mediaRecorder.ondataavailable = (event) => {
+            if (event.data.size > 0) {
+              audioChunks.push(event.data);
+            }
+          };
+
+          this.mediaRecorder.onstop = async () => {
+            try {
+              const audioBlob = new Blob(audioChunks, { type: 'audio/wav' });
+              const transcript = await this.speechToTextWithGoogleCloud(audioBlob);
+              resolve(transcript);
+            } catch (error) {
+              reject(error);
+            } finally {
+              this.isListening = false;
+            }
+          };
+
+          this.mediaRecorder.onerror = (error) => {
+            reject(error);
+            this.isListening = false;
+          };
+
+          // Start recording
+          this.mediaRecorder.start();
+          this.isListening = true;
+          
+          // Stop recording after 10 seconds
+          setTimeout(() => {
+            if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+              this.mediaRecorder.stop();
+            }
+          }, 10000);
+        });
+
+      } catch (error) {
+        console.error('Google Cloud STT error:', error);
+        throw error;
+      }
+    }
+
+    async speechToTextWithGoogleCloud(audioBlob) {
+      try {
+        const formData = new FormData();
+        formData.append('audio', audioBlob, 'recording.wav');
+        formData.append('apiKey', this.googleApiKey);
+
+        const response = await fetch('/api/voice/speech-to-text', {
+          method: 'POST',
+          body: formData,
+        });
+
+        if (!response.ok) {
+          throw new Error(`Google Cloud STT failed: ${response.statusText}`);
+        }
+
+        const result = await response.json();
+        return result.transcript || '';
+
+      } catch (error) {
+        console.error('Speech-to-Text error:', error);
+        throw error;
+      }
+    }
+
     stopListening() {
+      if (this.mediaRecorder && this.mediaRecorder.state === 'recording') {
+        this.mediaRecorder.stop();
+      }
+      
       if (this.recognition && this.isListening) {
         this.recognition.stop();
-        this.isListening = false;
       }
+      
+      if (this.mediaStream) {
+        this.mediaStream.getTracks().forEach(track => track.stop());
+        this.mediaStream = null;
+      }
+      
+      this.isListening = false;
     }
 
     toggleVoice() {
       this.isEnabled = !this.isEnabled;
       return this.isEnabled;
+    }
+
+    toggleGoogleCloud() {
+      this.useGoogleCloud = !this.useGoogleCloud;
+      return this.useGoogleCloud;
     }
   }
 
@@ -145,8 +310,8 @@
     constructor(botId, options = {}) {
       this.botId = botId;
       this.options = {
-        primaryColor: '#667eea',
-        secondaryColor: '#764ba2',
+        primaryColor: '#8b5cf6',
+        secondaryColor: '#ec4899',
         position: 'bottom-right',
         welcomeMessage: '👋 Hello! How can I help you today?',
         baseUrl: '',
@@ -168,34 +333,160 @@
         '👋 Hello',
         '❓ Help',
         '📞 Contact',
-        '�� Pricing'
+        '💎 Pricing'
       ];
       this.userName = null; // Store the user's name
+      this.botLogo = null; // Store the bot's company logo
+      this.botData = null; // Store the complete bot data
+      this.welcomeMessageAdded = false; // Track if welcome message has been added
+      this.popupDismissed = false; // Track if popup is dismissed
+      
+      // Try to load user name from localStorage
+      this.loadUserName();
       
       this.init();
+    }
+
+    loadUserName() {
+      try {
+        const storedName = localStorage.getItem(`botrix_user_name_${this.botId}`);
+        if (storedName) {
+          this.userName = storedName;
+          console.log('Loaded user name from localStorage:', this.userName);
+        }
+      } catch (error) {
+        console.error('Error loading user name from localStorage:', error);
+      }
+    }
+
+    saveUserName(name) {
+      try {
+        localStorage.setItem(`botrix_user_name_${this.botId}`, name);
+        console.log('Saved user name to localStorage:', name);
+      } catch (error) {
+        console.error('Error saving user name to localStorage:', error);
+      }
     }
 
     init() {
       this.createStyles();
       this.createWidget();
       this.createToggleButton();
+      this.createMinimizedPopup(); // Add popup
       this.setupEventListeners();
+      this.fetchBotDetails();
+    }
+
+    async fetchBotDetails() {
+      try {
+        const response = await fetch(`${this.options.baseUrl}/api/bots/${this.botId}`);
+        if (response.ok) {
+          const data = await response.json();
+          if (data.bot) {
+            // Update bot logo if available
+            if (data.bot.companyLogo) {
+              this.botLogo = data.bot.companyLogo;
+              console.log('Using company logo:', this.botLogo);
+            } else if (data.bot.avatar) {
+              // Fallback to bot avatar if no company logo
+              this.botLogo = data.bot.avatar;
+              console.log('Using bot avatar as logo:', this.botLogo);
+            } else {
+              console.log('No logo available, using fallback icon');
+            }
+            
+            // Always update header logo (with fallback if no logo)
+            this.updateHeaderLogo();
+            this.updateExistingBotMessageAvatars();
+            // Update bot name
+            if (data.bot.name) {
+              this.updateHeaderTitle(data.bot.name);
+            }
+            // Store bot data for later use
+            this.botData = data.bot;
+            
+            // Add welcome message after bot details are fully loaded
+            if (this.options.welcomeMessage && !this.welcomeMessageAdded) {
+              console.log('Adding welcome message with logo:', this.botLogo);
+              this.addMessage(this.options.welcomeMessage, 'bot');
+              this.showQuickReplies();
+              this.welcomeMessageAdded = true;
+            }
+          }
+        }
+      } catch (error) {
+        console.error('Error fetching bot details:', error);
+        // Set default title if fetch fails
+        this.updateHeaderTitle('AI Assistant');
+        // Update header logo with fallback icon
+        this.updateHeaderLogo();
+        
+        // Add welcome message even if fetch fails
+        if (this.options.welcomeMessage && !this.welcomeMessageAdded) {
+          console.log('Adding welcome message with fallback (fetch failed)');
+          this.addMessage(this.options.welcomeMessage, 'bot');
+          this.showQuickReplies();
+          this.welcomeMessageAdded = true;
+        }
+      }
+    }
+
+    updateHeaderLogo() {
+      const avatarElement = this.widget.querySelector('.botrix-widget-avatar');
+      if (avatarElement) {
+        if (this.botLogo) {
+          avatarElement.innerHTML = `<img src="${this.botLogo}" alt="Company Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+        } else {
+          // Fallback to default icon
+          avatarElement.innerHTML = `
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          `;
+        }
+      }
+    }
+
+    updateExistingBotMessageAvatars() {
+      // Update all existing bot message avatars with the bot logo
+      const botMessageAvatars = this.messagesContainer.querySelectorAll('.botrix-message.bot .botrix-message-avatar');
+      console.log('Updating', botMessageAvatars.length, 'existing bot message avatars');
+      botMessageAvatars.forEach((avatar, index) => {
+        if (this.botLogo) {
+          console.log(`Updating avatar ${index + 1} with logo:`, this.botLogo);
+          avatar.innerHTML = `<img src="${this.botLogo}" alt="Bot Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+        } else {
+          console.log(`Updating avatar ${index + 1} with fallback icon`);
+          avatar.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          `;
+        }
+      });
+    }
+
+    updateHeaderTitle(botName) {
+      const titleElement = this.widget.querySelector('.botrix-widget-title');
+      if (titleElement) {
+        titleElement.textContent = botName;
+      }
     }
 
     createStyles() {
       const styles = `
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
         
         .botrix-widget {
           position: fixed;
           ${this.options.position === 'bottom-left' ? 'left: 20px;' : 'right: 20px;'}
           bottom: 20px;
-          width: 380px;
-          height: 600px;
+          width: 320px;
+          height: 480px;
           background: #ffffff;
-          border-radius: 20px;
-          box-shadow: 0 25px 50px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.05);
-          font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+          border-radius: 16px;
+          box-shadow: 0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.05);
+          font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           z-index: 10000;
           display: none;
           flex-direction: column;
@@ -213,10 +504,10 @@
         }
 
         .botrix-widget-header {
-          background: linear-gradient(135deg, ${this.options.primaryColor} 0%, ${this.options.secondaryColor} 100%);
+          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
           color: white;
-          padding: 20px;
-          border-radius: 20px 20px 0 0;
+          padding: 16px;
+          border-radius: 16px 16px 0 0;
           display: flex;
           justify-content: space-between;
           align-items: center;
@@ -242,36 +533,36 @@
         }
 
         .botrix-widget-avatar {
-          width: 40px;
-          height: 40px;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           background: rgba(255,255,255,0.2);
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 18px;
+          font-size: 14px;
           border: 2px solid rgba(255,255,255,0.3);
         }
 
         .botrix-widget-title {
           font-weight: 600;
-          font-size: 16px;
+          font-size: 14px;
           margin-bottom: 2px;
         }
 
         .botrix-widget-status {
-          font-size: 12px;
+          font-size: 11px;
           opacity: 0.9;
           display: flex;
           align-items: center;
-          gap: 6px;
+          gap: 4px;
         }
 
         .botrix-status-indicator {
-          width: 8px;
-          height: 8px;
+          width: 6px;
+          height: 6px;
           border-radius: 50%;
-          background: #4ade80;
+          background: #10b981;
           animation: pulse 2s infinite;
         }
 
@@ -290,8 +581,8 @@
           background: rgba(255,255,255,0.2);
           border: none;
           color: white;
-          width: 36px;
-          height: 36px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           cursor: pointer;
           display: flex;
@@ -312,10 +603,10 @@
 
         .botrix-widget-messages {
           flex: 1;
-          padding: 20px;
+          padding: 16px;
           overflow-y: auto;
           scroll-behavior: smooth;
-          background: linear-gradient(180deg, #f8fafc 0%, #ffffff 100%);
+          background: #ffffff;
         }
 
         .botrix-widget-messages::-webkit-scrollbar {
@@ -332,10 +623,10 @@
         }
 
         .botrix-message {
-          margin-bottom: 16px;
+          margin-bottom: 12px;
           display: flex;
           align-items: flex-end;
-          gap: 8px;
+          gap: 6px;
           animation: messageSlide 0.3s ease-out;
         }
 
@@ -353,15 +644,15 @@
         }
 
         .botrix-message-avatar {
-          width: 32px;
-          height: 32px;
+          width: 24px;
+          height: 24px;
           border-radius: 50%;
-          background: linear-gradient(135deg, ${this.options.primaryColor}, ${this.options.secondaryColor});
+          background: linear-gradient(135deg, #8b5cf6, #ec4899);
           display: flex;
           align-items: center;
           justify-content: center;
           color: white;
-          font-size: 14px;
+          font-size: 12px;
           font-weight: 600;
           flex-shrink: 0;
         }
@@ -373,16 +664,16 @@
         }
 
         .botrix-message-bubble {
-          padding: 12px 16px;
-          border-radius: 18px;
-          font-size: 14px;
-          line-height: 1.5;
+          padding: 10px 14px;
+          border-radius: 16px;
+          font-size: 13px;
+          line-height: 1.4;
           word-wrap: break-word;
           position: relative;
         }
 
         .botrix-message.user .botrix-message-bubble {
-          background: linear-gradient(135deg, ${this.options.primaryColor}, ${this.options.secondaryColor});
+          background: linear-gradient(135deg, #8b5cf6, #ec4899);
           color: white;
           border-bottom-right-radius: 4px;
         }
@@ -396,9 +687,9 @@
         }
 
         .botrix-message-time {
-          font-size: 11px;
+          font-size: 10px;
           color: #9ca3af;
-          margin-top: 4px;
+          margin-top: 3px;
           text-align: right;
         }
 
@@ -409,19 +700,19 @@
         .botrix-typing {
           display: flex;
           align-items: center;
-          gap: 8px;
-          padding: 12px 16px;
+          gap: 6px;
+          padding: 10px 14px;
           background: #ffffff;
           border: 1px solid #e5e7eb;
-          border-radius: 18px;
+          border-radius: 16px;
           border-bottom-left-radius: 4px;
-          max-width: 80px;
+          max-width: 70px;
           box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
 
         .botrix-typing-dot {
-          width: 6px;
-          height: 6px;
+          width: 5px;
+          height: 5px;
           border-radius: 50%;
           background: #9ca3af;
           animation: typingDot 1.4s infinite ease-in-out;
@@ -443,49 +734,51 @@
 
         .botrix-quick-replies {
           display: flex;
-          gap: 8px;
-          margin-top: 12px;
+          gap: 6px;
+          margin-top: 10px;
           flex-wrap: wrap;
         }
 
         .botrix-quick-reply {
-          background: linear-gradient(135deg, ${this.options.primaryColor}15, ${this.options.secondaryColor}15);
-          border: 1px solid ${this.options.primaryColor}30;
-          color: ${this.options.primaryColor};
-          padding: 8px 12px;
-          border-radius: 16px;
-          font-size: 12px;
+          background: linear-gradient(135deg, #fce7f3, #fdf2f8);
+          border: 1px solid #fbcfe8;
+          color: #be185d;
+          padding: 6px 10px;
+          border-radius: 14px;
+          font-size: 11px;
           cursor: pointer;
           transition: all 0.2s;
           font-weight: 500;
         }
 
         .botrix-quick-reply:hover {
-          background: linear-gradient(135deg, ${this.options.primaryColor}25, ${this.options.secondaryColor}25);
+          background: linear-gradient(135deg, #f9a8d4, #fbcfe8);
           transform: translateY(-1px);
+          box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
         }
 
         .botrix-widget-input-container {
-          padding: 20px;
+          padding: 16px;
           background: #ffffff;
           border-top: 1px solid #e5e7eb;
-          border-radius: 0 0 20px 20px;
+          border-radius: 0 0 16px 16px;
         }
 
         .botrix-widget-input-row {
           display: flex;
           align-items: center;
-          background: #f8fafc;
-          border: 2px solid #e5e7eb;
-          border-radius: 25px;
-          padding: 4px;
+          background: #ffffff;
+          border: 2px solid #fce7f3;
+          border-radius: 20px;
+          padding: 3px;
           transition: all 0.2s;
           position: relative;
+          overflow: hidden;
         }
 
         .botrix-widget-input-row.focused {
-          border-color: ${this.options.primaryColor};
-          box-shadow: 0 0 0 3px ${this.options.primaryColor}20;
+          border-color: #ec4899;
+          box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
         }
 
         .botrix-widget-input-row.listening {
@@ -501,13 +794,13 @@
 
         .botrix-widget-input {
           flex: 1;
-          padding: 12px 16px;
+          padding: 10px 14px;
           border: none;
-          border-radius: 20px;
           outline: none;
-          font-size: 14px;
+          font-size: 13px;
           background: transparent;
           font-family: inherit;
+          min-width: 0;
         }
 
         .botrix-widget-input::placeholder {
@@ -519,14 +812,15 @@
           align-items: center;
           gap: 4px;
           margin-right: 4px;
+          flex-shrink: 0;
         }
 
         .botrix-action-btn {
           background: transparent;
           border: none;
           color: #6b7280;
-          width: 36px;
-          height: 36px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
           cursor: pointer;
           display: flex;
@@ -541,28 +835,29 @@
         }
 
         .botrix-action-btn.active {
-          background: ${this.options.primaryColor};
+          background: #ec4899;
           color: white;
         }
 
         .botrix-widget-send {
-          background: linear-gradient(135deg, ${this.options.primaryColor}, ${this.options.secondaryColor});
+          background: linear-gradient(135deg, #8b5cf6, #ec4899);
           color: white;
           border: none;
-          width: 40px;
-          height: 40px;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           transition: all 0.2s;
-          box-shadow: 0 4px 12px ${this.options.primaryColor}30;
+          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+          flex-shrink: 0;
         }
 
         .botrix-widget-send:hover {
           transform: scale(1.05);
-          box-shadow: 0 6px 16px ${this.options.primaryColor}40;
+          box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
         }
 
         .botrix-widget-send:disabled {
@@ -576,14 +871,14 @@
           position: fixed;
           ${this.options.position === 'bottom-left' ? 'left: 20px;' : 'right: 20px;'}
           bottom: 20px;
-          width: 60px;
-          height: 60px;
-          background: linear-gradient(135deg, ${this.options.primaryColor}, ${this.options.secondaryColor});
+          width: 50px;
+          height: 50px;
+          background: linear-gradient(135deg, #8b5cf6, #ec4899);
           color: white;
           border: none;
           border-radius: 50%;
           cursor: pointer;
-          font-size: 24px;
+          font-size: 20px;
           box-shadow: 0 8px 25px rgba(0,0,0,0.15);
           z-index: 10001;
           transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -602,43 +897,46 @@
         }
 
         @keyframes buttonPulse {
-          0%, 100% { box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 0 ${this.options.primaryColor}40; }
-          50% { box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 10px ${this.options.primaryColor}00; }
+          0%, 100% { box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 0 rgba(139, 92, 246, 0.4); }
+          50% { box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 10px rgba(139, 92, 246, 0); }
         }
 
         .botrix-widget-footer {
           text-align: center;
-          font-size: 11px;
+          font-size: 10px;
           color: #9ca3af;
-          padding: 12px 20px;
+          padding: 10px 16px;
           background: #f8fafc;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 6px;
+          gap: 4px;
         }
 
         .botrix-powered-logo {
-          width: 16px;
-          height: 16px;
+          width: 14px;
+          height: 14px;
           opacity: 0.6;
+          transition: opacity 0.2s, transform 0.2s;
+          cursor: pointer;
         }
 
-        .botrix-file-upload {
-          position: absolute;
-          opacity: 0;
-          pointer-events: none;
+        .botrix-powered-logo:hover {
+          opacity: 1;
+          transform: scale(1.05);
         }
+
+
 
         .botrix-notification {
           position: absolute;
-          top: -40px;
+          top: -35px;
           right: 0;
           background: #ef4444;
           color: white;
-          padding: 8px 12px;
-          border-radius: 12px;
-          font-size: 12px;
+          padding: 6px 10px;
+          border-radius: 10px;
+          font-size: 11px;
           font-weight: 500;
           transform: translateY(-10px);
           opacity: 0;
@@ -668,6 +966,21 @@
             border-radius: 0 0 12px 12px;
           }
         }
+
+        .botrix-widget-messages,
+        .botrix-widget-header,
+        .botrix-widget-input-container,
+        .botrix-widget-title,
+        .botrix-widget-status,
+        .botrix-message-bubble,
+        .botrix-message-time,
+        .botrix-quick-reply,
+        .botrix-widget-input,
+        .botrix-toggle-button,
+        .botrix-widget-footer,
+        .botrix-minimized-popup {
+          font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif !important;
+        }
       `;
 
       const styleElement = document.createElement('style');
@@ -684,7 +997,11 @@
       header.className = 'botrix-widget-header';
       header.innerHTML = `
         <div class="botrix-widget-header-info">
-          <div class="botrix-widget-avatar">🤖</div>
+          <div class="botrix-widget-avatar">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          </div>
           <div>
             <div class="botrix-widget-title">AI Assistant</div>
             <div class="botrix-widget-status">
@@ -741,15 +1058,7 @@
         </svg>
       `;
 
-      // File upload button
-      const fileBtn = document.createElement('button');
-      fileBtn.className = 'botrix-action-btn botrix-file-btn';
-      fileBtn.title = 'Upload file';
-      fileBtn.innerHTML = `
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21.44 11.05l-9.19 9.19a6 6 0 0 1-8.49-8.49l9.19-9.19a4 4 0 0 1 5.66 5.66L9.64 16.2a2 2 0 0 1-2.83-2.83l8.49-8.49"></path>
-        </svg>
-      `;
+
 
       // Send button
       this.sendButton = document.createElement('button');
@@ -766,7 +1075,6 @@
       const inputRow = document.createElement('div');
       inputRow.className = 'botrix-widget-input-row';
       inputActions.appendChild(voiceBtn);
-      inputActions.appendChild(fileBtn);
       inputRow.appendChild(this.input);
       inputRow.appendChild(inputActions);
       inputRow.appendChild(this.sendButton);
@@ -782,21 +1090,98 @@
       footer.className = 'botrix-widget-footer';
       footer.innerHTML = `
         Powered by 
-        <img src="/botrix-logo01.png" alt="Botrix" class="botrix-powered-logo"/>
+        <img src="${this.options.baseUrl}/botrix-logo01.png" alt="Botrix" class="botrix-powered-logo" style="cursor: pointer; width: 54px; height: 19px;"/>
       `;
       this.widget.appendChild(footer);
+      
+      // Add click event to logo for dashboard redirect
+      const logoElement = footer.querySelector('.botrix-powered-logo');
+      if (logoElement) {
+        logoElement.addEventListener('click', () => {
+          // Always redirect to main dashboard, not bot-specific
+          const dashboardUrl = `${this.options.baseUrl}/dashboard`;
+          window.open(dashboardUrl, '_blank');
+        });
+      }
 
       document.body.appendChild(this.widget);
 
       // Store references
       this.inputRow = inputRow;
       this.voiceBtn = voiceBtn;
-      this.fileBtn = fileBtn;
       this.voiceToggle = header.querySelector('.botrix-voice-toggle');
 
-      if (this.options.welcomeMessage) {
-        this.addMessage(this.options.welcomeMessage, 'bot');
-        this.showQuickReplies();
+      // Welcome message will be added after bot details are fetched
+    }
+
+    createMinimizedPopup() {
+      // Check if dismissed in localStorage
+      try {
+        if (localStorage.getItem('botrix_popup_dismissed')) {
+          this.popupDismissed = true;
+          return;
+        }
+      } catch (e) {}
+      this.minimizedPopup = document.createElement('div');
+      this.minimizedPopup.className = 'botrix-minimized-popup';
+      this.minimizedPopup.innerHTML = `
+        <span class="botrix-popup-text">💬 Chat with us</span>
+        <button class="botrix-popup-close" title="Close">×</button>
+      `;
+      this.minimizedPopup.style.display = 'none';
+      document.body.appendChild(this.minimizedPopup);
+      // Show close button only on hover
+      const closeBtn = this.minimizedPopup.querySelector('.botrix-popup-close');
+      closeBtn.style.display = 'none';
+      this.minimizedPopup.addEventListener('mouseenter', () => {
+        closeBtn.style.display = 'inline-block';
+      });
+      this.minimizedPopup.addEventListener('mouseleave', () => {
+        closeBtn.style.display = 'none';
+      });
+      closeBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        this.minimizedPopup.style.display = 'none';
+        this.popupDismissed = true;
+        try { localStorage.setItem('botrix_popup_dismissed', '1'); } catch (e) {}
+        console.log('[Botrix] Minimized popup dismissed');
+      });
+      // Position popup near toggle button
+      this.tryShowMinimizedPopup();
+      window.addEventListener('resize', () => this.positionMinimizedPopup());
+    }
+
+    tryShowMinimizedPopup(retryCount = 0) {
+      // Only show if chat is minimized and not dismissed
+      if (this.isOpen || this.popupDismissed) {
+        if (this.minimizedPopup) this.minimizedPopup.style.display = 'none';
+        return;
+      }
+      if (!this.toggleButton) {
+        // Retry after a short delay if toggleButton not ready
+        if (retryCount < 10) {
+          setTimeout(() => this.tryShowMinimizedPopup(retryCount + 1), 100);
+        }
+        return;
+      }
+      this.positionMinimizedPopup();
+      this.minimizedPopup.style.display = 'flex';
+      console.log('[Botrix] Minimized popup shown');
+    }
+
+    positionMinimizedPopup() {
+      if (!this.minimizedPopup || !this.toggleButton) return;
+      // Position to the left or right of the toggle button
+      const btnRect = this.toggleButton.getBoundingClientRect();
+      this.minimizedPopup.style.position = 'fixed';
+      this.minimizedPopup.style.zIndex = 10002;
+      this.minimizedPopup.style.bottom = (window.innerHeight - btnRect.bottom + 60) + 'px';
+      if (this.options.position === 'bottom-left') {
+        this.minimizedPopup.style.left = (btnRect.left + btnRect.width + 10) + 'px';
+        this.minimizedPopup.style.right = '';
+      } else {
+        this.minimizedPopup.style.right = (window.innerWidth - btnRect.right + btnRect.width + 10) + 'px';
+        this.minimizedPopup.style.left = '';
       }
     }
 
@@ -844,8 +1229,7 @@
         this.showNotification(enabled ? 'Voice enabled' : 'Voice disabled');
       });
 
-      // File upload
-      this.fileBtn.addEventListener('click', () => this.handleFileUpload());
+
 
       // Toggle button
       this.toggleButton.addEventListener('click', () => this.toggle());
@@ -862,7 +1246,17 @@
       if (sender === 'bot' && this.options.showAvatar) {
         const avatar = document.createElement('div');
         avatar.className = 'botrix-message-avatar';
-        avatar.textContent = '🤖';
+        if (this.botLogo) {
+          console.log('Adding bot message with logo:', this.botLogo);
+          avatar.innerHTML = `<img src="${this.botLogo}" alt="Bot Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" />`;
+        } else {
+          console.log('Adding bot message with fallback icon (no logo available)');
+          avatar.innerHTML = `
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          `;
+        }
         messageDiv.appendChild(avatar);
       }
       // Add avatar and name for user messages
@@ -903,7 +1297,9 @@
 
       // Speak bot messages if voice is enabled
       if (sender === 'bot' && this.voiceService.isEnabled) {
-        this.voiceService.speak(content);
+        this.voiceService.speak(content).catch(error => {
+          console.error('Voice synthesis error:', error);
+        });
       }
 
       this.messages.push({ content, sender, timestamp: new Date() });
@@ -932,8 +1328,22 @@
     showTyping() {
       const typingDiv = document.createElement('div');
       typingDiv.className = 'botrix-message bot';
+      
+      let avatarHtml = '';
+      if (this.botLogo) {
+        avatarHtml = `<div class="botrix-message-avatar"><img src="${this.botLogo}" alt="Bot Logo" style="width: 100%; height: 100%; object-fit: cover; border-radius: 50%;" /></div>`;
+      } else {
+        avatarHtml = `
+          <div class="botrix-message-avatar">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          </div>
+        `;
+      }
+      
       typingDiv.innerHTML = `
-        <div class="botrix-message-avatar">🤖</div>
+        ${avatarHtml}
         <div class="botrix-typing">
           <div class="botrix-typing-dot"></div>
           <div class="botrix-typing-dot"></div>
@@ -983,34 +1393,7 @@
       }
     }
 
-    handleFileUpload() {
-      // Create file input
-      const fileInput = document.createElement('input');
-      fileInput.type = 'file';
-      fileInput.accept = 'image/*,.pdf,.doc,.docx,.txt';
-      fileInput.style.display = 'none';
-      
-      fileInput.addEventListener('change', (e) => {
-        const file = e.target.files[0];
-        if (file) {
-          // For demo purposes, just show file name
-          this.addMessage(`📎 ${file.name} (${this.formatFileSize(file.size)})`, 'user');
-          this.addMessage('File received! I can help you with document analysis once this feature is fully implemented.', 'bot');
-        }
-      });
-      
-      document.body.appendChild(fileInput);
-      fileInput.click();
-      document.body.removeChild(fileInput);
-    }
 
-    formatFileSize(bytes) {
-      if (bytes === 0) return '0 Bytes';
-      const k = 1024;
-      const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-      const i = Math.floor(Math.log(bytes) / Math.log(k));
-      return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-    }
 
     showNotification(message) {
       const notification = document.createElement('div');
@@ -1024,6 +1407,8 @@
         setTimeout(() => notification.remove(), 300);
       }, 2000);
     }
+
+
 
     async sendMessage() {
       const message = this.input.value.trim();
@@ -1058,21 +1443,17 @@
       try {
         const response = await this.chatService.sendMessage(message);
         this.hideTyping();
-        // Try to extract user name from the backend response
-        if (Array.isArray(response) && response.length > 0 && response[0]._id) {
-          // Try to fetch conversation info for user name
-          // We'll make a request to get the conversation details (if not already available)
-          // For now, try to extract from response if present
-          if (response[0].userInfo && response[0].userInfo.name) {
-            this.userName = response[0].userInfo.name;
-          }
-        }
-        // If the backend sends the name in a different way, you may need to adjust this logic
+        
+        // Process the response and extract user name if available
         if (Array.isArray(response) && response.length > 0) {
           response.forEach(msg => {
-            if (msg.userInfo && msg.userInfo.name) {
+            // Extract user name from response if available
+            if (msg.userInfo && msg.userInfo.name && !this.userName) {
               this.userName = msg.userInfo.name;
+              this.saveUserName(this.userName);
+              console.log('Extracted user name from response:', this.userName);
             }
+            
             if (msg.content && msg.content.text) {
               this.addMessage(msg.content.text, 'bot');
             } else {
@@ -1111,22 +1492,25 @@
       this.widget.style.display = 'flex';
       this.toggleButton.style.display = 'none';
       this.toggleButton.classList.remove('pulse');
-      
+      if (this.minimizedPopup) this.minimizedPopup.style.display = 'none';
       setTimeout(() => {
         this.widget.classList.add('open');
         this.isOpen = true;
         this.input.focus();
       }, 50);
+      console.log('[Botrix] Chat opened, minimized popup hidden');
     }
 
     close() {
       this.widget.classList.remove('open');
-      
       setTimeout(() => {
         this.widget.style.display = 'none';
         this.toggleButton.style.display = 'flex';
         this.isOpen = false;
+        // Show popup if not dismissed
+        this.tryShowMinimizedPopup();
       }, 300);
+      console.log('[Botrix] Chat closed, minimized popup may show');
     }
 
     toggle() {
@@ -1137,6 +1521,50 @@
       }
     }
   }
+
+  // Add popup styles
+  const popupStyles = `
+    .botrix-minimized-popup {
+      position: fixed;
+      background: linear-gradient(135deg, #8b5cf6, #ec4899);
+      color: white;
+      border-radius: 16px;
+      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
+      padding: 10px 18px;
+      font-size: 15px;
+      font-weight: 500;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      cursor: pointer;
+      z-index: 10002;
+      transition: opacity 0.2s, transform 0.2s;
+      opacity: 0.95;
+      min-width: 120px;
+      max-width: 220px;
+      user-select: none;
+    }
+    .botrix-minimized-popup .botrix-popup-close {
+      background: rgba(255,255,255,0.2);
+      border: none;
+      color: white;
+      font-size: 18px;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      cursor: pointer;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s;
+    }
+    .botrix-minimized-popup .botrix-popup-close:hover {
+      background: rgba(255,255,255,0.4);
+    }
+  `;
+  const popupStyleElement = document.createElement('style');
+  popupStyleElement.textContent = popupStyles;
+  document.head.appendChild(popupStyleElement);
 
   // Global API
   window.BotrixChat = {
@@ -1150,8 +1578,8 @@
     const scripts = document.querySelectorAll('script[data-botrix-bot-id]');
     scripts.forEach(script => {
       const botId = script.getAttribute('data-botrix-bot-id');
-      const primaryColor = script.getAttribute('data-botrix-primary-color') || '#667eea';
-      const secondaryColor = script.getAttribute('data-botrix-secondary-color') || '#764ba2';
+      const primaryColor = script.getAttribute('data-botrix-primary-color') || '#8b5cf6';
+      const secondaryColor = script.getAttribute('data-botrix-secondary-color') || '#ec4899';
       const position = script.getAttribute('data-botrix-position') || 'bottom-right';
       const welcomeMessage = script.getAttribute('data-botrix-welcome-message');
       const enableVoice = script.getAttribute('data-botrix-enable-voice') !== 'false';

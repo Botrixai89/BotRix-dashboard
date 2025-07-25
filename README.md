@@ -24,15 +24,24 @@ A comprehensive chatbot platform built with Next.js, TypeScript, Tailwind CSS, a
 
 ## 🎤 Voice Features
 
-### Text-to-Speech Integration
-Botrix now includes comprehensive voice synthesis capabilities:
+### Enhanced Voice Integration with Google Cloud
+Botrix now includes comprehensive voice synthesis and recognition capabilities with Google Cloud integration:
 
+- **High-Quality Text-to-Speech**: Google Cloud Neural2 voices for natural-sounding speech
+- **Accurate Speech-to-Text**: Advanced speech recognition with automatic punctuation
 - **Multiple Voice Types**: Choose from 6 different voice personalities (Alloy, Echo, Fable, Onyx, Nova, Shimmer)
-- **Customizable Settings**: Adjust speed (0.25x - 4.0x), pitch (0.25x - 4.0x), and language
-- **Multi-language Support**: English (US/UK), Spanish, French, German, Italian, Portuguese, Japanese, Korean, Chinese
+- **Customizable Settings**: Adjust speed (0.25x - 4.0x), pitch (-20 to +20), and language
+- **Multi-language Support**: 120+ languages supported through Google Cloud
 - **Real-time Voice**: Bot responses are automatically spoken aloud when enabled
 - **Voice Controls**: Users can toggle voice on/off in the chat widget
-- **Voice Preview**: Test voice settings in the bot builder before deploying
+- **Automatic Fallback**: Falls back to browser APIs if Google Cloud is unavailable
+- **Free Tier**: 4M characters TTS, 60min STT per month
+
+### Google Cloud Setup
+1. **Get Google Cloud API Key**: Follow the setup guide in `GOOGLE_CLOUD_VOICE_SETUP.md`
+2. **Add Environment Variables**: Add your API key to `.env.local`
+3. **Install Dependencies**: Run `npm install @google-cloud/text-to-speech @google-cloud/speech`
+4. **Test Integration**: Visit `/google-voice-test.html` to test the voice features
 
 ### How to Enable Voice
 1. Go to your bot's Builder page
@@ -43,7 +52,8 @@ Botrix now includes comprehensive voice synthesis capabilities:
 6. Save your settings
 
 ### Voice Testing
-Visit `/voice-test.html` to test different voice configurations and hear how your bot will sound.
+- **Browser Voice**: Visit `/voice-test.html` to test browser-based voice features
+- **Google Cloud Voice**: Visit `/google-voice-test.html` to test Google Cloud voice features
 
 ## 🛠️ Tech Stack
 

@@ -76,6 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error };
       }
     } catch (error) {
+      console.error('Login error:', error);
       return { success: false, error: 'Network error' };
     }
   };
@@ -100,6 +101,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error };
       }
     } catch (error) {
+      console.error('Signup error:', error);
       return { success: false, error: 'Network error' };
     }
   };
@@ -122,6 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error };
       }
     } catch (error) {
+      console.error('Forgot password error:', error);
       return { success: false, error: 'Network error' };
     }
   };
@@ -144,6 +147,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return { success: false, error: data.error };
       }
     } catch (error) {
+      console.error('Reset password error:', error);
       return { success: false, error: 'Network error' };
     }
   };
@@ -158,7 +162,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       console.error('Logout error:', error);
     } finally {
       setUser(null);
-      router.push('/login');
+      if (typeof window !== 'undefined') {
+        router.push('/login');
+      }
     }
   };
 
@@ -200,7 +206,7 @@ export function useRequireAuth() {
   const router = useRouter();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && typeof window !== 'undefined') {
       router.push('/login');
     }
   }, [user, loading, router]);
