@@ -1,108 +1,24 @@
 # Botrix Dashboard
 
-A comprehensive chatbot platform built with Next.js, TypeScript, Tailwind CSS, and MongoDB. Create, manage, and analyze chatbots with a modern, user-friendly interface.
+A comprehensive chatbot management platform built with Next.js, featuring AI-powered conversations, voice capabilities, and advanced analytics.
 
-## 🚀 Features
+## Features
 
-### Phase 1 - MVP (Current)
-- **User Authentication**: Sign up, login, and account management
-- **Bot Management**: Create and manage multiple chatbots
-- **Dashboard**: Overview with bot cards and key metrics
-- **Bot Builder**: Simple Q&A setup for common questions
-- **Live Chat Inbox**: Real-time conversation management with filtering
-- **Analytics**: Performance metrics and user engagement tracking
-- **Embed Code**: Easy website integration with customizable widget
-- **Voice Synthesis**: Text-to-speech functionality with customizable voices
-- **Modern UI**: Built with Shadcn/UI and Tailwind CSS
+- 🤖 **AI Chatbot Management** - Create and manage multiple chatbots
+- 🎨 **Customizable Widgets** - Brand your chat widgets with custom colors and logos
+- 🗣️ **Voice Integration** - Text-to-speech and speech-to-text capabilities
+- 📊 **Analytics Dashboard** - Track conversation metrics and performance
+- 🔗 **Webhook Integration** - Connect with external automation services
+- 👥 **Team Management** - Collaborate with team members
+- 📱 **Responsive Design** - Works on desktop and mobile devices
 
-### Phase 2 - Enhanced Features (Planned)
-- **Advanced Bot Builder**: Visual flow builder with drag-and-drop
-- **Team Collaboration**: Multi-user support with roles and permissions
-- **AI Integration**: Natural Language Processing for smarter responses
-- **Advanced Analytics**: Detailed reports and goal tracking
-- **Integrations**: Webhooks, Zapier, Slack, and CRM connections
-
-## 🎤 Voice Features
-
-### Enhanced Voice Integration with Google Cloud
-Botrix now includes comprehensive voice synthesis and recognition capabilities with Google Cloud integration:
-
-- **High-Quality Text-to-Speech**: Google Cloud Neural2 voices for natural-sounding speech
-- **Accurate Speech-to-Text**: Advanced speech recognition with automatic punctuation
-- **Multiple Voice Types**: Choose from 6 different voice personalities (Alloy, Echo, Fable, Onyx, Nova, Shimmer)
-- **Customizable Settings**: Adjust speed (0.25x - 4.0x), pitch (-20 to +20), and language
-- **Multi-language Support**: 120+ languages supported through Google Cloud
-- **Real-time Voice**: Bot responses are automatically spoken aloud when enabled
-- **Voice Controls**: Users can toggle voice on/off in the chat widget
-- **Automatic Fallback**: Falls back to browser APIs if Google Cloud is unavailable
-- **Free Tier**: 4M characters TTS, 60min STT per month
-
-### Google Cloud Setup
-1. **Get Google Cloud API Key**: Follow the setup guide in `GOOGLE_CLOUD_VOICE_SETUP.md`
-2. **Add Environment Variables**: Add your API key to `.env.local`
-3. **Install Dependencies**: Run `npm install @google-cloud/text-to-speech @google-cloud/speech`
-4. **Test Integration**: Visit `/google-voice-test.html` to test the voice features
-
-### How to Enable Voice
-1. Go to your bot's Builder page
-2. Scroll to the "Voice Settings" section
-3. Enable "Voice Responses"
-4. Choose your preferred voice type and settings
-5. Test the voice with the preview button
-6. Save your settings
-
-### Voice Testing
-- **Browser Voice**: Visit `/voice-test.html` to test browser-based voice features
-- **Google Cloud Voice**: Visit `/google-voice-test.html` to test Google Cloud voice features
-
-## 🛠️ Tech Stack
-
-- **Frontend & Backend**: Next.js 14 with App Router
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS + Shadcn/UI components
-- **Database**: MongoDB with Mongoose
-- **Authentication**: NextAuth.js
-- **Real-time**: Socket.io
-- **Deployment**: Vercel-ready
-
-## 📁 Project Structure
-
-```
-botrix-dashboard/
-├── app/                          # Next.js App Router
-│   ├── dashboard/               # Dashboard pages
-│   │   ├── bots/[id]/          # Bot-specific pages
-│   │   │   ├── analytics/      # Analytics page
-│   │   │   ├── builder/        # Bot builder
-│   │   │   ├── embed/          # Embed code
-│   │   │   ├── messages/       # Chat inbox
-│   │   │   └── page.tsx        # Bot overview
-│   │   ├── create-bot/         # Bot creation
-│   │   └── page.tsx            # Main dashboard
-│   ├── login/                   # Authentication
-│   ├── signup/                  # Registration
-│   ├── globals.css             # Global styles
-│   └── layout.tsx              # Root layout
-├── components/
-│   └── ui/                     # Shadcn/UI components
-├── lib/
-│   ├── mongodb.ts              # Database connection
-│   └── utils.ts                # Utility functions
-├── models/                     # MongoDB models
-│   ├── User.ts
-│   ├── Bot.ts
-│   └── Conversation.ts
-└── types/
-    └── index.ts                # TypeScript definitions
-```
-
-## 🚀 Getting Started
+## Quick Start
 
 ### Prerequisites
 
 - Node.js 18+ 
 - MongoDB database
-- npm or yarn
+- (Optional) Google Cloud API key for enhanced voice features
 
 ### Installation
 
@@ -122,12 +38,16 @@ botrix-dashboard/
    cp env.example .env.local
    ```
    
-   Update `.env.local` with your values:
+   Edit `.env.local` with your configuration:
    ```env
+   # Database
    MONGODB_URI=mongodb://localhost:27017/botrix-dashboard
-   NEXTAUTH_URL=http://localhost:3000
-   NEXTAUTH_SECRET=your-secret-key-here
-   SOCKET_PORT=3001
+   
+   # Authentication
+   JWT_SECRET=your-super-secret-jwt-key-change-in-production
+   
+   # Base URL (for production)
+   NEXT_PUBLIC_BASE_URL=https://your-domain.com
    ```
 
 4. **Run the development server**
@@ -138,153 +58,105 @@ botrix-dashboard/
 5. **Open your browser**
    Navigate to [http://localhost:3000](http://localhost:3000)
 
-## 🗃️ Database Setup
+## File Upload Configuration
 
-### MongoDB Local Setup
-```bash
-# Install MongoDB
-brew install mongodb/brew/mongodb-community
+### Development
+In development, files are stored locally in the `public/uploads` directory.
 
-# Start MongoDB
-brew services start mongodb/brew/mongodb-community
+### Production (Vercel)
+In production on Vercel, the filesystem is read-only. The application automatically converts uploaded images to base64 data URLs, which are stored directly in the database.
 
-# Create database
-mongosh
-use botrix-dashboard
+**For better performance in production, consider using a cloud storage service:**
+
+1. **Cloudinary (Recommended)**
+   - Sign up at [cloudinary.com](https://cloudinary.com)
+   - Add environment variables:
+     ```env
+     CLOUDINARY_CLOUD_NAME=your_cloud_name
+     CLOUDINARY_UPLOAD_PRESET=your_upload_preset
+     ```
+
+2. **AWS S3**
+   - Set up an S3 bucket
+   - Configure AWS credentials
+   - Update the upload service to use S3
+
+## Environment Variables
+
+| Variable | Description | Required |
+|----------|-------------|----------|
+| `MONGODB_URI` | MongoDB connection string | Yes |
+| `JWT_SECRET` | Secret key for JWT tokens | Yes |
+| `NEXT_PUBLIC_BASE_URL` | Your application's base URL | Yes (production) |
+| `CLOUDINARY_CLOUD_NAME` | Cloudinary cloud name | No |
+| `CLOUDINARY_UPLOAD_PRESET` | Cloudinary upload preset | No |
+| `GOOGLE_CLOUD_API_KEY` | Google Cloud API key for voice features | No |
+
+## Deployment
+
+### Vercel (Recommended)
+
+1. **Connect your repository to Vercel**
+2. **Set environment variables** in Vercel dashboard:
+   - `MONGODB_URI`
+   - `JWT_SECRET`
+   - `NEXT_PUBLIC_BASE_URL` (your production domain)
+3. **Deploy**
+
+### Other Platforms
+
+The application can be deployed to any platform that supports Next.js:
+- Netlify
+- Railway
+- DigitalOcean App Platform
+- AWS Amplify
+
+## API Endpoints
+
+### Authentication
+- `POST /api/auth/signup` - User registration
+- `POST /api/auth/login` - User login
+- `POST /api/auth/logout` - User logout
+- `GET /api/auth/me` - Get current user
+
+### Bots
+- `GET /api/bots` - List user's bots
+- `POST /api/bots` - Create new bot
+- `GET /api/bots/[id]` - Get bot details
+- `PUT /api/bots/[id]` - Update bot
+- `DELETE /api/bots/[id]` - Delete bot
+
+### Chat
+- `POST /api/chat` - Send message to bot
+- `GET /api/bots/[id]/conversations` - Get bot conversations
+
+### File Upload
+- `POST /api/upload` - Upload files (images)
+
+## Widget Integration
+
+Add the chat widget to your website:
+
+```html
+<script src="https://your-domain.com/widget.js" 
+        data-botrix-bot-id="your-bot-id"
+        data-botrix-primary-color="#8b5cf6"
+        data-botrix-position="bottom-right">
+</script>
 ```
 
-### MongoDB Atlas (Cloud)
-1. Create account at [MongoDB Atlas](https://www.mongodb.com/atlas)
-2. Create new cluster
-3. Get connection string
-4. Update `MONGODB_URI` in `.env.local`
-
-## 📖 Usage Guide
-
-### Creating Your First Bot
-
-1. **Sign up** for a new account
-2. **Navigate** to the dashboard
-3. **Click** "Create New Bot"
-4. **Fill in** bot information:
-   - Bot Name (e.g., "Customer Support Bot")
-   - Description (optional)
-   - Welcome Message
-   - Primary Color
-
-5. **Set up responses** in the Bot Builder:
-   - Add trigger keywords (e.g., "hello, hi, hey")
-   - Define bot responses
-   - Configure fallback message
-
-6. **Test your bot** using the preview feature
-7. **Get embed code** and add to your website
-8. **Monitor conversations** in the Messages inbox
-
-### Key Features Walkthrough
-
-#### Dashboard
-- View all your bots in card format
-- See key metrics at a glance
-- Quick access to bot management
-
-#### Bot Builder (MVP)
-- Simple Q&A setup
-- Keyword-based triggers
-- Welcome and fallback messages
-- Quick response management
-
-#### Messages Inbox
-- Filter conversations (All, Active, New, Unassigned)
-- Real-time chat interface
-- User information sidebar
-- Conversation assignment
-
-#### Analytics
-- Performance metrics
-- User engagement data
-- Conversation volume charts
-- Most common questions
-
-#### Embed Code
-- Copy-paste integration
-- Customizable widget settings
-- Platform-specific instructions
-- Live preview
-
-## 🎨 Customization
-
-### Styling
-The project uses Tailwind CSS with Shadcn/UI components. Customize:
-
-- **Colors**: Update `tailwind.config.js`
-- **Components**: Modify files in `components/ui/`
-- **Global styles**: Edit `app/globals.css`
-
-### Database Schema
-Extend models in the `models/` directory:
-
-- **User**: Authentication and profile data
-- **Bot**: Bot configuration and settings
-- **Conversation**: Chat messages and metadata
-
-## 🚀 Deployment
-
-### Vercel Deployment
-1. **Push to GitHub**
-2. **Connect to Vercel**
-3. **Set environment variables** in Vercel dashboard
-4. **Deploy automatically** on every push
-
-### Environment Variables for Production
-```env
-MONGODB_URI=mongodb+srv://username:password@cluster.mongodb.net/botrix-dashboard
-NEXTAUTH_URL=https://your-domain.vercel.app
-NEXTAUTH_SECRET=your-production-secret-key
-```
-
-## 🔧 Development
-
-### Available Scripts
-```bash
-npm run dev      # Development server
-npm run build    # Production build
-npm run start    # Start production server
-npm run lint     # Run ESLint
-```
-
-### Code Quality
-- **TypeScript**: Full type safety
-- **ESLint**: Code linting
-- **Prettier**: Code formatting (add if needed)
-
-## 🤝 Contributing
+## Contributing
 
 1. Fork the repository
-2. Create feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit changes (`git commit -m 'Add amazing feature'`)
-4. Push to branch (`git push origin feature/amazing-feature`)
-5. Open Pull Request
+2. Create a feature branch
+3. Make your changes
+4. Add tests if applicable
+5. Submit a pull request
 
-## 📝 License
+## License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License.
 
-## 🙏 Acknowledgments
+## Support
 
-- [Shadcn/UI](https://ui.shadcn.com/) for beautiful components
-- [Next.js](https://nextjs.org/) for the amazing framework
-- [Tailwind CSS](https://tailwindcss.com/) for utility-first CSS
-- [MongoDB](https://www.mongodb.com/) for flexible database
-- Inspired by platforms like ChatBot, Intercom, and Zendesk Chat
-
-## 📞 Support
-
-- **Documentation**: Check this README and inline comments
-- **Issues**: Create GitHub issue for bugs
-- **Discussions**: Use GitHub Discussions for questions
-- **Email**: [your-email@domain.com](mailto:your-email@domain.com)
-
----
-
-Built with ❤️ using Next.js, TypeScript, and modern web technologies. 
+For support, email support@botrixai.com or create an issue in this repository. 
