@@ -29,13 +29,27 @@ export interface BotSettings {
   collectUserInfo: boolean;
   handoverEnabled: boolean;
   webhookUrl: string;
+  widgetIcon?: string;
+  widgetIconType: 'default' | 'custom' | 'emoji';
+  widgetIconEmoji: string;
+  headerColor: string;
+  footerColor: string;
+  bodyColor: string;
+  logo?: string;
+  widgetImages?: string[];
 }
 
 export interface BotMetrics {
   totalConversations: number;
+  totalSessions: number;
+  totalInteractions: number;
+  uniqueUsers: number;
+  activeUsers: number;
   newMessages24h: number;
   averageResponseTime: number;
   handoverRate: number;
+  averageInteractionsPerUser: number;
+  lastUpdated: Date;
 }
 
 // Conversation types

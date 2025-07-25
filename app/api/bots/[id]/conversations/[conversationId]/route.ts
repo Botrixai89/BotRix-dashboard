@@ -48,7 +48,7 @@ export async function GET(
     const conversation = await Conversation.findOne({
       _id: conversationId,
       botId: botId
-    }).populate('botId', 'name');
+    }).populate('botId', 'name userId');
 
     if (!conversation) {
       console.log('❌ Conversation not found');
@@ -75,22 +75,24 @@ export async function GET(
     });
 
     return NextResponse.json({
-      _id: conversation._id,
-      status: conversation.status,
-      createdAt: conversation.createdAt,
-      updatedAt: conversation.updatedAt,
-      userInfo: conversation.userInfo,
-      botInfo: {
-        _id: conversation.botId._id,
-        name: conversation.botId.name
-      },
-      messages: conversation.messages.map((msg: Message) => ({
-        _id: msg._id,
-        content: msg.content,
-        sender: msg.sender,
-        timestamp: msg.timestamp,
-        type: msg.type || 'text'
-      }))
+      conversation: {
+        _id: conversation._id,
+        status: conversation.status,
+        createdAt: conversation.createdAt,
+        updatedAt: conversation.updatedAt,
+        userInfo: conversation.userInfo,
+        botInfo: {
+          _id: conversation.botId._id,
+          name: conversation.botId.name
+        },
+        messages: conversation.messages.map((msg: Message) => ({
+          _id: msg._id,
+          content: msg.content,
+          sender: msg.sender,
+          timestamp: msg.timestamp,
+          type: msg.type || 'text'
+        }))
+      }
     });
 
   } catch (error) {

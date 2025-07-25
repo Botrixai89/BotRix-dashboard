@@ -21,6 +21,9 @@ interface Bot {
     welcomeMessage: string;
     fallbackMessage: string;
     primaryColor: string;
+    widgetIcon?: string;
+    widgetIconType: string;
+    widgetIconEmoji: string;
     voiceEnabled: boolean;
     voiceSettings: {
       voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
@@ -56,13 +59,21 @@ export default function BuilderPage() {
     welcomeMessage: '',
     fallbackMessage: '',
     primaryColor: '',
+    widgetIcon: '',
+    widgetIconType: 'default', // string, not a union type
+    widgetIconEmoji: '💬',
     voiceEnabled: false,
     voiceSettings: {
       voice: 'alloy' as const,
       speed: 1.0,
       pitch: 1.0,
       language: 'en-US'
-    }
+    },
+    headerColor: '#8b5cf6',
+    footerColor: '#f8fafc',
+    bodyColor: '#ffffff',
+    logo: '',
+    widgetImages: [''] as string[]
   })
 
   useEffect(() => {
@@ -81,13 +92,21 @@ export default function BuilderPage() {
           welcomeMessage: result.bot.settings.welcomeMessage || '',
           fallbackMessage: result.bot.settings.fallbackMessage || '',
           primaryColor: result.bot.settings.primaryColor || '#7c3aed',
+          widgetIcon: result.bot.settings.widgetIcon || '',
+          widgetIconType: result.bot.settings.widgetIconType || 'default',
+          widgetIconEmoji: result.bot.settings.widgetIconEmoji || '💬',
           voiceEnabled: result.bot.settings.voiceEnabled || false,
           voiceSettings: {
             voice: result.bot.settings.voiceSettings?.voice || 'alloy',
             speed: result.bot.settings.voiceSettings?.speed || 1.0,
             pitch: result.bot.settings.voiceSettings?.pitch || 1.0,
             language: result.bot.settings.voiceSettings?.language || 'en-US'
-          }
+          },
+          headerColor: result.bot.settings.headerColor || '#8b5cf6',
+          footerColor: result.bot.settings.footerColor || '#f8fafc',
+          bodyColor: result.bot.settings.bodyColor || '#ffffff',
+          logo: result.bot.settings.logo || '',
+          widgetImages: result.bot.settings.widgetImages || ['']
         })
       } else {
         setError(result.error || 'Failed to fetch bot')
@@ -390,6 +409,260 @@ export default function BuilderPage() {
               </div>
               <p className="text-sm text-gray-600">
                 The color used for your chat widget header and buttons
+              </p>
+            </div>
+
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-gray-700">
+                Widget Icon
+              </Label>
+              <div className="space-y-4">
+                {/* Icon Type Selection */}
+                <div className="flex space-x-4">
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="widgetIconType"
+                      value="default"
+                      checked={formData.widgetIconType === 'default'}
+                      onChange={(e) => handleInputChange('widgetIconType', e.target.value)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Default</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="widgetIconType"
+                      value="emoji"
+                      checked={formData.widgetIconType === 'emoji'}
+                      onChange={(e) => handleInputChange('widgetIconType', e.target.value)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Emoji</span>
+                  </label>
+                  <label className="flex items-center space-x-2 cursor-pointer">
+                    <input
+                      type="radio"
+                      name="widgetIconType"
+                      value="custom"
+                      checked={formData.widgetIconType === 'custom'}
+                      onChange={(e) => handleInputChange('widgetIconType', e.target.value)}
+                      className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
+                    />
+                    <span className="text-sm font-medium text-gray-700">Custom Image</span>
+                  </label>
+                </div>
+
+                {/* Emoji Input */}
+                {formData.widgetIconType === 'emoji' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="widgetIconEmoji" className="text-sm font-medium text-gray-700">
+                      Choose Emoji
+                    </Label>
+                    <div className="flex items-center space-x-3">
+                      <Input
+                        id="widgetIconEmoji"
+                        value={formData.widgetIconEmoji}
+                        onChange={(e) => handleInputChange('widgetIconEmoji', e.target.value)}
+                        placeholder="💬"
+                        className="w-20 h-12 text-center text-2xl border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                      />
+                      <div className="flex space-x-2">
+                        {['💬', '🤖', '👋', '💡', '🎯', '⭐', '🚀', '💎'].map((emoji) => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => handleInputChange('widgetIconEmoji', emoji)}
+                            className="w-10 h-10 text-xl border border-gray-200 rounded-lg hover:border-purple-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {/* Custom Image Input */}
+                {formData.widgetIconType === 'custom' && (
+                  <div className="space-y-2">
+                    <Label htmlFor="widgetIcon" className="text-sm font-medium text-gray-700">
+                      Custom Icon URL
+                    </Label>
+                    <Input
+                      id="widgetIcon"
+                      type="url"
+                      value={formData.widgetIcon}
+                      onChange={(e) => handleInputChange('widgetIcon', e.target.value)}
+                      placeholder="https://example.com/your-icon.png"
+                      className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                    />
+                    <p className="text-sm text-gray-600">
+                      Enter a URL to your custom icon (PNG, JPG, or SVG recommended)
+                    </p>
+                  </div>
+                )}
+
+                {/* Icon Preview */}
+                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
+                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
+                    Icon Preview
+                  </Label>
+                  <div className="flex items-center space-x-3">
+                    <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg flex items-center justify-center shadow-sm">
+                      {formData.widgetIconType === 'default' && (
+                        <MessageSquare className="h-6 w-6 text-gray-600" />
+                      )}
+                      {formData.widgetIconType === 'emoji' && (
+                        <span className="text-2xl">{formData.widgetIconEmoji}</span>
+                      )}
+                      {formData.widgetIconType === 'custom' && formData.widgetIcon && (
+                        <img 
+                          src={formData.widgetIcon} 
+                          alt="Custom Icon" 
+                          className="w-6 h-6 object-contain"
+                          onError={(e) => {
+                            e.currentTarget.style.display = 'none';
+                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                          }}
+                        />
+                      )}
+                      {formData.widgetIconType === 'custom' && !formData.widgetIcon && (
+                        <span className="text-gray-400 text-sm">No image</span>
+                      )}
+                    </div>
+                    <div className="text-sm text-gray-600">
+                      This is how your widget icon will appear
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="headerColor" className="text-sm font-semibold text-gray-700">
+                Header Color
+              </Label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="color"
+                  value={formData.headerColor || '#8b5cf6'}
+                  onChange={(e) => handleInputChange('headerColor', e.target.value)}
+                  className="w-16 h-12 rounded-lg border-2 border-white shadow-lg cursor-pointer"
+                />
+                <Input
+                  value={formData.headerColor || '#8b5cf6'}
+                  onChange={(e) => handleInputChange('headerColor', e.target.value)}
+                  placeholder="#8b5cf6"
+                  className="flex-1 h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                />
+              </div>
+              <p className="text-sm text-gray-600">
+                The color used for your chat widget header
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="footerColor" className="text-sm font-semibold text-gray-700">
+                Footer Color
+              </Label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="color"
+                  value={formData.footerColor || '#f8fafc'}
+                  onChange={(e) => handleInputChange('footerColor', e.target.value)}
+                  className="w-16 h-12 rounded-lg border-2 border-white shadow-lg cursor-pointer"
+                />
+                <Input
+                  value={formData.footerColor || '#f8fafc'}
+                  onChange={(e) => handleInputChange('footerColor', e.target.value)}
+                  placeholder="#f8fafc"
+                  className="flex-1 h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                />
+              </div>
+              <p className="text-sm text-gray-600">
+                The color used for your chat widget footer
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="bodyColor" className="text-sm font-semibold text-gray-700">
+                Body Color
+              </Label>
+              <div className="flex items-center space-x-3">
+                <input
+                  type="color"
+                  value={formData.bodyColor || '#ffffff'}
+                  onChange={(e) => handleInputChange('bodyColor', e.target.value)}
+                  className="w-16 h-12 rounded-lg border-2 border-white shadow-lg cursor-pointer"
+                />
+                <Input
+                  value={formData.bodyColor || '#ffffff'}
+                  onChange={(e) => handleInputChange('bodyColor', e.target.value)}
+                  placeholder="#ffffff"
+                  className="flex-1 h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                />
+              </div>
+              <p className="text-sm text-gray-600">
+                The color used for your chat widget body
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Label htmlFor="logo" className="text-sm font-semibold text-gray-700">
+                Widget Logo (URL)
+              </Label>
+              <Input
+                id="logo"
+                type="url"
+                value={formData.logo || ''}
+                onChange={(e) => handleInputChange('logo', e.target.value)}
+                placeholder="https://example.com/your-logo.png"
+                className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+              />
+              {formData.logo && (
+                <img src={formData.logo} alt="Logo preview" className="mt-2 h-16 w-16 object-contain rounded" />
+              )}
+              <p className="text-sm text-gray-600">
+                Upload or provide a URL for your widget logo
+              </p>
+            </div>
+            <div className="space-y-3">
+              <Label className="text-sm font-semibold text-gray-700">
+                Widget Images (URLs)
+              </Label>
+              <div className="space-y-2">
+                {(formData.widgetImages || []).map((img: string, idx: number) => (
+                  <div key={idx} className="flex items-center space-x-2">
+                    <Input
+                      value={img}
+                      onChange={e => {
+                        const newImages = [...(formData.widgetImages || [])];
+                        newImages[idx] = e.target.value;
+                        handleInputChange('widgetImages', newImages);
+                      }}
+                      placeholder="https://example.com/widget-image.png"
+                      className="flex-1"
+                    />
+                    <button
+                      type="button"
+                      className="text-red-500 hover:text-red-700"
+                      onClick={() => {
+                        const newImages = [...(formData.widgetImages || [])];
+                        newImages.splice(idx, 1);
+                        handleInputChange('widgetImages', newImages);
+                      }}
+                    >Remove</button>
+                    {img && <img src={img} alt="Widget" className="h-10 w-10 object-contain rounded" />}
+                  </div>
+                ))}
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => handleInputChange('widgetImages', [...(formData.widgetImages || []), ''])}
+                >
+                  Add Image
+                </Button>
+              </div>
+              <p className="text-sm text-gray-600">
+                Add one or more images to customize your widget (PNG, JPG, SVG URLs)
               </p>
             </div>
           </CardContent>

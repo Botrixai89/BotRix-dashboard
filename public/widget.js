@@ -340,6 +340,10 @@
       this.botData = null; // Store the complete bot data
       this.welcomeMessageAdded = false; // Track if welcome message has been added
       this.popupDismissed = false; // Track if popup is dismissed
+      this.headerColor = null; // Dynamic header color
+      this.footerColor = null; // Dynamic footer color
+      this.bodyColor = null; // Dynamic body color
+      this.widgetImages = null; // Dynamic widget images
       
       // Try to load user name from localStorage
       this.loadUserName();
@@ -383,18 +387,24 @@
         if (response.ok) {
           const data = await response.json();
           if (data.bot) {
-            // Update bot logo if available
-            if (data.bot.companyLogo) {
+            // Update bot logo if available (prefer settings.logo)
+            if (data.bot.settings && data.bot.settings.logo) {
+              this.botLogo = data.bot.settings.logo;
+              console.log('Using custom widget logo:', this.botLogo);
+            } else if (data.bot.companyLogo) {
               this.botLogo = data.bot.companyLogo;
               console.log('Using company logo:', this.botLogo);
             } else if (data.bot.avatar) {
-              // Fallback to bot avatar if no company logo
               this.botLogo = data.bot.avatar;
               console.log('Using bot avatar as logo:', this.botLogo);
             } else {
               console.log('No logo available, using fallback icon');
             }
-            
+            // Store color and image settings
+            this.headerColor = data.bot.settings?.headerColor || '#8b5cf6';
+            this.footerColor = data.bot.settings?.footerColor || '#f8fafc';
+            this.bodyColor = data.bot.settings?.bodyColor || '#ffffff';
+            this.widgetImages = data.bot.settings?.widgetImages || [];
             // Always update header logo (with fallback if no logo)
             this.updateHeaderLogo();
             this.updateExistingBotMessageAvatars();
@@ -404,14 +414,16 @@
             }
             // Store bot data for later use
             this.botData = data.bot;
-            
+            // Update toggle button icon with bot settings
+            this.updateToggleButtonIcon();
             // Add welcome message after bot details are fully loaded
             if (this.options.welcomeMessage && !this.welcomeMessageAdded) {
-              console.log('Adding welcome message with logo:', this.botLogo);
               this.addMessage(this.options.welcomeMessage, 'bot');
               this.showQuickReplies();
               this.welcomeMessageAdded = true;
             }
+            // Re-create styles with new colors
+            this.createStyles(true);
           }
         }
       } catch (error) {
@@ -473,7 +485,15 @@
       }
     }
 
-    createStyles() {
+    createStyles(forceUpdate = false) {
+      // Use dynamic colors if available
+      const headerColor = this.headerColor || this.options.primaryColor || '#8b5cf6';
+      const footerColor = this.footerColor || '#f8fafc';
+      const bodyColor = this.bodyColor || '#ffffff';
+      const styleId = 'botrix-widget-styles';
+      let styleElement = document.getElementById(styleId);
+      if (styleElement && !forceUpdate) return;
+      if (styleElement && forceUpdate) styleElement.remove();
       const styles = `
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
         
@@ -483,7 +503,7 @@
           bottom: 20px;
           width: 320px;
           height: 480px;
-          background: #ffffff;
+          background: ${bodyColor};
           border-radius: 16px;
           box-shadow: 0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.05);
           font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
@@ -504,7 +524,7 @@
         }
 
         .botrix-widget-header {
-          background: linear-gradient(135deg, #8b5cf6 0%, #ec4899 100%);
+          background: ${headerColor};
           color: white;
           padding: 16px;
           border-radius: 16px 16px 0 0;
@@ -906,7 +926,7 @@
           font-size: 10px;
           color: #9ca3af;
           padding: 10px 16px;
-          background: #f8fafc;
+          background: ${footerColor};
           display: flex;
           align-items: center;
           justify-content: center;
@@ -926,6 +946,18 @@
           transform: scale(1.05);
         }
 
+        .botrix-widget-images {
+          display: flex;
+          gap: 8px;
+          margin: 8px 0;
+        }
+
+        .botrix-widget-images img {
+          width: 40px;
+          height: 40px;
+          object-fit: contain;
+          border-radius: 8px;
+        }
 
 
         .botrix-notification {
@@ -983,7 +1015,8 @@
         }
       `;
 
-      const styleElement = document.createElement('style');
+      styleElement = document.createElement('style');
+      styleElement.id = styleId;
       styleElement.textContent = styles;
       document.head.appendChild(styleElement);
     }
@@ -1092,6 +1125,27 @@
         Powered by 
         <img src="${this.options.baseUrl}/botrix-logo01.png" alt="Botrix" class="botrix-powered-logo" style="cursor: pointer; width: 54px; height: 19px;"/>
       `;
+      // Add widget images if available
+      if (this.widgetImages && this.widgetImages.length > 0) {
+        const imagesDiv = document.createElement('div');
+        imagesDiv.className = 'botrix-widget-images';
+        imagesDiv.style.display = 'flex';
+        imagesDiv.style.gap = '8px';
+        imagesDiv.style.margin = '8px 0';
+        this.widgetImages.forEach(url => {
+          if (url) {
+            const img = document.createElement('img');
+            img.src = url;
+            img.alt = 'Widget Image';
+            img.style.width = '40px';
+            img.style.height = '40px';
+            img.style.objectFit = 'contain';
+            img.style.borderRadius = '8px';
+            imagesDiv.appendChild(img);
+          }
+        });
+        this.widget.appendChild(imagesDiv);
+      }
       this.widget.appendChild(footer);
       
       // Add click event to logo for dashboard redirect
@@ -1188,13 +1242,49 @@
     createToggleButton() {
       this.toggleButton = document.createElement('button');
       this.toggleButton.className = 'botrix-toggle-button pulse';
-      this.toggleButton.innerHTML = `
-        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
-        </svg>
-      `;
+      
+      // Set custom icon based on bot settings
+      this.updateToggleButtonIcon();
 
       document.body.appendChild(this.toggleButton);
+    }
+
+    updateToggleButtonIcon() {
+      if (!this.toggleButton) return;
+      
+      // Get icon settings from bot data
+      const iconType = this.botData?.settings?.widgetIconType || 'default';
+      const iconEmoji = this.botData?.settings?.widgetIconEmoji || '💬';
+      const iconUrl = this.botData?.settings?.widgetIcon || '';
+      
+      let iconHtml = '';
+      
+      switch (iconType) {
+        case 'emoji':
+          iconHtml = `<span style="font-size: 28px; line-height: 1;">${iconEmoji}</span>`;
+          break;
+        case 'custom':
+          if (iconUrl) {
+            iconHtml = `<img src="${iconUrl}" alt="Custom Icon" style="width: 28px; height: 28px; object-fit: contain;" />`;
+          } else {
+            // Fallback to default
+            iconHtml = `
+              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+              </svg>
+            `;
+          }
+          break;
+        default:
+          iconHtml = `
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
+            </svg>
+          `;
+          break;
+      }
+      
+      this.toggleButton.innerHTML = iconHtml;
     }
 
     setupEventListeners() {

@@ -71,6 +71,15 @@ export async function PUT(
       if (settings.primaryColor !== undefined) {
         bot.settings.primaryColor = settings.primaryColor;
       }
+      if (settings.widgetIcon !== undefined) {
+        bot.settings.widgetIcon = settings.widgetIcon;
+      }
+      if (settings.widgetIconType !== undefined) {
+        bot.settings.widgetIconType = settings.widgetIconType;
+      }
+      if (settings.widgetIconEmoji !== undefined) {
+        bot.settings.widgetIconEmoji = settings.widgetIconEmoji;
+      }
       if (settings.collectUserInfo !== undefined) {
         bot.settings.collectUserInfo = settings.collectUserInfo;
       }

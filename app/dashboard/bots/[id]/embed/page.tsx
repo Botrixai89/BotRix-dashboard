@@ -16,6 +16,9 @@ interface Bot {
     primaryColor: string;
     webhookUrl: string;
     welcomeMessage: string;
+    widgetIcon?: string;
+    widgetIconType: 'default' | 'custom' | 'emoji';
+    widgetIconEmoji: string;
   };
   status: string;
 }
@@ -65,7 +68,8 @@ export default function EmbedPage() {
         primaryColor: '${bot.settings.primaryColor}',
         position: 'bottom-right',
         welcomeMessage: '${bot.settings.welcomeMessage}',
-        baseUrl: '${domain}' // Your Botrix domain
+        baseUrl: '${domain}', // Your Botrix domain
+        // Widget icon settings are automatically loaded from bot configuration
       });
     };
     script.async = true;

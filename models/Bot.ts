@@ -25,6 +25,40 @@ const BotSettingsSchema = new Schema({
     type: String,
     default: 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat',
   },
+  // Widget customization
+  widgetIcon: {
+    type: String,
+    default: null, // URL to custom widget icon
+  },
+  widgetIconType: {
+    type: String,
+    enum: ['default', 'custom', 'emoji'],
+    default: 'default',
+  },
+  widgetIconEmoji: {
+    type: String,
+    default: '💬',
+  },
+  headerColor: {
+    type: String,
+    default: '#8b5cf6',
+  },
+  footerColor: {
+    type: String,
+    default: '#f8fafc',
+  },
+  bodyColor: {
+    type: String,
+    default: '#ffffff',
+  },
+  logo: {
+    type: String,
+    default: null,
+  },
+  widgetImages: [{
+    type: String,
+    default: [],
+  }],
   // Voice settings
   voiceEnabled: {
     type: Boolean,
@@ -60,6 +94,22 @@ const BotMetricsSchema = new Schema({
     type: Number,
     default: 0,
   },
+  totalSessions: {
+    type: Number,
+    default: 0,
+  },
+  totalInteractions: {
+    type: Number,
+    default: 0,
+  },
+  uniqueUsers: {
+    type: Number,
+    default: 0,
+  },
+  activeUsers: {
+    type: Number,
+    default: 0,
+  },
   newMessages24h: {
     type: Number,
     default: 0,
@@ -71,6 +121,14 @@ const BotMetricsSchema = new Schema({
   handoverRate: {
     type: Number,
     default: 0,
+  },
+  averageInteractionsPerUser: {
+    type: Number,
+    default: 0,
+  },
+  lastUpdated: {
+    type: Date,
+    default: Date.now,
   },
 });
 

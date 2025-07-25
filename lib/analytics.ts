@@ -24,12 +24,17 @@ export interface ConversationAnalytics {
 
 export interface PerformanceMetrics {
   totalConversations: number;
+  totalSessions: number;
+  totalInteractions: number;
+  uniqueUsers: number;
+  activeUsers: number;
   activeConversations: number;
   resolutionRate: number;
   averageResponseTime: number;
   customerSatisfaction: number;
   handoverRate: number;
   avgMessagesPerConversation: number;
+  averageInteractionsPerUser: number;
 }
 
 export interface UserEngagementMetrics {
@@ -193,6 +198,37 @@ async function getPerformanceMetrics(conversations: any[]): Promise<PerformanceM
     c.messages.some((m: any) => m.sender === 'agent')
   ).length;
 
+  // Calculate total interactions (all messages)
+  const totalInteractions = conversations.reduce((sum, c) => sum + c.messages.length, 0);
+
+  // Calculate unique users
+  const uniqueUsers = new Set(conversations.map(c => c.userId).filter(Boolean));
+  const totalUniqueUsers = uniqueUsers.size;
+
+  // Calculate active users (users with conversations in last 7 days)
+  const sevenDaysAgo = new Date();
+  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  const activeUsers = new Set(
+    conversations
+      .filter(c => c.createdAt >= sevenDaysAgo)
+      .map(c => c.userId)
+      .filter(Boolean)
+  ).size;
+
+  // Calculate total sessions (unique conversation starts per day per user)
+  const sessionsMap = new Map<string, Set<string>>();
+  conversations.forEach(conversation => {
+    const date = conversation.createdAt.toISOString().split('T')[0];
+    const userId = conversation.userId || 'anonymous';
+    const key = `${userId}-${date}`;
+    
+    if (!sessionsMap.has(key)) {
+      sessionsMap.set(key, new Set());
+    }
+    sessionsMap.get(key)!.add(conversation._id.toString());
+  });
+  const totalSessions = sessionsMap.size;
+
   // Calculate response times
   const responseTimes: number[] = [];
   conversations.forEach(conversation => {
@@ -217,14 +253,23 @@ async function getPerformanceMetrics(conversations: any[]): Promise<PerformanceM
     ? conversations.reduce((sum, c) => sum + c.messages.length, 0) / totalConversations
     : 0;
 
+  const averageInteractionsPerUser = totalUniqueUsers > 0
+    ? totalInteractions / totalUniqueUsers
+    : 0;
+
   return {
     totalConversations,
+    totalSessions,
+    totalInteractions,
+    uniqueUsers: totalUniqueUsers,
+    activeUsers,
     activeConversations,
     resolutionRate: totalConversations > 0 ? (resolvedConversations / totalConversations) * 100 : 0,
     averageResponseTime: Math.round(avgResponseTime * 100) / 100,
     customerSatisfaction: 0, // Will be calculated from ratings
     handoverRate: totalConversations > 0 ? (handoverConversations / totalConversations) * 100 : 0,
-    avgMessagesPerConversation: Math.round(avgMessagesPerConversation * 100) / 100
+    avgMessagesPerConversation: Math.round(avgMessagesPerConversation * 100) / 100,
+    averageInteractionsPerUser: Math.round(averageInteractionsPerUser * 100) / 100
   };
 }
 
