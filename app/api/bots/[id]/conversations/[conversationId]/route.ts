@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Conversation from '@/models/Conversation';
 import { requireAuth } from '@/lib/auth';
 import mongoose from 'mongoose';
+import { Message } from '@/types';
 
 export async function GET(
   request: NextRequest,
@@ -83,7 +84,7 @@ export async function GET(
         _id: conversation.botId._id,
         name: conversation.botId.name
       },
-      messages: conversation.messages.map(msg => ({
+      messages: conversation.messages.map((msg: Message) => ({
         _id: msg._id,
         content: msg.content,
         sender: msg.sender,

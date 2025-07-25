@@ -134,7 +134,7 @@ export async function POST(request: NextRequest) {
           const cleanedName = message.trim().replace(/[^\w\s-]/g, ''); // Remove special characters except spaces and hyphens
           if (cleanedName.length > 0 && cleanedName.length <= 50) {
             // Capitalize first letter of each word
-            conversation.userInfo.name = cleanedName.split(' ').map(word => 
+            conversation.userInfo.name = cleanedName.split(' ').map((word: string) => 
               word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()
             ).join(' ');
             console.log(`User provided name: ${conversation.userInfo.name}`);
