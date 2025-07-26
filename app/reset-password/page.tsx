@@ -110,7 +110,7 @@ export default function ResetPasswordPage() {
                     </Button>
                   </Link>
                   
-                  <Link href="/login">
+                  <Link href="/">
                     <Button variant="outline" className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all h-11">
                       Back to login
                     </Button>
@@ -166,7 +166,7 @@ export default function ResetPasswordPage() {
                 </div>
 
                 <div className="space-y-3">
-                  <Link href="/login">
+                  <Link href="/">
                     <Button className="w-full gradient-primary text-white border-0 h-11 hover:shadow-lg hover:scale-[1.02] transition-all duration-300">
                       Go to login
                     </Button>
@@ -198,7 +198,7 @@ export default function ResetPasswordPage() {
           <div className="flex flex-col items-center text-center space-y-4">
             <Link href="/" className="flex items-center space-x-3 group">
               <div className="flex items-center group-hover:scale-110 transition-transform duration-300">
-                <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-10 w-auto" />
+                <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-12 w-auto" />
               </div>
             </Link>
             <div className="space-y-2">
@@ -256,7 +256,7 @@ export default function ResetPasswordPage() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full gradient-primary text-white border-0 h-11 hover:shadow-lg hover:scale-[1.02] transition-all duration-300" 
+                  className="w-full bg-teal-600 text-white border-0 h-11 hover:bg-teal-700 hover:shadow-lg hover:scale-[1.02] transition-all duration-300" 
                   disabled={isLoading}
                 >
                   {isLoading ? 'Resetting...' : 'Reset password'}

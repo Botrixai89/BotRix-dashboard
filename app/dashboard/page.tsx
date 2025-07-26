@@ -134,22 +134,20 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-64 bg-white/80 backdrop-blur-sm border-r border-purple-100 shadow-sm">
-        <div className="flex items-center px-6 py-6 border-b border-purple-100">
-          <Link href="/dashboard" className="flex items-center mr-3 hover:opacity-80 transition-opacity">
-            <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-8 w-auto" />
-          </Link>
+      <div className="w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col">
+        <div className="flex items-center justify-center px-6 py-6 border-b border-gray-200" style={{height: '80px'}}>
+          <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-10 w-auto" />
         </div>
         
-        <nav className="mt-6 px-4">
+        <nav className="mt-6 px-4 flex-1">
           <div className="space-y-2">
-            <Link href="/dashboard" className="flex items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-md">
+            <Link href="/dashboard" className="flex items-center px-4 py-3 text-sm font-medium text-white bg-teal-600 rounded-xl shadow-sm">
               <Bot className="mr-3 h-5 w-5" />
               My Bots
             </Link>
-            <Link href="/dashboard/settings" className="flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all">
+            <Link href="/dashboard/settings" className="flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-all">
               <Settings className="mr-3 h-5 w-5" />
               Settings
             </Link>
@@ -158,11 +156,11 @@ export default function DashboardPage() {
 
         {/* User Profile */}
         {user && (
-          <div className="absolute bottom-6 left-4 right-4">
-            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-purple-100">
+          <div className="p-4 border-t border-gray-200">
+            <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center space-x-3 mb-3">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-purple-600" />
+                <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-teal-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
@@ -173,7 +171,7 @@ export default function DashboardPage() {
                 variant="outline"
                 size="sm"
                 onClick={handleLogoutClick}
-                className="w-full text-xs border-purple-200 text-purple-600 hover:bg-purple-50"
+                className="w-full text-xs border-teal-200 text-teal-600 hover:bg-teal-50"
               >
                 <LogOut className="h-3 w-3 mr-2" />
                 Sign Out
@@ -186,14 +184,14 @@ export default function DashboardPage() {
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         {/* Header */}
-        <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm">
+        <header className="bg-white border-b border-gray-200 px-8 py-[19.52px] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">My Bots</h1>
-              <p className="text-gray-600 mt-1">Create and manage your chatbots</p>
+              {/* <p className="text-gray-600 mt-1">Create and manage your chatbots</p> */}
             </div>
             <Link href="/dashboard/create-bot">
-              <Button className="gradient-primary text-white border-0 px-6 py-3 hover:shadow-lg hover:scale-105 transition-all">
+              <Button className="bg-teal-600 text-white border-0 px-6 py-3 hover:bg-teal-700 hover:shadow-lg transition-all">
                 <Plus className="mr-2 h-5 w-5" />
                 Create New Bot
               </Button>
@@ -206,7 +204,7 @@ export default function DashboardPage() {
           {isLoading ? (
             /* Loading State */
             <div className="flex flex-col items-center justify-center h-full text-center">
-              <div className="p-4 rounded-full gradient-primary mb-6">
+              <div className="p-4 rounded-full bg-teal-600 mb-6">
                 <Bot className="h-12 w-12 text-white animate-pulse" />
               </div>
               <h2 className="text-2xl font-semibold text-gray-900 mb-2">
@@ -226,30 +224,25 @@ export default function DashboardPage() {
               <p className="text-gray-600 mb-6 max-w-md">
                 {error}
               </p>
-              <Button onClick={fetchBots} className="gradient-primary text-white border-0">
+              <Button onClick={fetchBots} className="bg-teal-600 text-white border-0 hover:bg-teal-700">
                 Try Again
               </Button>
             </div>
           ) : bots.length === 0 ? (
             /* Empty State */
-            <div className="flex flex-col items-center justify-center h-full text-center max-w-2xl mx-auto">
-              <div className="relative mb-8">
-                <div className="p-6 rounded-full gradient-primary mb-4">
-                  <Bot className="h-16 w-16 text-white" />
-                </div>
-                <div className="absolute -top-2 -right-2 p-2 rounded-full bg-yellow-400">
-                  <Sparkles className="h-5 w-5 text-white" />
-                </div>
+            <div className="flex flex-col items-center justify-center h-full text-center">
+              <div className="p-4 rounded-full bg-teal-100 text-teal-600 mb-6">
+                <Bot className="h-12 w-12" />
               </div>
-              <h2 className="text-3xl font-bold text-gray-900 mb-4">
-                Let's build your first bot!
+              <h2 className="text-2xl font-semibold text-gray-900 mb-2">
+                No bots yet
               </h2>
-              <p className="text-gray-600 text-lg mb-8 leading-relaxed">
+              <p className="text-gray-600 mb-8 max-w-md">
                 Create intelligent chatbots to automate customer support, lead generation, 
                 and enhance user engagement on your website.
               </p>
               <Link href="/dashboard/create-bot">
-                <Button size="lg" className="gradient-primary text-white border-0 px-8 py-4 hover:shadow-xl hover:scale-105 transition-all">
+                <Button size="lg" className="bg-teal-600 text-white border-0 px-8 py-4 hover:bg-teal-700 hover:shadow-xl transition-all">
                   <Plus className="mr-2 h-6 w-6" />
                   Create Your First Bot
                 </Button>
@@ -257,22 +250,22 @@ export default function DashboardPage() {
               
               {/* Features preview */}
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-12 w-full">
-                <div className="text-center p-6 bg-white/50 rounded-xl border border-purple-100">
-                  <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <div className="text-center p-6 bg-white rounded-xl border border-gray-200">
+                  <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <MessageSquare className="h-6 w-6" />
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">Smart Conversations</h3>
                   <p className="text-sm text-gray-600">AI-powered responses that understand context</p>
                 </div>
-                <div className="text-center p-6 bg-white/50 rounded-xl border border-purple-100">
-                  <div className="w-12 h-12 bg-green-100 text-green-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <div className="text-center p-6 bg-white rounded-xl border border-gray-200">
+                  <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <TrendingUp className="h-6 w-6" />
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">Real-time Analytics</h3>
                   <p className="text-sm text-gray-600">Track performance and user engagement</p>
                 </div>
-                <div className="text-center p-6 bg-white/50 rounded-xl border border-purple-100">
-                  <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-xl flex items-center justify-center mx-auto mb-3">
+                <div className="text-center p-6 bg-white rounded-xl border border-gray-200">
+                  <div className="w-12 h-12 bg-teal-100 text-teal-600 rounded-xl flex items-center justify-center mx-auto mb-3">
                     <Settings className="h-6 w-6" />
                   </div>
                   <h3 className="font-semibold text-gray-900 mb-2">Easy Setup</h3>
@@ -291,7 +284,7 @@ export default function DashboardPage() {
               
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 {bots.map((bot) => (
-                  <Card key={bot._id} className="border-0 shadow-sm hover-lift card-glow bg-white/70 backdrop-blur-sm relative group">
+                  <Card key={bot._id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow bg-white relative group">
                     <div className="absolute top-4 right-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
                       <div className="relative">
                         <Button
@@ -317,7 +310,7 @@ export default function DashboardPage() {
                             {bot.companyLogo ? (
                               <img src={bot.companyLogo} alt="Company Logo" className="w-10 h-10 rounded-lg object-cover border" />
                             ) : (
-                              <div className="w-10 h-10 gradient-primary rounded-lg flex items-center justify-center">
+                              <div className="w-10 h-10 bg-teal-600 rounded-lg flex items-center justify-center">
                                 <Bot className="h-5 w-5 text-white" />
                               </div>
                             )}
@@ -340,32 +333,25 @@ export default function DashboardPage() {
                       
                       <CardContent className="space-y-4">
                         <div className="grid grid-cols-2 gap-4">
-                          <div className="text-center p-3 bg-blue-50 rounded-lg">
+                          <div className="text-center p-3 bg-teal-50 rounded-lg">
                             <div className="flex items-center justify-center mb-1">
-                              <MessageSquare className="h-4 w-4 text-blue-600 mr-1" />
-                              <span className="text-xs text-blue-600 font-medium">Conversations</span>
+                              <MessageSquare className="h-4 w-4 text-teal-600 mr-1" />
+                              <span className="text-xs text-teal-600 font-medium">Conversations</span>
                             </div>
-                            <div className="text-lg font-bold text-blue-900">{bot.metrics.totalConversations}</div>
+                            <div className="text-lg font-bold text-gray-900">
+                              {bot.metrics?.totalConversations || 0}
+                            </div>
                           </div>
-                          
                           <div className="text-center p-3 bg-green-50 rounded-lg">
                             <div className="flex items-center justify-center mb-1">
                               <TrendingUp className="h-4 w-4 text-green-600 mr-1" />
                               <span className="text-xs text-green-600 font-medium">New (24h)</span>
                             </div>
-                            <div className="text-lg font-bold text-green-900">{bot.metrics.newMessages24h}</div>
-                          </div>
-                        </div>
-                        
-                        {bot.status === 'active' && (
-                          <div className="pt-3 border-t border-gray-100">
-                            <div className="text-center">
-                              <span className="text-xs text-gray-500">
-                                Avg. response: {bot.metrics.averageResponseTime}s
-                              </span>
+                            <div className="text-lg font-bold text-gray-900">
+                              {bot.metrics?.newMessages24h || 0}
                             </div>
                           </div>
-                        )}
+                        </div>
                       </CardContent>
                     </Link>
                   </Card>
@@ -397,7 +383,7 @@ export default function DashboardPage() {
             </div>
             
             <p className="text-gray-700 mb-6">
-              Are you sure you want to delete <strong>"{botToDelete.name}"</strong>? 
+              Are you sure you want to delete <strong>"{botToDelete?.name}"</strong>? 
               This will permanently delete:
             </p>
             
@@ -413,7 +399,7 @@ export default function DashboardPage() {
                 variant="outline"
                 onClick={cancelDelete}
                 className="flex-1"
-                disabled={deletingBotId === botToDelete._id}
+                disabled={deletingBotId === botToDelete?._id}
               >
                 Cancel
               </Button>
@@ -421,9 +407,9 @@ export default function DashboardPage() {
                 variant="destructive"
                 onClick={deleteBot}
                 className="flex-1"
-                disabled={deletingBotId === botToDelete._id}
+                disabled={deletingBotId === botToDelete?._id}
               >
-                {deletingBotId === botToDelete._id ? (
+                {deletingBotId === botToDelete?._id ? (
                   <>
                     <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
                     Deleting...
@@ -448,8 +434,8 @@ export default function DashboardPage() {
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center space-x-3 mb-4">
-              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
-                <LogOut className="h-5 w-5 text-blue-600" />
+              <div className="w-10 h-10 bg-teal-100 rounded-full flex items-center justify-center">
+                <LogOut className="h-5 w-5 text-teal-600" />
               </div>
               <div>
                 <h3 className="text-lg font-semibold text-gray-900">Sign Out</h3>
@@ -472,7 +458,7 @@ export default function DashboardPage() {
               <Button
                 variant="default"
                 onClick={confirmLogout}
-                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                className="flex-1 bg-teal-600 hover:bg-teal-700"
               >
                 Sign Out
               </Button>

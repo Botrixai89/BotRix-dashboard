@@ -163,7 +163,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } finally {
       setUser(null);
       if (typeof window !== 'undefined') {
-        router.push('/login');
+        router.push('/');
       }
     }
   };
@@ -207,7 +207,7 @@ export function useRequireAuth() {
 
   useEffect(() => {
     if (!loading && !user && typeof window !== 'undefined') {
-      router.push('/login');
+      router.push('/');
     }
   }, [user, loading, router]);
 

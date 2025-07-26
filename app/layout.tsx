@@ -7,8 +7,8 @@ import { AuthProvider } from '@/lib/auth-context'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Botrix Dashboard - Build and Manage Your Chatbots',
-  description: 'A comprehensive platform for creating, managing, and analyzing chatbots with modern UI and powerful features.',
+  title: 'BotrixAI - Intelligent Chatbot Platform',
+  description: 'Build, deploy, and manage powerful AI chatbots for your business. No coding required.',
   icons: {
     icon: '/favicon.png',
     shortcut: '/favicon.png',
@@ -30,7 +30,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <AuthProvider>
-          <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 font-sans antialiased">
+          <div className="min-h-screen bg-gray-50 font-sans antialiased">
             {children}
           </div>
           <Toaster
@@ -38,18 +38,18 @@ export default function RootLayout({
             toastOptions={{
               duration: 4000,
               style: {
-                background: 'linear-gradient(135deg, #7c3aed 0%, #3b82f6 100%)',
+                background: '#14b8a6',
                 color: '#fff',
                 borderRadius: '12px',
                 fontSize: '14px',
                 maxWidth: '400px',
                 border: 'none',
-                boxShadow: '0 10px 40px rgba(124, 58, 237, 0.3)',
+                boxShadow: '0 10px 40px rgba(20, 184, 166, 0.3)',
               },
               success: {
                 duration: 3000,
                 style: {
-                  background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
+                  background: '#10b981',
                   color: '#fff',
                 },
                 iconTheme: {
@@ -60,7 +60,7 @@ export default function RootLayout({
               error: {
                 duration: 5000,
                 style: {
-                  background: 'linear-gradient(135deg, #ef4444 0%, #dc2626 100%)',
+                  background: '#ef4444',
                   color: '#fff',
                 },
                 iconTheme: {
@@ -70,7 +70,7 @@ export default function RootLayout({
               },
               loading: {
                 style: {
-                  background: 'linear-gradient(135deg, #6b7280 0%, #4b5563 100%)',
+                  background: '#14b8a6',
                   color: '#fff',
                 },
               },

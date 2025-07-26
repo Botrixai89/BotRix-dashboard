@@ -55,62 +55,25 @@ export default function BotLayout({
   ]
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className={`bg-white/80 backdrop-blur-sm border-r border-purple-100 shadow-sm transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
-        {/* Sidebar Toggle */}
-        <div className="flex items-center justify-between px-2 py-2 border-b border-purple-100">
-          <Button variant="ghost" size="icon" onClick={() => setSidebarOpen((v) => !v)} className="hover:bg-purple-50">
-            {sidebarOpen ? <ChevronLeft className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+      <div className={`bg-white border-r border-gray-200 shadow-sm transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
+        {/* Logo Header */}
+        <div className="flex items-center justify-between px-6 py-6 border-b border-gray-200" style={{height: '80px'}}>
+          <div className="flex items-center justify-center flex-1">
+            <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-10 w-auto" />
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => setSidebarOpen(!sidebarOpen)}
+            className="hover:bg-teal-50 text-teal-600 p-2"
+          >
+            {sidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
           </Button>
-          {sidebarOpen && (
-            <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="hover:bg-purple-50 text-purple-600">
-                <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
-              </Button>
-            </Link>
-          )}
-        </div>
-        {/* Header */}
-        <div className={`flex items-center ${sidebarOpen ? 'space-x-3 px-6 py-6' : 'justify-center px-2 py-4'} border-b border-purple-100`}> 
-          {bot?.companyLogo ? (
-            <img 
-              src={bot.companyLogo} 
-              alt="Company Logo" 
-              className={`object-cover border border-gray-200 ${sidebarOpen ? 'w-12 h-12 rounded-xl' : 'w-10 h-10 rounded-lg'}`} 
-            />
-          ) : (
-            <div className={`${sidebarOpen ? 'w-12 h-12 rounded-xl' : 'w-10 h-10 rounded-lg'} gradient-primary flex items-center justify-center border border-gray-200`}>
-              <Bot className={`${sidebarOpen ? 'h-6 w-6' : 'h-5 w-5'} text-white`} />
-            </div>
-          )}
-          {sidebarOpen && (
-            <div className="flex-1 min-w-0">
-              <h2 className="font-bold text-lg text-gray-900 truncate">
-                {isLoading ? 'Loading...' : (bot?.name || 'Bot')}
-              </h2>
-              {!isLoading && bot && bot.status === 'active' && (
-                <Badge 
-                  variant="default"
-                  className="mt-1 bg-green-100 text-green-800 hover:bg-green-100"
-                >
-                  active
-                </Badge>
-              )}
-              {!isLoading && bot && bot.status === 'inactive' && (
-                <Badge 
-                  variant="secondary"
-                  className="mt-1 bg-gray-100 text-gray-800 hover:bg-gray-100"
-                >
-                  inactive
-                </Badge>
-              )}
-            </div>
-          )}
         </div>
         {/* Navigation */}
-        <nav className={`mt-6 ${sidebarOpen ? 'px-4' : 'px-1'}`}>
+        <nav className={`mt-4 ${sidebarOpen ? 'px-4' : 'px-1'}`}>
           <div className="space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon
@@ -121,18 +84,19 @@ export default function BotLayout({
                   href={item.href}
                   className={`flex items-center ${sidebarOpen ? 'px-4 py-3' : 'justify-center py-3'} text-sm font-medium rounded-xl transition-all ${
                     isActive
-                      ? 'text-white bg-gradient-to-r from-purple-600 to-blue-600 shadow-md'
-                      : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                      ? 'text-white bg-teal-600 shadow-sm'
+                      : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50'
                   }`}
                 >
-                  <Icon className={`mr-3 h-5 w-5 ${sidebarOpen ? '' : 'mx-auto'}`} />
-                  {sidebarOpen && item.name}
+                  <Icon className={`${sidebarOpen ? 'mr-3' : 'mr-0'} h-5 w-5`} />
+                  {sidebarOpen && <span>{item.name}</span>}
                 </Link>
               )
             })}
           </div>
         </nav>
       </div>
+
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         {children}

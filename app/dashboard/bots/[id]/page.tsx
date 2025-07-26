@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { MessageSquare, TrendingUp, Clock, Users, ArrowUpRight, Bot, Settings, Code, BarChart3, TestTube, AlertTriangle, CheckCircle, XCircle, Eye } from 'lucide-react'
+import { MessageSquare, TrendingUp, Clock, Users, ArrowUpRight, Bot, Settings, Code, BarChart3, TestTube, AlertTriangle, CheckCircle, XCircle, Eye, ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useEffect, useState } from 'react'
@@ -17,6 +17,7 @@ interface Bot {
     averageResponseTime: number;
     handoverRate: number;
   };
+  companyLogo?: string; // Added for company logo
 }
 
 interface TestResult {
@@ -96,7 +97,7 @@ export default function BotOverviewPage() {
         </header>
         <main className="flex-1 overflow-auto p-8">
           <div className="flex items-center justify-center h-64">
-            <div className="p-4 rounded-full gradient-primary">
+            <div className="p-4 rounded-full bg-teal-600">
               <Bot className="h-8 w-8 text-white animate-pulse" />
             </div>
           </div>
@@ -126,13 +127,41 @@ export default function BotOverviewPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="flex flex-col h-full bg-gray-50">
+      {/* Bot Info Section at the top of main content */}
+      <div className="flex items-center px-8 py-4 border-b border-gray-200 bg-white" style={{minHeight: '80px'}}>
+        {bot.companyLogo ? (
+          <img 
+            src={bot.companyLogo} 
+            alt="Company Logo" 
+            className="object-cover border border-gray-200 w-10 h-10 rounded-lg" 
+          />
+        ) : (
+          <div className="w-10 h-10 rounded-lg bg-teal-600 flex items-center justify-center border border-gray-200">
+            <Bot className="h-5 w-5 text-white" />
+          </div>
+        )}
+        <div className="flex-1 min-w-0 ml-3">
+          <h2 className="font-bold text-lg text-gray-900 truncate">{bot.name}</h2>
+          {bot.status === 'active' && (
+            <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">active</span>
+          )}
+          {bot.status === 'inactive' && (
+            <span className="inline-block mt-1 px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 rounded">inactive</span>
+          )}
+        </div>
+        <Link href="/dashboard">
+          <Button variant="ghost" size="sm" className="hover:bg-teal-50 text-teal-600 p-2 ml-2">
+            <ArrowLeft className="h-4 w-4" />
+          </Button>
+        </Link>
+      </div>
+
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm">
+      <header className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Overview</h1>
-            <p className="text-gray-600 mt-1">Monitor your bot's performance and activity</p>
           </div>
           <div className="flex items-center space-x-3">
             <Button 
@@ -153,13 +182,13 @@ export default function BotOverviewPage() {
               Test Widget
             </Button>
             <Link href={`/dashboard/bots/${params.id}/builder`}>
-              <Button variant="outline" className="border-purple-200 text-purple-600 hover:bg-purple-50">
+              <Button variant="outline" className="border-teal-200 text-teal-600 hover:bg-teal-50">
                 <Settings className="mr-2 h-4 w-4" />
                 Edit Bot
               </Button>
             </Link>
             <Link href={`/dashboard/bots/${params.id}/messages`}>
-              <Button className="gradient-primary text-white border-0">
+              <Button className="bg-teal-600 text-white border-0 hover:bg-teal-700">
                 <MessageSquare className="mr-2 h-4 w-4" />
                 View Messages
               </Button>
@@ -314,7 +343,7 @@ export default function BotOverviewPage() {
           <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-xl gradient-primary">
+                <div className="p-3 rounded-xl bg-teal-600">
                   <Bot className="h-6 w-6 text-white" />
                 </div>
                 <div>

@@ -147,7 +147,7 @@ export default function EmbedPage() {
         </header>
         <main className="flex-1 overflow-auto p-8">
           <div className="flex items-center justify-center h-64">
-            <div className="p-4 rounded-full gradient-primary">
+            <div className="p-4 rounded-full bg-teal-600">
               <Code className="h-8 w-8 text-white animate-pulse" />
             </div>
           </div>
@@ -177,9 +177,9 @@ export default function EmbedPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm">
+      <header className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Embed Code</h1>
@@ -196,7 +196,7 @@ export default function EmbedPage() {
             >
               {bot.status}
             </Badge>
-            <Button variant="outline" size="sm" className="border-purple-200 text-purple-600 hover:bg-purple-50">
+            <Button variant="outline" size="sm" className="border-teal-200 text-teal-600 hover:bg-teal-50">
               <Eye className="h-4 w-4 mr-2" />
               Preview
             </Button>
@@ -207,10 +207,10 @@ export default function EmbedPage() {
       {/* Content */}
       <main className="flex-1 overflow-auto p-8 space-y-8">
         {/* Widget Test URL */}
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+        <Card className="border border-gray-200 shadow-sm bg-white">
           <CardHeader>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-gradient-to-r from-purple-500 to-pink-500 text-white rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center">
                 <Eye className="h-5 w-5" />
               </div>
               <div>
@@ -223,8 +223,8 @@ export default function EmbedPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              <div className="bg-gradient-to-r from-purple-50 to-pink-50 p-6 rounded-xl border border-purple-200">
-                <h4 className="font-semibold text-purple-900 mb-3 flex items-center">
+              <div className="bg-teal-50 p-6 rounded-xl border border-teal-200">
+                <h4 className="font-semibold text-teal-900 mb-3 flex items-center">
                   <Globe className="w-4 h-4 mr-2" />
                   Widget Test URL:
                 </h4>
@@ -233,11 +233,11 @@ export default function EmbedPage() {
                     type="text"
                     readOnly
                     value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`}
-                    className="w-full p-3 pr-20 bg-white border border-purple-300 rounded-lg text-sm font-mono text-purple-800"
+                    className="w-full p-3 pr-20 bg-white border border-teal-300 rounded-lg text-sm font-mono text-teal-800"
                   />
                   <Button
                     size="sm"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 gradient-primary text-white border-0"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-teal-600 text-white border-0 hover:bg-teal-700"
                     onClick={() => copyToClipboard(`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`, 'testUrl')}
                   >
                     <Copy className="h-4 w-4 mr-1" />
@@ -248,7 +248,7 @@ export default function EmbedPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                    className="border-teal-200 text-teal-600 hover:bg-teal-50"
                     onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
@@ -257,7 +257,7 @@ export default function EmbedPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-purple-200 text-purple-600 hover:bg-purple-50"
+                    className="border-teal-200 text-teal-600 hover:bg-teal-50"
                     onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
                   >
                     <TestTube className="h-4 w-4 mr-2" />
@@ -270,7 +270,7 @@ export default function EmbedPage() {
         </Card>
 
         {/* Widget Integration */}
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+        <Card className="border border-gray-200 shadow-sm bg-white">
           <CardHeader>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center">
@@ -292,7 +292,7 @@ export default function EmbedPage() {
                 </pre>
                 <Button
                   size="sm"
-                  className="absolute top-4 right-4 gradient-primary text-white border-0"
+                  className="absolute top-4 right-4 bg-teal-600 text-white border-0 hover:bg-teal-700"
                   onClick={() => copyToClipboard(generateEmbedCode(bot), 'code')}
                 >
                   <Copy className="h-4 w-4 mr-1" />
@@ -304,7 +304,7 @@ export default function EmbedPage() {
         </Card>
 
         {/* Simple Widget Integration */}
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+        <Card className="border border-gray-200 shadow-sm bg-white">
           <CardHeader>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-green-500 text-white rounded-lg flex items-center justify-center">
@@ -326,7 +326,7 @@ export default function EmbedPage() {
                 </pre>
                 <Button
                   size="sm"
-                  className="absolute top-4 right-4 gradient-primary text-white border-0"
+                  className="absolute top-4 right-4 bg-teal-600 text-white border-0 hover:bg-teal-700"
                   onClick={() => copyToClipboard(generateSimpleEmbedCode(bot), 'simple')}
                 >
                   <Copy className="h-4 w-4 mr-1" />
@@ -338,10 +338,10 @@ export default function EmbedPage() {
         </Card>
 
         {/* API Integration */}
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+        <Card className="border border-gray-200 shadow-sm bg-white">
           <CardHeader>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-500 text-white rounded-lg flex items-center justify-center">
+              <div className="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center">
                 <Settings className="h-5 w-5" />
               </div>
               <div>
@@ -360,7 +360,7 @@ export default function EmbedPage() {
                 </pre>
                 <Button
                   size="sm"
-                  className="absolute top-4 right-4 gradient-primary text-white border-0"
+                  className="absolute top-4 right-4 bg-teal-600 text-white border-0 hover:bg-teal-700"
                   onClick={() => copyToClipboard(generateAPICode(bot), 'api')}
                 >
                   <Copy className="h-4 w-4 mr-1" />
@@ -372,7 +372,7 @@ export default function EmbedPage() {
         </Card>
 
         {/* Webhook Integration */}
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+        <Card className="border border-gray-200 shadow-sm bg-white">
           <CardHeader>
             <div className="flex items-center space-x-3">
               <div className="w-10 h-10 bg-orange-500 text-white rounded-lg flex items-center justify-center">
@@ -388,7 +388,7 @@ export default function EmbedPage() {
           </CardHeader>
           <CardContent>
             <div className="space-y-6">
-              <div className="bg-gradient-to-r from-blue-50 to-cyan-50 p-6 rounded-xl border border-blue-200">
+              <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
                 <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
                   <Sparkles className="w-5 h-5 mr-2" />
                   Current Webhook URL:
@@ -398,7 +398,7 @@ export default function EmbedPage() {
                 </code>
               </div>
 
-              <div className="bg-gradient-to-r from-green-50 to-emerald-50 p-6 rounded-xl border border-green-200">
+              <div className="bg-green-50 p-6 rounded-xl border border-green-200">
                 <h4 className="font-semibold text-green-900 mb-3">
                   Webhook Payload:
                 </h4>
@@ -420,7 +420,7 @@ export default function EmbedPage() {
                 </pre>
               </div>
 
-              <div className="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200">
+              <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200">
                 <h4 className="font-semibold text-yellow-900 mb-3">
                   Expected Webhook Response:
                 </h4>

@@ -52,11 +52,11 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
+    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
       {/* Background Elements */}
       <div className="absolute inset-0 hero-pattern opacity-30"></div>
-      <div className="absolute top-20 right-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-      <div className="absolute bottom-20 left-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+      <div className="absolute top-20 right-10 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
+      <div className="absolute bottom-20 left-10 w-72 h-72 bg-teal-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
       
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4">
         <div className="w-full max-w-md space-y-8">
@@ -64,7 +64,7 @@ export default function LoginPage() {
           <div className="flex flex-col items-center text-center space-y-4">
             <Link href="/" className="flex items-center space-x-3 group">
               <div className="flex items-center group-hover:scale-110 transition-transform duration-300">
-                <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-10 w-auto" />
+                <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-12 w-auto" />
               </div>
             </Link>
             <div className="space-y-2">

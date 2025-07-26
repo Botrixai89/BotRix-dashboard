@@ -120,7 +120,7 @@ export default function CreateBotPage() {
           <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
             <CardHeader className="pb-6">
               <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-xl gradient-primary">
+                <div className="p-3 rounded-xl bg-teal-600">
                   <Bot className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -276,7 +276,7 @@ export default function CreateBotPage() {
                       Cancel
                     </Button>
                   </Link>
-                  <Button type="submit" disabled={isLoading} className="gradient-primary text-white border-0 px-8 py-3 hover:shadow-lg hover:scale-105 transition-all">
+                  <Button type="submit" disabled={isLoading} className="bg-teal-600 text-white border-0 px-8 py-3 hover:bg-teal-700 hover:shadow-lg hover:scale-105 transition-all">
                     {isLoading ? 'Creating Bot...' : 'Create Bot'}
                   </Button>
                 </div>

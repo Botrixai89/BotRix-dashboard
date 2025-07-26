@@ -6,7 +6,8 @@ import { Button } from '@/components/ui/button';
 import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { showSuccess, showError } from '@/lib/toast';
 import { useAuth } from '@/lib/auth-context';
-import { User, Settings, Key, Bell, Shield, Globe, Palette, Download, Upload } from 'lucide-react';
+import { User, Settings, Key, Bell, Shield, Globe, Palette, Download, Upload, Bot } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SettingsPage() {
   const { user, updateUser } = useAuth();
@@ -174,22 +175,22 @@ export default function SettingsPage() {
   ];
 
   return (
-    <div className="flex h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="flex h-screen bg-gray-50">
       {/* Sidebar */}
-      <div className="w-64 bg-white/80 backdrop-blur-sm border-r border-purple-100 shadow-sm">
-        <div className="flex items-center px-6 py-6 border-b border-purple-100">
-          <div className="flex items-center mr-3">
-            <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-8 w-auto" />
-          </div>
+      <div className="w-64 bg-white border-r border-gray-200 shadow-sm flex flex-col">
+        <div className="flex items-center justify-center px-6 py-6 border-b border-gray-200" style={{height: '80px'}}>
+          <Link href="/dashboard" className="flex items-center hover:opacity-80 transition-opacity">
+            <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-10 w-auto" />
+          </Link>
         </div>
         
-        <nav className="mt-6 px-4">
+        <nav className="mt-6 px-4 flex-1">
           <div className="space-y-2">
-            <a href="/dashboard" className="flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-purple-600 hover:bg-purple-50 rounded-xl transition-all">
-              <User className="mr-3 h-5 w-5" />
+            <Link href="/dashboard" className="flex items-center px-4 py-3 text-sm font-medium text-gray-600 hover:text-teal-600 hover:bg-teal-50 rounded-xl transition-all">
+              <Bot className="mr-3 h-5 w-5" />
               My Bots
-            </a>
-            <div className="flex items-center px-4 py-3 text-sm font-medium text-white bg-gradient-to-r from-purple-600 to-blue-600 rounded-xl shadow-md">
+            </Link>
+            <div className="flex items-center px-4 py-3 text-sm font-medium text-white bg-teal-600 rounded-xl shadow-sm">
               <Settings className="mr-3 h-5 w-5" />
               Settings
             </div>
@@ -198,11 +199,11 @@ export default function SettingsPage() {
 
         {/* User Profile */}
         {user && (
-          <div className="absolute bottom-6 left-4 right-4">
-            <div className="bg-white/50 backdrop-blur-sm rounded-xl p-4 border border-purple-100">
+          <div className="p-4 border-t border-gray-200">
+            <div className="bg-gray-50 rounded-xl p-4">
               <div className="flex items-center space-x-3 mb-3">
-                <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-                  <User className="h-4 w-4 text-purple-600" />
+                <div className="w-8 h-8 bg-teal-100 rounded-full flex items-center justify-center">
+                  <User className="h-4 w-4 text-teal-600" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium text-gray-900 truncate">{user.name}</p>
@@ -217,11 +218,10 @@ export default function SettingsPage() {
       {/* Main Content */}
       <div className="flex-1 overflow-hidden">
         {/* Header */}
-        <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm">
+        <header className="bg-white border-b border-gray-200 px-8 py-[19.52px] shadow-sm">
           <div className="flex items-center justify-between">
             <div>
               <h1 className="text-3xl font-bold text-gray-900">Settings</h1>
-              <p className="text-gray-600 mt-1">Configure your BotrixAI account and preferences</p>
             </div>
             <div className="flex space-x-3">
               <Button 
@@ -240,7 +240,7 @@ export default function SettingsPage() {
         <main className="flex-1 overflow-auto p-8">
           <div className="max-w-4xl mx-auto">
             {/* Tab Navigation */}
-            <div className="flex space-x-1 mb-8 bg-white/50 backdrop-blur-sm rounded-xl p-2 border border-purple-100">
+            <div className="flex space-x-1 mb-8 bg-white rounded-xl p-2 border border-gray-200">
               {tabs.map((tab) => {
                 const Icon = tab.icon;
                 return (
@@ -249,8 +249,8 @@ export default function SettingsPage() {
                     onClick={() => setActiveTab(tab.id)}
                     className={`flex items-center px-4 py-3 text-sm font-medium rounded-lg transition-all ${
                       activeTab === tab.id
-                        ? 'text-white bg-gradient-to-r from-purple-600 to-blue-600 shadow-md'
-                        : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                        ? 'text-white bg-teal-600 shadow-sm'
+                        : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50'
                     }`}
                   >
                     <Icon className="mr-2 h-4 w-4" />
@@ -267,7 +267,7 @@ export default function SettingsPage() {
                 <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
                   <CardHeader>
                     <CardTitle className="text-xl flex items-center">
-                      <User className="w-5 h-5 mr-2 text-purple-500" />
+                      <User className="w-5 h-5 mr-2 text-teal-500" />
                       Account Settings
                     </CardTitle>
                   </CardHeader>
@@ -280,7 +280,7 @@ export default function SettingsPage() {
                           onChange={e => setAccountForm(prev => ({ ...prev, name: e.target.value }))}
                           placeholder="Your full name"
                           disabled={isLoading}
-                          className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                          className="h-12 border-gray-200 focus:border-teal-300 focus:ring-teal-200"
                         />
                       </div>
                       <div>
@@ -327,7 +327,7 @@ export default function SettingsPage() {
                       <Button 
                         onClick={handleAccountSave} 
                         disabled={isSaving || isLoading}
-                        className="gradient-primary text-white border-0 px-8 py-3 hover:shadow-lg hover:scale-105 transition-all"
+                        className="bg-teal-600 text-white border-0 px-8 py-3 hover:bg-teal-700 hover:shadow-lg hover:scale-105 transition-all"
                       >
                         {isSaving ? 'Saving...' : 'Save Account Settings'}
                       </Button>
@@ -406,7 +406,7 @@ export default function SettingsPage() {
                       <Button 
                         onClick={handleApiSave} 
                         disabled={isSaving || isLoading}
-                        className="gradient-primary text-white border-0 px-8 py-3 hover:shadow-lg hover:scale-105 transition-all"
+                        className="bg-teal-600 text-white border-0 px-8 py-3 hover:bg-teal-700 hover:shadow-lg hover:scale-105 transition-all"
                       >
                         {isSaving ? 'Saving...' : 'Save API Settings'}
                       </Button>

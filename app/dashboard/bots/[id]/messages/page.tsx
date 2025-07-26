@@ -220,15 +220,15 @@ export default function MessagesPage() {
   // Avatars for sender types
   function getAvatar(sender: string) {
     if (sender === 'user') return <User className="h-6 w-6 text-blue-500 bg-blue-100 rounded-full p-1" />
-    if (sender === 'bot') return <Sparkles className="h-6 w-6 text-purple-500 bg-purple-100 rounded-full p-1" />
+    if (sender === 'bot') return <Sparkles className="h-6 w-6 text-teal-500 bg-teal-100 rounded-full p-1" />
     if (sender === 'agent') return <Badge className="h-6 w-6 text-green-600 bg-green-100 rounded-full p-1">A</Badge>
     return <User className="h-6 w-6 text-gray-400 bg-gray-100 rounded-full p-1" />
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm">
+      <header className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
@@ -238,14 +238,14 @@ export default function MessagesPage() {
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-purple-200 text-purple-600 hover:bg-purple-50"
+              className="border-teal-200 text-teal-600 hover:bg-teal-50"
               onClick={fetchConversations}
               disabled={loading}
             >
               <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
               Refresh
             </Button>
-            <Button size="sm" disabled className="gradient-primary text-white border-0">
+            <Button size="sm" disabled className="bg-teal-600 text-white border-0 hover:bg-teal-700">
               Mark All as Read
             </Button>
           </div>
@@ -255,14 +255,14 @@ export default function MessagesPage() {
       {/* Content */}
       <div className="flex flex-1 overflow-hidden">
         {/* Conversations List */}
-        <div className="w-80 bg-white/80 backdrop-blur-sm border-r border-purple-100 flex flex-col">
+        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
           {/* Search */}
-          <div className="p-6 border-b border-purple-100">
+                      <div className="p-6 border-b border-gray-200">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input 
                 placeholder="Search conversations..." 
-                className="pl-10 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                className="pl-10 border-gray-200 focus:border-teal-300 focus:ring-teal-200"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyPress={(e) => {
@@ -275,7 +275,7 @@ export default function MessagesPage() {
           </div>
 
           {/* Tabs */}
-          <div className="px-6 py-4 border-b border-purple-100">
+          <div className="px-6 py-4 border-b border-gray-200">
             <div className="flex flex-wrap gap-2">
               {tabs.map((tab) => (
                 <button
@@ -283,8 +283,8 @@ export default function MessagesPage() {
                   onClick={() => setActiveTab(tab.id)}
                   className={`px-3 py-2 text-sm font-medium rounded-lg transition-all ${
                     activeTab === tab.id
-                      ? 'bg-gradient-to-r from-purple-600 to-blue-600 text-white shadow-md'
-                      : 'text-gray-600 hover:text-purple-600 hover:bg-purple-50'
+                      ? 'bg-teal-600 text-white shadow-sm'
+                      : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50'
                   }`}
                 >
                   {tab.label}
@@ -308,7 +308,7 @@ export default function MessagesPage() {
             {loading ? (
               <div className="flex items-center justify-center h-full p-6">
                 <div className="text-center">
-                  <RefreshCw className="h-8 w-8 text-purple-600 animate-spin mx-auto mb-2" />
+                  <RefreshCw className="h-8 w-8 text-teal-600 animate-spin mx-auto mb-2" />
                   <p className="text-sm text-gray-600">Loading conversations...</p>
                 </div>
               </div>
@@ -319,7 +319,7 @@ export default function MessagesPage() {
                     <MessageSquare className="h-6 w-6" />
                   </div>
                   <p className="text-sm text-red-600 mb-2">{error}</p>
-                  <Button size="sm" onClick={fetchConversations} className="gradient-primary text-white border-0">
+                  <Button size="sm" onClick={fetchConversations} className="bg-teal-600 text-white border-0 hover:bg-teal-700">
                     Try Again
                   </Button>
                 </div>
@@ -341,7 +341,7 @@ export default function MessagesPage() {
                   Once users start chatting with your bot, their conversations will appear here.
                 </p>
                 <Link href={`/dashboard/bots/${params.id}/embed`}>
-                  <Button size="sm" className="gradient-primary text-white border-0">
+                  <Button size="sm" className="bg-teal-600 text-white border-0 hover:bg-teal-700">
                     <Code className="h-4 w-4 mr-2" />
                     Get Embed Code
                   </Button>
@@ -462,7 +462,7 @@ export default function MessagesPage() {
                         <MessageSquare className="h-6 w-6" />
                       </div>
                       <p className="text-sm text-red-600 mb-2">{messageError}</p>
-                      <Button size="sm" onClick={() => fetchConversationMessages(selectedConversation._id)} className="gradient-primary text-white border-0">
+                      <Button size="sm" onClick={() => fetchConversationMessages(selectedConversation._id)} className="bg-teal-600 text-white border-0 hover:bg-teal-700">
                         Try Again
                       </Button>
                     </div>
@@ -538,7 +538,7 @@ export default function MessagesPage() {
                 <Button
                   onClick={handleSendAgentMessage}
                   disabled={!agentMessage.trim() || !isConnected || loadingMessages}
-                  className="gradient-primary text-white border-0 rounded-full px-6 py-2 shadow-md hover:scale-105 transition-transform"
+                  className="bg-teal-600 text-white border-0 rounded-full px-6 py-2 shadow-md hover:scale-105 transition-transform hover:bg-teal-700"
                 >
                   <Send className="h-4 w-4 mr-1" />
                   Send
@@ -549,7 +549,7 @@ export default function MessagesPage() {
             <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-white/50 to-purple-50/50">
               <div className="text-center max-w-lg mx-auto p-8">
                 <div className="relative mb-8">
-                  <div className="p-6 rounded-full gradient-primary mx-auto w-fit">
+                  <div className="p-6 rounded-full bg-teal-600 mx-auto w-fit">
                     <MessageSquare className="h-16 w-16 text-white" />
                   </div>
                   <div className="absolute -top-2 -right-2 p-2 rounded-full bg-yellow-400">
@@ -565,7 +565,7 @@ export default function MessagesPage() {
                 </p>
                 <div className="space-y-4">
                   <Link href={`/dashboard/bots/${params.id}/embed`}>
-                    <Button className="gradient-primary text-white border-0 px-8 py-3 hover:shadow-lg hover:scale-105 transition-all">
+                    <Button className="bg-teal-600 text-white border-0 px-8 py-3 hover:bg-teal-700 hover:shadow-lg hover:scale-105 transition-all">
                       <Code className="h-5 w-5 mr-2" />
                       Get Embed Code
                     </Button>

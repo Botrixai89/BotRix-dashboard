@@ -438,11 +438,11 @@ export default function BotSettingsPage() {
                     />
                   </div>
                   <div className="pt-4">
-                    <Button 
-                      onClick={handleGeneralSave} 
-                      disabled={isSaving || isLoading}
-                      className="gradient-primary text-white border-0 px-8 py-3 hover:shadow-lg hover:scale-105 transition-all"
-                    >
+                                          <Button 
+                        onClick={handleGeneralSave} 
+                        disabled={isSaving || isLoading}
+                        className="bg-teal-600 text-white border-0 px-8 py-3 hover:bg-teal-700 hover:shadow-lg hover:scale-105 transition-all"
+                      >
                       {isSaving ? 'Saving...' : 'Save General Settings'}
                     </Button>
                   </div>

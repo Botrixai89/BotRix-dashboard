@@ -237,7 +237,7 @@ export default function BuilderPage() {
         </header>
         <main className="flex-1 overflow-auto p-8">
           <div className="flex items-center justify-center h-64">
-            <div className="p-4 rounded-full gradient-primary">
+            <div className="p-4 rounded-full bg-teal-600">
               <Settings className="h-8 w-8 text-white animate-pulse" />
             </div>
           </div>
@@ -267,31 +267,40 @@ export default function BuilderPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
+    <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm">
+      <header className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Bot Builder</h1>
-            <p className="text-gray-600 mt-1">Configure your bot's behavior and responses</p>
+            <p className="text-gray-600 mt-1">Configure your chatbot settings and behavior</p>
           </div>
-          <div className="flex space-x-3">
+          <div className="flex items-center space-x-3">
             <Button 
               variant="outline" 
-              className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              className="border-orange-200 text-orange-600 hover:bg-orange-50"
               onClick={testWebhook}
               disabled={isTestingWebhook}
             >
-              <TestTube className="h-4 w-4 mr-2" />
+              <TestTube className="mr-2 h-4 w-4" />
               {isTestingWebhook ? 'Testing...' : 'Test Webhook'}
             </Button>
-            <Button 
-              onClick={handleSave} 
-              disabled={isSaving}
-              className="gradient-primary text-white border-0"
-            >
-              <Save className="h-4 w-4 mr-2" />
-              {isSaving ? 'Saving...' : 'Save Changes'}
+                          <Button 
+                className="bg-teal-600 text-white border-0 hover:bg-teal-700"
+                onClick={saveBot}
+                disabled={isSaving}
+              >
+              {isSaving ? (
+                <>
+                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
+                  Saving...
+                </>
+              ) : (
+                <>
+                  <Save className="mr-2 h-4 w-4" />
+                  Save Changes
+                </>
+              )}
             </Button>
           </div>
         </div>

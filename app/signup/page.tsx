@@ -96,7 +96,7 @@ export default function SignupPage() {
           <div className="flex flex-col items-center text-center space-y-4">
             <Link href="/" className="flex items-center space-x-3 group">
               <div className="flex items-center group-hover:scale-110 transition-transform duration-300">
-                <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-10 w-auto" />
+                <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-12 w-auto" />
               </div>
             </Link>
             <div className="space-y-2">
@@ -123,7 +123,7 @@ export default function SignupPage() {
           <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
             <CardHeader className="text-center pb-6">
               <div className="flex justify-center mb-4">
-                <div className="p-3 rounded-full gradient-primary">
+                <div className="p-3 rounded-full bg-teal-600">
                   <Bot className="h-8 w-8 text-white" />
                 </div>
               </div>
@@ -277,7 +277,7 @@ export default function SignupPage() {
                 
                 <Button 
                   type="submit" 
-                  className="w-full gradient-primary text-white border-0 h-11 hover:shadow-lg hover:scale-[1.02] transition-all duration-300" 
+                  className="w-full bg-teal-600 text-white border-0 h-11 hover:bg-teal-700 hover:shadow-lg hover:scale-[1.02] transition-all duration-300" 
                   disabled={isLoading}
                 >
                   {isLoading ? (
@@ -301,11 +301,11 @@ export default function SignupPage() {
               </div>
 
               <div className="text-center">
-                <Link href="/login">
-                  <Button variant="outline" className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all h-11">
-                    Sign in instead
-                  </Button>
-                </Link>
+                              <Link href="/">
+                <Button variant="outline" className="w-full border-purple-200 text-purple-600 hover:bg-purple-50 hover:border-purple-300 transition-all h-11">
+                  Sign in instead
+                </Button>
+              </Link>
               </div>
             </CardContent>
           </Card>

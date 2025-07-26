@@ -152,7 +152,7 @@ export default function DebugWebhookPage() {
             <Button 
               onClick={testWebhook} 
               disabled={isLoading || !webhookUrl || !testMessage}
-              className="w-full gradient-primary text-white border-0"
+                              className="w-full bg-teal-600 text-white border-0 hover:bg-teal-700"
             >
               {isLoading ? (
                 <>
