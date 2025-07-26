@@ -138,9 +138,9 @@ export default function DashboardPage() {
       {/* Sidebar */}
       <div className="w-64 bg-white/80 backdrop-blur-sm border-r border-purple-100 shadow-sm">
         <div className="flex items-center px-6 py-6 border-b border-purple-100">
-          <div className="flex items-center mr-3">
+          <Link href="/dashboard" className="flex items-center mr-3 hover:opacity-80 transition-opacity">
             <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-8 w-auto" />
-          </div>
+          </Link>
         </div>
         
         <nav className="mt-6 px-4">

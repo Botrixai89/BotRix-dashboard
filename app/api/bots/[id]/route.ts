@@ -59,6 +59,7 @@ export async function PUT(
 
     // Update bot settings
     if (settings) {
+      // Basic settings
       if (settings.webhookUrl !== undefined) {
         bot.settings.webhookUrl = settings.webhookUrl;
       }
@@ -71,6 +72,14 @@ export async function PUT(
       if (settings.primaryColor !== undefined) {
         bot.settings.primaryColor = settings.primaryColor;
       }
+      if (settings.collectUserInfo !== undefined) {
+        bot.settings.collectUserInfo = settings.collectUserInfo;
+      }
+      if (settings.handoverEnabled !== undefined) {
+        bot.settings.handoverEnabled = settings.handoverEnabled;
+      }
+
+      // Widget customization
       if (settings.widgetIcon !== undefined) {
         bot.settings.widgetIcon = settings.widgetIcon;
       }
@@ -80,11 +89,39 @@ export async function PUT(
       if (settings.widgetIconEmoji !== undefined) {
         bot.settings.widgetIconEmoji = settings.widgetIconEmoji;
       }
-      if (settings.collectUserInfo !== undefined) {
-        bot.settings.collectUserInfo = settings.collectUserInfo;
+      if (settings.headerColor !== undefined) {
+        bot.settings.headerColor = settings.headerColor;
       }
-      if (settings.handoverEnabled !== undefined) {
-        bot.settings.handoverEnabled = settings.handoverEnabled;
+      if (settings.footerColor !== undefined) {
+        bot.settings.footerColor = settings.footerColor;
+      }
+      if (settings.bodyColor !== undefined) {
+        bot.settings.bodyColor = settings.bodyColor;
+      }
+      if (settings.logo !== undefined) {
+        bot.settings.logo = settings.logo;
+      }
+      if (settings.widgetImages !== undefined) {
+        bot.settings.widgetImages = settings.widgetImages;
+      }
+
+      // Voice settings
+      if (settings.voiceEnabled !== undefined) {
+        bot.settings.voiceEnabled = settings.voiceEnabled;
+      }
+      if (settings.voiceSettings) {
+        if (settings.voiceSettings.voice !== undefined) {
+          bot.settings.voiceSettings.voice = settings.voiceSettings.voice;
+        }
+        if (settings.voiceSettings.speed !== undefined) {
+          bot.settings.voiceSettings.speed = settings.voiceSettings.speed;
+        }
+        if (settings.voiceSettings.pitch !== undefined) {
+          bot.settings.voiceSettings.pitch = settings.voiceSettings.pitch;
+        }
+        if (settings.voiceSettings.language !== undefined) {
+          bot.settings.voiceSettings.language = settings.voiceSettings.language;
+        }
       }
     }
 

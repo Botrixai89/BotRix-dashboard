@@ -17,39 +17,22 @@ export async function GET(
       );
     }
 
-    const isDemoWebhook = bot.settings.webhookUrl === 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat';
-    const hasPlaceholder = bot.settings.webhookUrl.includes('placeholder');
-    const isEmpty = !bot.settings.webhookUrl || bot.settings.webhookUrl.trim() === '';
-    
     return NextResponse.json({
       botId: bot._id,
       botName: bot.name,
-      webhookUrl: bot.settings.webhookUrl,
-      isDemoWebhook,
-      hasPlaceholder,
-      isEmpty,
-      fallbackMessage: bot.settings.fallbackMessage,
-      status: bot.status,
-      debug: {
-        webhookUrlLength: bot.settings.webhookUrl?.length || 0,
-        webhookUrlType: typeof bot.settings.webhookUrl,
-        isExactDemoMatch: bot.settings.webhookUrl === 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat',
-        demoUrl: 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat'
+      currentWebhookUrl: bot.settings.webhookUrl,
+      webhookConfigured: !!bot.settings.webhookUrl,
+      settings: {
+        welcomeMessage: bot.settings.welcomeMessage,
+        fallbackMessage: bot.settings.fallbackMessage,
+        primaryColor: bot.settings.primaryColor,
       },
-      recommendations: [
-        isDemoWebhook ? 
-          '⚠️  Your bot is using the demo webhook URL. Please update it with your real webhook URL.' : 
-          '✅ Webhook URL looks configured',
-        hasPlaceholder ? 
-          '⚠️  Webhook URL contains placeholder text. Please update it with your real webhook URL.' : 
-          '✅ Webhook URL does not contain placeholder',
-        isEmpty ? 
-          '⚠️  Webhook URL is empty. Please configure your webhook URL.' : 
-          '✅ Webhook URL is not empty',
-        bot.status === 'active' ? 
-          '✅ Bot is active' : 
-          '⚠️  Set bot status to active for production use'
-      ]
+      status: bot.status,
+      createdAt: bot.createdAt,
+      updatedAt: bot.updatedAt,
+      message: bot.settings.webhookUrl ? 
+        '✅ Webhook URL is configured' : 
+        '⚠️  No webhook URL configured for this bot'
     });
 
   } catch (error) {

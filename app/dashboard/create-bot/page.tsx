@@ -259,10 +259,9 @@ export default function CreateBotPage() {
                         id="webhookUrl"
                         name="webhookUrl"
                         type="url"
-                        defaultValue="https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat"
-                        placeholder="https://automation.botrixai.com/webhook/your-webhook-id/chat"
+                        placeholder="https://your-automation.com/webhook/your-webhook-id"
+                        defaultValue=""
                         className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                        required
                       />
                       <p className="text-sm text-gray-500">
                         Your automation webhook URL for processing bot conversations

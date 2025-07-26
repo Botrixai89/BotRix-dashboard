@@ -264,9 +264,6 @@ export default function EmbedPage() {
                     Test Widget
                   </Button>
                 </div>
-                <p className="text-sm text-purple-600 mt-3">
-                  💡 Copy this URL and paste it in your browser to see your chat widget in action, just like ailifebot!
-                </p>
               </div>
             </div>
           </CardContent>

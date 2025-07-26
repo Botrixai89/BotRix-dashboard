@@ -73,11 +73,15 @@ export default function BotLayout({
           )}
         </div>
         {/* Header */}
-        <div className={`flex items-center space-x-3 px-6 py-6 border-b border-purple-100 ${sidebarOpen ? '' : 'justify-center px-2 py-4'}`}> 
+        <div className={`flex items-center ${sidebarOpen ? 'space-x-3 px-6 py-6' : 'justify-center px-2 py-4'} border-b border-purple-100`}> 
           {bot?.companyLogo ? (
-            <img src={bot.companyLogo} alt="Company Logo" className={`object-cover border ${sidebarOpen ? 'w-12 h-12 rounded-xl' : 'w-8 h-8 rounded-lg'}`} />
+            <img 
+              src={bot.companyLogo} 
+              alt="Company Logo" 
+              className={`object-cover border border-gray-200 ${sidebarOpen ? 'w-12 h-12 rounded-xl' : 'w-10 h-10 rounded-lg'}`} 
+            />
           ) : (
-            <div className={`${sidebarOpen ? 'w-12 h-12 rounded-xl' : 'w-8 h-8 rounded-lg'} gradient-primary flex items-center justify-center`}>
+            <div className={`${sidebarOpen ? 'w-12 h-12 rounded-xl' : 'w-10 h-10 rounded-lg'} gradient-primary flex items-center justify-center border border-gray-200`}>
               <Bot className={`${sidebarOpen ? 'h-6 w-6' : 'h-5 w-5'} text-white`} />
             </div>
           )}

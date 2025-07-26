@@ -94,30 +94,58 @@ export async function getBotAnalytics(
   try {
     await dbConnect();
 
+    // Validate botId
+    if (!botId || typeof botId !== 'string') {
+      throw new Error('Invalid bot ID provided');
+    }
+
     // Calculate date range
     const now = new Date();
     let start: Date, end: Date;
 
     switch (period) {
       case 'day':
-        start = startOfDay(now);
-        end = endOfDay(now);
+        // Use yesterday to ensure we have complete data
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        start = startOfDay(yesterday);
+        end = endOfDay(yesterday);
         break;
       case 'week':
-        start = startOfWeek(now, { weekStartsOn: 1 });
-        end = endOfWeek(now, { weekStartsOn: 1 });
+        // Use last week to ensure we have complete data
+        const lastWeek = new Date(now);
+        lastWeek.setDate(lastWeek.getDate() - 7);
+        start = startOfWeek(lastWeek, { weekStartsOn: 1 });
+        end = endOfWeek(lastWeek, { weekStartsOn: 1 });
         break;
       case 'month':
-        start = startOfMonth(now);
-        end = endOfMonth(now);
+        // Use last month to ensure we have complete data
+        const lastMonth = new Date(now);
+        lastMonth.setMonth(lastMonth.getMonth() - 1);
+        start = startOfMonth(lastMonth);
+        end = endOfMonth(lastMonth);
         break;
       case 'custom':
-        start = startDate || startOfWeek(now, { weekStartsOn: 1 });
-        end = endDate || endOfWeek(now, { weekStartsOn: 1 });
+        if (!startDate || !endDate) {
+          throw new Error('Start and end dates are required for custom period');
+        }
+        if (startDate > endDate) {
+          throw new Error('Start date cannot be after end date');
+        }
+        start = startDate;
+        end = endDate;
         break;
       default:
-        start = startOfWeek(now, { weekStartsOn: 1 });
-        end = endOfWeek(now, { weekStartsOn: 1 });
+        // Default to last week
+        const defaultLastWeek = new Date(now);
+        defaultLastWeek.setDate(defaultLastWeek.getDate() - 7);
+        start = startOfWeek(defaultLastWeek, { weekStartsOn: 1 });
+        end = endOfWeek(defaultLastWeek, { weekStartsOn: 1 });
+    }
+
+    // Validate date range
+    if (start > end) {
+      throw new Error('Invalid date range: start date is after end date');
     }
 
     // Get conversations in date range
@@ -126,9 +154,14 @@ export async function getBotAnalytics(
       createdAt: { $gte: start, $lte: end }
     }).sort({ createdAt: 1 });
 
+    // Validate conversations data
+    if (!Array.isArray(conversations)) {
+      throw new Error('Failed to fetch conversations data');
+    }
+
     // Calculate analytics
     const conversationAnalytics = await getConversationAnalytics(conversations, start, end);
-    const performance = await getPerformanceMetrics(conversations);
+    const performance = await getPerformanceMetrics(conversations, start, end);
     const userEngagement = await getUserEngagementMetrics(conversations, start, end);
     const topQuestions = await getTopQuestions(conversations);
     const responseTime = await getResponseTimeData(conversations, start, end);
@@ -156,6 +189,11 @@ async function getConversationAnalytics(
   start: Date,
   end: Date
 ): Promise<ConversationAnalytics[]> {
+  // Validate input
+  if (!Array.isArray(conversations)) {
+    conversations = [];
+  }
+
   const analytics: ConversationAnalytics[] = [];
   const current = new Date(start);
 
@@ -164,16 +202,23 @@ async function getConversationAnalytics(
     const dayEnd = endOfDay(current);
     
     const dayConversations = conversations.filter(c => 
-      c.createdAt >= dayStart && c.createdAt <= dayEnd
+      c?.createdAt && c.createdAt >= dayStart && c.createdAt <= dayEnd
     );
 
-    const resolved = dayConversations.filter(c => c.status === 'closed').length;
+    const resolved = dayConversations.filter(c => c?.status === 'closed').length;
     const handovers = dayConversations.filter(c => 
-      c.messages.some((m: any) => m.sender === 'agent')
+      c?.messages && Array.isArray(c.messages) && c.messages.some((m: any) => m?.sender === 'agent')
     ).length;
 
+    const totalMessages = dayConversations.reduce((sum, c) => {
+      if (c?.messages && Array.isArray(c.messages)) {
+        return sum + c.messages.length;
+      }
+      return sum;
+    }, 0);
+
     const avgMessages = dayConversations.length > 0 
-      ? dayConversations.reduce((sum, c) => sum + c.messages.length, 0) / dayConversations.length
+      ? totalMessages / dayConversations.length
       : 0;
 
     analytics.push({
@@ -190,35 +235,53 @@ async function getConversationAnalytics(
   return analytics;
 }
 
-async function getPerformanceMetrics(conversations: any[]): Promise<PerformanceMetrics> {
+async function getPerformanceMetrics(
+  conversations: any[],
+  start: Date,
+  end: Date
+): Promise<PerformanceMetrics> {
+  // Validate input
+  if (!Array.isArray(conversations)) {
+    conversations = [];
+  }
+
   const totalConversations = conversations.length;
-  const activeConversations = conversations.filter(c => c.status === 'active').length;
-  const resolvedConversations = conversations.filter(c => c.status === 'closed').length;
+  const activeConversations = conversations.filter(c => c?.status === 'active').length;
+  const resolvedConversations = conversations.filter(c => c?.status === 'closed').length;
   const handoverConversations = conversations.filter(c => 
-    c.messages.some((m: any) => m.sender === 'agent')
+    c?.messages && Array.isArray(c.messages) && c.messages.some((m: any) => m?.sender === 'agent')
   ).length;
 
   // Calculate total interactions (all messages)
-  const totalInteractions = conversations.reduce((sum, c) => sum + c.messages.length, 0);
+  const totalInteractions = conversations.reduce((sum, c) => {
+    if (c?.messages && Array.isArray(c.messages)) {
+      return sum + c.messages.length;
+    }
+    return sum;
+  }, 0);
 
-  // Calculate unique users
-  const uniqueUsers = new Set(conversations.map(c => c.userId).filter(Boolean));
+  // Calculate unique users within the selected period
+  const uniqueUsers = new Set(
+    conversations
+      .map(c => c?.userId)
+      .filter(Boolean)
+  );
   const totalUniqueUsers = uniqueUsers.size;
 
-  // Calculate active users (users with conversations in last 7 days)
-  const sevenDaysAgo = new Date();
-  sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+  // Calculate active users within the selected period (not hardcoded to last 7 days)
   const activeUsers = new Set(
     conversations
-      .filter(c => c.createdAt >= sevenDaysAgo)
-      .map(c => c.userId)
+      .filter(c => c?.createdAt && c.createdAt >= start && c.createdAt <= end)
+      .map(c => c?.userId)
       .filter(Boolean)
   ).size;
 
   // Calculate total sessions (unique conversation starts per day per user)
   const sessionsMap = new Map<string, Set<string>>();
   conversations.forEach(conversation => {
-    const date = conversation.createdAt.toISOString().split('T')[0];
+    if (!conversation?.createdAt || !conversation?._id) return;
+    
+    const date = new Date(conversation.createdAt).toISOString().split('T')[0];
     const userId = conversation.userId || 'anonymous';
     const key = `${userId}-${date}`;
     
@@ -232,17 +295,26 @@ async function getPerformanceMetrics(conversations: any[]): Promise<PerformanceM
   // Calculate response times
   const responseTimes: number[] = [];
   conversations.forEach(conversation => {
-    const botMessages = conversation.messages.filter((m: any) => m.sender === 'bot');
-    const userMessages = conversation.messages.filter((m: any) => m.sender === 'user');
+    if (!conversation?.messages || !Array.isArray(conversation.messages)) return;
     
-    botMessages.forEach((botMsg: any, index: number) => {
-      if (userMessages[index]) {
-        const responseTime = botMsg.timestamp.getTime() - userMessages[index].timestamp.getTime();
+    const messages = conversation.messages
+      .filter((m: any) => m?.timestamp && m?.sender)
+      .sort((a: any, b: any) => 
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
+    
+    for (let i = 0; i < messages.length - 1; i++) {
+      const currentMsg = messages[i];
+      const nextMsg = messages[i + 1];
+      
+      // If current message is from user and next message is from bot, calculate response time
+      if (currentMsg.sender === 'user' && nextMsg.sender === 'bot') {
+        const responseTime = new Date(nextMsg.timestamp).getTime() - new Date(currentMsg.timestamp).getTime();
         if (responseTime > 0) {
           responseTimes.push(responseTime);
         }
       }
-    });
+    }
   });
 
   const avgResponseTime = responseTimes.length > 0 
@@ -250,7 +322,7 @@ async function getPerformanceMetrics(conversations: any[]): Promise<PerformanceM
     : 0;
 
   const avgMessagesPerConversation = totalConversations > 0
-    ? conversations.reduce((sum, c) => sum + c.messages.length, 0) / totalConversations
+    ? totalInteractions / totalConversations
     : 0;
 
   const averageInteractionsPerUser = totalUniqueUsers > 0
@@ -319,27 +391,42 @@ async function getUserEngagementMetrics(
 }
 
 async function getTopQuestions(conversations: any[]): Promise<TopQuestion[]> {
+  // Validate input
+  if (!Array.isArray(conversations)) {
+    conversations = [];
+  }
+
   const questionCounts = new Map<string, number>();
   const questionResponseTimes = new Map<string, number[]>();
 
   conversations.forEach(conversation => {
-    const userMessages = conversation.messages.filter((m: any) => m.sender === 'user');
-    const botMessages = conversation.messages.filter((m: any) => m.sender === 'bot');
+    if (!conversation?.messages || !Array.isArray(conversation.messages)) return;
+    
+    const messages = conversation.messages
+      .filter((m: any) => m?.timestamp && m?.sender && m?.content)
+      .sort((a: any, b: any) => 
+        new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+      );
 
-    userMessages.forEach((userMsg: any, index: number) => {
-      const question = userMsg.content.toLowerCase().trim();
-      questionCounts.set(question, (questionCounts.get(question) || 0) + 1);
+    for (let i = 0; i < messages.length - 1; i++) {
+      const currentMsg = messages[i];
+      const nextMsg = messages[i + 1];
+      
+      // If current message is from user and next message is from bot, calculate response time
+      if (currentMsg.sender === 'user' && nextMsg.sender === 'bot') {
+        const question = currentMsg.content.toLowerCase().trim();
+        if (question) { // Only count non-empty questions
+          questionCounts.set(question, (questionCounts.get(question) || 0) + 1);
 
-      // Calculate response time for this question
-      if (botMessages[index]) {
-        const responseTime = botMessages[index].timestamp.getTime() - userMsg.timestamp.getTime();
-        if (responseTime > 0) {
-          const times = questionResponseTimes.get(question) || [];
-          times.push(responseTime);
-          questionResponseTimes.set(question, times);
+          const responseTime = new Date(nextMsg.timestamp).getTime() - new Date(currentMsg.timestamp).getTime();
+          if (responseTime > 0) {
+            const times = questionResponseTimes.get(question) || [];
+            times.push(responseTime);
+            questionResponseTimes.set(question, times);
+          }
         }
       }
-    });
+    }
   });
 
   const totalQuestions = Array.from(questionCounts.values()).reduce((sum, count) => sum + count, 0);
@@ -354,7 +441,7 @@ async function getTopQuestions(conversations: any[]): Promise<TopQuestion[]> {
       return {
         question,
         count,
-        percentage: (count / totalQuestions) * 100,
+        percentage: totalQuestions > 0 ? (count / totalQuestions) * 100 : 0,
         avgResponseTime: Math.round(avgResponseTime * 100) / 100
       };
     })
@@ -373,17 +460,22 @@ async function getResponseTimeData(
     const date = conversation.createdAt.toISOString().split('T')[0];
     const responseTimes: number[] = [];
 
-    const botMessages = conversation.messages.filter((m: any) => m.sender === 'bot');
-    const userMessages = conversation.messages.filter((m: any) => m.sender === 'user');
+    const messages = conversation.messages.sort((a: any, b: any) => 
+      new Date(a.timestamp).getTime() - new Date(b.timestamp).getTime()
+    );
 
-    botMessages.forEach((botMsg: any, index: number) => {
-      if (userMessages[index]) {
-        const responseTime = botMsg.timestamp.getTime() - userMessages[index].timestamp.getTime();
+    for (let i = 0; i < messages.length - 1; i++) {
+      const currentMsg = messages[i];
+      const nextMsg = messages[i + 1];
+      
+      // If current message is from user and next message is from bot, calculate response time
+      if (currentMsg.sender === 'user' && nextMsg.sender === 'bot') {
+        const responseTime = new Date(nextMsg.timestamp).getTime() - new Date(currentMsg.timestamp).getTime();
         if (responseTime > 0) {
           responseTimes.push(responseTime);
         }
       }
-    });
+    }
 
     if (responseTimes.length > 0) {
       const existing = dailyResponseTimes.get(date) || [];

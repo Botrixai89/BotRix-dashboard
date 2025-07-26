@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
       settings: {
         welcomeMessage: welcomeMessage || 'Hello! How can I help you today?',
         primaryColor: primaryColor || '#2563eb',
-        webhookUrl: webhookUrl || 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat',
+        webhookUrl: webhookUrl || '',
         fallbackMessage: "I'm sorry, I didn't understand that. Can you please rephrase?",
         collectUserInfo: false,
         handoverEnabled: true,

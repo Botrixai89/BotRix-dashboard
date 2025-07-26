@@ -14,23 +14,17 @@ export async function GET(
       return NextResponse.json({ error: 'Bot not found' }, { status: 404 });
     }
 
-    // Check if using demo webhook
-    const isDemoWebhook = bot.settings.webhookUrl === 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat';
-    
     return NextResponse.json({
-      botId: bot._id,
-      botName: bot.name,
-      currentWebhookUrl: bot.settings.webhookUrl,
-      isDemoWebhook: isDemoWebhook,
-      webhookConfigured: bot.settings.webhookUrl && !isDemoWebhook,
-      settings: {
-        welcomeMessage: bot.settings.welcomeMessage,
-        fallbackMessage: bot.settings.fallbackMessage,
-        primaryColor: bot.settings.primaryColor,
+      bot: {
+        id: bot._id,
+        name: bot.name,
+        status: bot.status,
+        settings: bot.settings,
+        createdAt: bot.createdAt,
+        updatedAt: bot.updatedAt
       },
-      status: bot.status,
-      createdAt: bot.createdAt,
-      updatedAt: bot.updatedAt
+      webhookConfigured: !!bot.settings.webhookUrl,
+      webhookUrl: bot.settings.webhookUrl
     });
 
   } catch (error) {

@@ -77,7 +77,6 @@ export async function POST(request: NextRequest) {
       name: bot.name, 
       webhookUrl: bot.settings.webhookUrl,
       fallbackMessage: bot.settings.fallbackMessage,
-      isDemoWebhook: bot.settings.webhookUrl === 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat'
     });
 
     // Find or create conversation
@@ -187,38 +186,24 @@ export async function POST(request: NextRequest) {
     // Save conversation
     await conversation.save();
 
-    // Check if webhook URL is properly configured
-    const isDemoWebhook = bot.settings.webhookUrl.includes('placeholder') || 
-                         (!bot.settings.webhookUrl || bot.settings.webhookUrl === '');
-    
-    if (isDemoWebhook) {
-      console.log('⚠️  Using demo mode - webhook URL not configured properly');
-      console.log('🔧 Bot is using demo webhook URL. Please configure your webhook URL in the bot settings.');
+    // Check if webhook URL is configured
+    if (!bot.settings.webhookUrl || bot.settings.webhookUrl.trim() === '') {
+      console.log('❌ No webhook URL configured for this bot');
       
-      // Provide demo responses for testing
-      const demoResponses = [
-        "Hello! This is a demo response. To get real AI responses, please configure your webhook URL.",
-        "I'm working in demo mode! Connect your automation workflow to get intelligent responses.",
-        "Demo response: I can see your message! Set up your webhook to enable real conversations.",
-        "This is a test response. Your chat widget is working perfectly - now connect your AI workflow!",
-      ];
-      
-      const demoResponse = demoResponses[Math.floor(Math.random() * demoResponses.length)];
-      
-      // Add bot response to conversation
-      const botMessage = {
-        content: demoResponse,
+      // Add fallback response to conversation
+      const fallbackMessage = {
+        content: bot.settings.fallbackMessage || "I'm sorry, I'm not configured to respond right now. Please check the bot settings.",
         sender: 'bot' as const,
         timestamp: new Date(),
       };
-      conversation.messages.push(botMessage);
+      conversation.messages.push(fallbackMessage);
       await conversation.save();
 
-      // Return demo response in the same format as the working bot
+      // Return fallback response
       const responseData = [
         {
           content: {
-            text: demoResponse
+            text: fallbackMessage.content
           },
           _id: conversation._id,
           sender: "bot",

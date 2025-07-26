@@ -9,7 +9,7 @@ import { TestTube, AlertTriangle, CheckCircle, XCircle, Send, RefreshCw, Bug, In
 import { useState } from 'react'
 
 export default function DebugWebhookPage() {
-  const [webhookUrl, setWebhookUrl] = useState('https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat')
+  const [webhookUrl, setWebhookUrl] = useState('')
   const [testMessage, setTestMessage] = useState('okay')
   const [isLoading, setIsLoading] = useState(false)
   const [result, setResult] = useState<any>(null)

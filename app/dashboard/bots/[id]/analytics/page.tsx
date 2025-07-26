@@ -190,11 +190,11 @@ export default function AnalyticsPage() {
 
   const getPeriodLabel = () => {
     switch (period) {
-      case 'day': return 'Today'
-      case 'week': return 'Last 7 days'
-      case 'month': return 'Last 30 days'
+      case 'day': return 'Yesterday'
+      case 'week': return 'Last week'
+      case 'month': return 'Last month'
       case 'custom': return `${startDate} to ${endDate}`
-      default: return 'Last 7 days'
+      default: return 'Last week'
     }
   }
 
@@ -244,9 +244,9 @@ export default function AnalyticsPage() {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="day">Today</SelectItem>
-                <SelectItem value="week">Last 7 days</SelectItem>
-                <SelectItem value="month">Last 30 days</SelectItem>
+                <SelectItem value="day">Yesterday</SelectItem>
+                <SelectItem value="week">Last week</SelectItem>
+                <SelectItem value="month">Last month</SelectItem>
                 <SelectItem value="custom">Custom range</SelectItem>
               </SelectContent>
             </Select>
@@ -333,6 +333,9 @@ export default function AnalyticsPage() {
                   <p className="text-sm text-blue-700 dark:text-blue-300">
                     {getPeriodLabel()}
                   </p>
+                  <p className="text-xs text-blue-600 dark:text-blue-400 mt-1">
+                    All metrics are calculated from actual conversation data in the selected period
+                  </p>
                 </div>
                 <Button variant="outline" size="sm" onClick={fetchAnalytics}>
                   <RefreshCw className="h-4 w-4 mr-2" />
@@ -390,7 +393,7 @@ export default function AnalyticsPage() {
                 <CardContent>
                   <div className="text-2xl font-bold">{analytics.performance.activeUsers}</div>
                   <p className="text-xs text-muted-foreground">
-                    Users in last 7 days
+                    Users in selected period
                   </p>
                 </CardContent>
               </Card>

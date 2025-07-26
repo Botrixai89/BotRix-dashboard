@@ -4,7 +4,7 @@ import Bot from '@/models/Bot';
 
 // Define the webhook test result interface
 interface WebhookTestResult {
-  status: 'not_tested' | 'success' | 'error' | 'demo_mode';
+  status: 'not_tested' | 'success' | 'error';
   message: string;
   statusCode?: number;
   response?: any;
@@ -29,9 +29,7 @@ export async function GET(
     // Test webhook connectivity
     let webhookTest: WebhookTestResult = { status: 'not_tested', message: 'Webhook not tested' };
     
-    if (bot.settings.webhookUrl && 
-        !bot.settings.webhookUrl.includes('placeholder') && 
-        bot.settings.webhookUrl !== 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat') {
+    if (bot.settings.webhookUrl) {
       
       try {
         console.log('🧪 Testing webhook:', bot.settings.webhookUrl);
@@ -75,8 +73,8 @@ export async function GET(
       }
     } else {
       webhookTest = {
-        status: 'demo_mode',
-        message: 'Bot is using demo webhook URL - configure your webhook for real responses'
+        status: 'not_tested',
+        message: 'No webhook URL configured for this bot.'
       };
     }
 
@@ -94,9 +92,9 @@ export async function GET(
       },
       webhookTest,
       recommendations: [
-        bot.settings.webhookUrl.includes('placeholder') ? 
-          '⚠️  Update your webhook URL to a real endpoint' : 
-          '✅ Webhook URL looks configured',
+        bot.settings.webhookUrl ? 
+          '✅ Webhook URL looks configured' : 
+          '⚠️  No webhook URL configured for this bot',
         webhookTest.status === 'success' ? 
           '✅ Webhook is responding correctly' : 
           '❌ Webhook needs to be fixed or configured',

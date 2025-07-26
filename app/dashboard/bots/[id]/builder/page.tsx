@@ -88,25 +88,25 @@ export default function BuilderPage() {
       if (response.ok) {
         setBot(result.bot)
         setFormData({
-          webhookUrl: result.bot.settings.webhookUrl || '',
-          welcomeMessage: result.bot.settings.welcomeMessage || '',
-          fallbackMessage: result.bot.settings.fallbackMessage || '',
-          primaryColor: result.bot.settings.primaryColor || '#7c3aed',
-          widgetIcon: result.bot.settings.widgetIcon || '',
-          widgetIconType: result.bot.settings.widgetIconType || 'default',
-          widgetIconEmoji: result.bot.settings.widgetIconEmoji || '💬',
-          voiceEnabled: result.bot.settings.voiceEnabled || false,
+          webhookUrl: result.bot.settings?.webhookUrl || '',
+          welcomeMessage: result.bot.settings?.welcomeMessage || '',
+          fallbackMessage: result.bot.settings?.fallbackMessage || '',
+          primaryColor: result.bot.settings?.primaryColor || '#7c3aed',
+          widgetIcon: result.bot.settings?.widgetIcon || '',
+          widgetIconType: result.bot.settings?.widgetIconType || 'default',
+          widgetIconEmoji: result.bot.settings?.widgetIconEmoji || '💬',
+          voiceEnabled: result.bot.settings?.voiceEnabled || false,
           voiceSettings: {
-            voice: result.bot.settings.voiceSettings?.voice || 'alloy',
-            speed: result.bot.settings.voiceSettings?.speed || 1.0,
-            pitch: result.bot.settings.voiceSettings?.pitch || 1.0,
-            language: result.bot.settings.voiceSettings?.language || 'en-US'
+            voice: result.bot.settings?.voiceSettings?.voice || 'alloy',
+            speed: result.bot.settings?.voiceSettings?.speed || 1.0,
+            pitch: result.bot.settings?.voiceSettings?.pitch || 1.0,
+            language: result.bot.settings?.voiceSettings?.language || 'en-US'
           },
-          headerColor: result.bot.settings.headerColor || '#8b5cf6',
-          footerColor: result.bot.settings.footerColor || '#f8fafc',
-          bodyColor: result.bot.settings.bodyColor || '#ffffff',
-          logo: result.bot.settings.logo || '',
-          widgetImages: result.bot.settings.widgetImages || ['']
+          headerColor: result.bot.settings?.headerColor || '#8b5cf6',
+          footerColor: result.bot.settings?.footerColor || '#f8fafc',
+          bodyColor: result.bot.settings?.bodyColor || '#ffffff',
+          logo: result.bot.settings?.logo || '',
+          widgetImages: result.bot.settings?.widgetImages || ['']
         })
       } else {
         setError(result.error || 'Failed to fetch bot')
@@ -121,24 +121,68 @@ export default function BuilderPage() {
   const handleSave = async () => {
     setIsSaving(true)
     try {
+      // Validate required fields
+      if (!formData.webhookUrl.trim()) {
+        showError('Webhook URL is required')
+        return
+      }
+
+      // Validate voice settings
+      if (formData.voiceEnabled) {
+        if (formData.voiceSettings.speed < 0.25 || formData.voiceSettings.speed > 4.0) {
+          showError('Voice speed must be between 0.25 and 4.0')
+          return
+        }
+        if (formData.voiceSettings.pitch < 0.25 || formData.voiceSettings.pitch > 4.0) {
+          showError('Voice pitch must be between 0.25 and 4.0')
+          return
+        }
+      }
+
+      // Clean up widget images array by removing empty strings
+      const cleanedWidgetImages = (formData.widgetImages || []).filter((img: string) => img.trim() !== '')
+
+      const settingsData = {
+        webhookUrl: formData.webhookUrl,
+        welcomeMessage: formData.welcomeMessage,
+        fallbackMessage: formData.fallbackMessage,
+        primaryColor: formData.primaryColor,
+        widgetIcon: formData.widgetIcon,
+        widgetIconType: formData.widgetIconType,
+        widgetIconEmoji: formData.widgetIconEmoji,
+        voiceEnabled: formData.voiceEnabled,
+        voiceSettings: formData.voiceSettings,
+        headerColor: formData.headerColor,
+        footerColor: formData.footerColor,
+        bodyColor: formData.bodyColor,
+        logo: formData.logo,
+        widgetImages: cleanedWidgetImages
+      }
+
+      console.log('Saving bot settings:', settingsData)
+
       const response = await fetch(`/api/bots/${params.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          settings: formData
+          settings: settingsData
         }),
       })
 
       if (response.ok) {
+        const result = await response.json()
+        console.log('Save successful:', result)
         showSuccess('Bot settings updated successfully!')
-        fetchBot() // Refresh the bot data
+        await fetchBot() // Refresh the bot data
       } else {
         const result = await response.json()
+        console.error('Save failed:', result)
         showError(result.error || 'Failed to update bot')
       }
     } catch (err) {
+      console.error('Save error:', err)
       showError('Network error. Please try again.')
     } finally {
       setIsSaving(false)
@@ -155,8 +199,6 @@ export default function BuilderPage() {
         setTestResult(result)
         if (result.webhookTest.status === 'success') {
           showSuccess('Webhook is working correctly!')
-        } else if (result.webhookTest.status === 'demo_mode') {
-          showError('Bot is in demo mode - update your webhook URL')
         } else {
           showError('Webhook test failed - check configuration')
         }
@@ -174,6 +216,16 @@ export default function BuilderPage() {
     setFormData(prev => ({
       ...prev,
       [field]: value
+    }))
+  }
+
+  const handleVoiceSettingsChange = (field: string, value: any) => {
+    setFormData(prev => ({
+      ...prev,
+      voiceSettings: {
+        ...prev.voiceSettings,
+        [field]: value
+      }
     }))
   }
 
@@ -214,8 +266,6 @@ export default function BuilderPage() {
     )
   }
 
-  const isUsingDemoWebhook = formData.webhookUrl === 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat'
-
   return (
     <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Header */}
@@ -249,36 +299,15 @@ export default function BuilderPage() {
 
       {/* Content */}
       <main className="flex-1 overflow-auto p-8 space-y-8">
-        {/* Webhook Status Warning */}
-        {isUsingDemoWebhook && (
-          <Card className="border-0 shadow-lg bg-gradient-to-r from-yellow-50 to-orange-50 border-l-4 border-l-yellow-400">
-            <CardHeader>
-              <div className="flex items-center space-x-3">
-                <AlertTriangle className="h-6 w-6 text-yellow-600" />
-                <div>
-                  <CardTitle className="text-lg text-yellow-900">Demo Mode Active</CardTitle>
-                  <CardDescription className="text-yellow-700">
-                    Your bot is using the demo webhook URL. Update it below to get real AI responses.
-                  </CardDescription>
-                </div>
-              </div>
-            </CardHeader>
-          </Card>
-        )}
-
         {/* Webhook Test Results */}
         {testResult && (
           <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
             <CardHeader>
               <div className="flex items-center space-x-3">
                 <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  testResult.webhookTest.status === 'success' ? 'bg-green-500' :
-                  testResult.webhookTest.status === 'demo_mode' ? 'bg-yellow-500' :
-                  'bg-red-500'
+                  testResult.webhookTest.status === 'success' ? 'bg-green-500' : 'bg-red-500'
                 } text-white`}>
-                  {testResult.webhookTest.status === 'success' ? <CheckCircle className="h-5 w-5" /> :
-                   testResult.webhookTest.status === 'demo_mode' ? <AlertTriangle className="h-5 w-5" /> :
-                   <XCircle className="h-5 w-5" />}
+                  {testResult.webhookTest.status === 'success' ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
                 </div>
                 <div>
                   <CardTitle>Webhook Test Result</CardTitle>
@@ -289,7 +318,7 @@ export default function BuilderPage() {
             {testResult.webhookTest.response && (
               <CardContent>
                 <div className="space-y-2">
-                                          <Label className="font-medium">Response from Webhook:</Label>
+                  <Label className="font-medium">Response from Webhook:</Label>
                   <pre className="text-sm bg-gray-100 p-3 rounded-lg overflow-x-auto">
                     {JSON.stringify(testResult.webhookTest.response, null, 2)}
                   </pre>
@@ -328,15 +357,8 @@ export default function BuilderPage() {
                 className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
               />
               <p className="text-sm text-gray-600">
-                Replace the demo URL with your actual webhook endpoint
+                Enter your webhook endpoint URL for intelligent responses
               </p>
-              {isUsingDemoWebhook && (
-                <div className="p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
-                  <p className="text-sm text-yellow-800">
-                    <strong>Currently using demo URL:</strong> Your bot will only return demo responses until you update this.
-                  </p>
-                </div>
-              )}
             </div>
 
             <div className="space-y-3">
@@ -643,13 +665,19 @@ export default function BuilderPage() {
                     />
                     <button
                       type="button"
-                      className="text-red-500 hover:text-red-700"
+                      className="text-red-500 hover:text-red-700 px-2 py-1 rounded"
                       onClick={() => {
                         const newImages = [...(formData.widgetImages || [])];
                         newImages.splice(idx, 1);
+                        // Ensure we always have at least one empty field
+                        if (newImages.length === 0) {
+                          newImages.push('');
+                        }
                         handleInputChange('widgetImages', newImages);
                       }}
-                    >Remove</button>
+                    >
+                      Remove
+                    </button>
                     {img && <img src={img} alt="Widget" className="h-10 w-10 object-contain rounded" />}
                   </div>
                 ))}
@@ -718,10 +746,7 @@ export default function BuilderPage() {
                   <select
                     id="voice"
                     value={formData.voiceSettings.voice}
-                    onChange={(e) => handleInputChange('voiceSettings', {
-                      ...formData.voiceSettings,
-                      voice: e.target.value as any
-                    })}
+                    onChange={(e) => handleVoiceSettingsChange('voice', e.target.value as any)}
                     className="w-full h-12 border border-gray-200 rounded-lg px-3 focus:border-purple-300 focus:ring-purple-200"
                   >
                     <option value="alloy">Alloy - Balanced & Clear</option>
@@ -749,10 +774,7 @@ export default function BuilderPage() {
                         max="4.0"
                         step="0.25"
                         value={formData.voiceSettings.speed}
-                        onChange={(e) => handleInputChange('voiceSettings', {
-                          ...formData.voiceSettings,
-                          speed: parseFloat(e.target.value)
-                        })}
+                        onChange={(e) => handleVoiceSettingsChange('speed', parseFloat(e.target.value))}
                         className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                       />
                       <span className="text-sm font-medium text-gray-700 w-12">
@@ -773,10 +795,7 @@ export default function BuilderPage() {
                         max="4.0"
                         step="0.25"
                         value={formData.voiceSettings.pitch}
-                        onChange={(e) => handleInputChange('voiceSettings', {
-                          ...formData.voiceSettings,
-                          pitch: parseFloat(e.target.value)
-                        })}
+                        onChange={(e) => handleVoiceSettingsChange('pitch', parseFloat(e.target.value))}
                         className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
                       />
                       <span className="text-sm font-medium text-gray-700 w-12">
@@ -793,10 +812,7 @@ export default function BuilderPage() {
                   <select
                     id="language"
                     value={formData.voiceSettings.language}
-                    onChange={(e) => handleInputChange('voiceSettings', {
-                      ...formData.voiceSettings,
-                      language: e.target.value
-                    })}
+                    onChange={(e) => handleVoiceSettingsChange('language', e.target.value)}
                     className="w-full h-12 border border-gray-200 rounded-lg px-3 focus:border-purple-300 focus:ring-purple-200"
                   >
                     <option value="en-US">English (US)</option>
@@ -841,46 +857,6 @@ export default function BuilderPage() {
                 </div>
               </>
             )}
-          </CardContent>
-        </Card>
-
-        {/* Webhook Setup Guide */}
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50 to-purple-50">
-          <CardHeader>
-            <CardTitle className="text-xl">📚 Webhook Setup Guide</CardTitle>
-            <CardDescription>
-              How to set up your automation workflow for intelligent responses
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-4 text-sm">
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">1. Create Webhook</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Add a "Webhook" node to your automation workflow</li>
-                  <li>Set HTTP Method to "POST"</li>
-                  <li>Copy the webhook URL and paste it above</li>
-                </ul>
-              </div>
-              
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">2. Process the Message</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Add your AI processing nodes (OpenAI, etc.)</li>
-                  <li>Use the incoming message: <code className="bg-white px-1 rounded">{'{{$json.message}}'}</code></li>
-                  <li>Access bot settings: <code className="bg-white px-1 rounded">{'{{$json.botSettings}}'}</code></li>
-                </ul>
-              </div>
-              
-              <div>
-                <h4 className="font-semibold text-gray-900 mb-2">3. Return Response</h4>
-                <ul className="list-disc list-inside text-gray-700 space-y-1">
-                  <li>Add a "Respond to Webhook" node</li>
-                  <li>Return JSON: <code className="bg-white px-1 rounded">{'{"message": "Your AI response"}'}</code></li>
-                  <li>Or use: <code className="bg-white px-1 rounded">{'{"response": "Your AI response"}'}</code></li>
-                </ul>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </main>

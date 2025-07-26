@@ -23,7 +23,7 @@ const BotSettingsSchema = new Schema({
   },
   webhookUrl: {
     type: String,
-    default: 'https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat',
+    default: '',
   },
   // Widget customization
   widgetIcon: {
