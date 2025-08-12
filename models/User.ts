@@ -13,9 +13,14 @@ const UserSchema = new Schema({
     required: true,
     trim: true,
   },
+  // Google OAuth fields
+  googleId: {
+    type: String,
+    sparse: true, // Allows multiple null values but unique non-null values
+  },
   password: {
     type: String,
-    required: true,
+    required: false, // We'll handle validation in the application logic
   },
   avatar: {
     type: String,
@@ -25,18 +30,7 @@ const UserSchema = new Schema({
     type: String,
     default: null,
   },
-  isEmailVerified: {
-    type: Boolean,
-    default: false,
-  },
-  emailVerificationToken: {
-    type: String,
-    default: null,
-  },
-  emailVerificationExpires: {
-    type: Date,
-    default: null,
-  },
+  // Password reset fields
   passwordResetToken: {
     type: String,
     default: null,
@@ -45,6 +39,7 @@ const UserSchema = new Schema({
     type: Date,
     default: null,
   },
+  // Login tracking
   lastLogin: {
     type: Date,
     default: null,
@@ -61,9 +56,9 @@ const UserSchema = new Schema({
   timestamps: true,
 });
 
-// Index for better query performance (removed duplicate email index)
-UserSchema.index({ emailVerificationToken: 1 });
+// Indexes for better query performance
 UserSchema.index({ passwordResetToken: 1 });
+UserSchema.index({ googleId: 1 });
 
 // Virtual for checking if account is locked
 UserSchema.virtual('isLocked').get(function() {

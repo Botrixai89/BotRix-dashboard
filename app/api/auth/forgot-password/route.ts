@@ -45,14 +45,16 @@ export async function POST(request: NextRequest) {
     user.passwordResetExpires = passwordResetExpires
     await user.save()
 
-    // TODO: Send email with reset link
-    // For now, we'll just return the token (in production, send via email)
-    const resetLink = `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/reset-password?token=${passwordResetToken}`
+    // Send password reset email
+    const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${passwordResetToken}`
+    
+    // Import and use the email service
+    const { sendPasswordResetEmail } = await import('@/lib/email-service')
+    await sendPasswordResetEmail(user.email, user.name, resetUrl)
 
     return NextResponse.json(
       { 
-        message: 'Password reset link sent to your email',
-        resetLink: process.env.NODE_ENV === 'development' ? resetLink : undefined // Only show in development
+        message: 'Password reset link sent to your email'
       },
       { status: 200 }
     )

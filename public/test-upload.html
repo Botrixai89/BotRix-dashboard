@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Upload Test</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        .test-image { max-width: 200px; border: 1px solid #ccc; margin: 10px; }
+        .error { color: red; }
+        .success { color: green; }
+    </style>
+</head>
+<body>
+    <h1>Upload Test Page</h1>
+    <p>Testing if uploaded files are accessible locally:</p>
+    
+    <h2>Local URL Test</h2>
+    <div id="local-test">
+        <p>Testing: <span id="local-url">http://localhost:3000/uploads/1754901650343-qyxw7k1ohgf.png</span></p>
+        <img id="local-img" class="test-image" src="http://localhost:3000/uploads/1754901650343-qyxw7k1ohgf.png" 
+             onload="document.getElementById('local-result').innerHTML = '<span class=success>✓ Local image loads successfully</span>'"
+             onerror="document.getElementById('local-result').innerHTML = '<span class=error>✗ Local image failed to load</span>'">
+        <div id="local-result">Loading...</div>
+    </div>
+    
+    <h2>Production URL Test</h2>
+    <div id="prod-test">
+        <p>Testing: <span id="prod-url">https://app.botrixai.com/uploads/1754901650343-qyxw7k1ohgf.png</span></p>
+        <img id="prod-img" class="test-image" src="https://app.botrixai.com/uploads/1754901650343-qyxw7k1ohgf.png" 
+             onload="document.getElementById('prod-result').innerHTML = '<span class=success>✓ Production image loads successfully</span>'"
+             onerror="document.getElementById('prod-result').innerHTML = '<span class=error>✗ Production image failed to load</span>'">
+        <div id="prod-result">Loading...</div>
+    </div>
+    
+    <h2>Relative URL Test</h2>
+    <div id="relative-test">
+        <p>Testing: <span id="relative-url">/uploads/1754901650343-qyxw7k1ohgf.png</span></p>
+        <img id="relative-img" class="test-image" src="/uploads/1754901650343-qyxw7k1ohgf.png" 
+             onload="document.getElementById('relative-result').innerHTML = '<span class=success>✓ Relative image loads successfully</span>'"
+             onerror="document.getElementById('relative-result').innerHTML = '<span class=error>✗ Relative image failed to load</span>'">
+        <div id="relative-result">Loading...</div>
+    </div>
+    
+    <script>
+        // Additional debugging
+        console.log('Testing image accessibility...');
+        
+        // Test local URL
+        fetch('http://localhost:3000/uploads/1754901650343-qyxw7k1ohgf.png')
+            .then(response => {
+                console.log('Local fetch result:', response.status, response.statusText);
+            })
+            .catch(error => {
+                console.error('Local fetch error:', error);
+            });
+            
+        // Test production URL
+        fetch('https://app.botrixai.com/uploads/1754901650343-qyxw7k1ohgf.png')
+            .then(response => {
+                console.log('Production fetch result:', response.status, response.statusText);
+            })
+            .catch(error => {
+                console.error('Production fetch error:', error);
+            });
+    </script>
+</body>
+</html>

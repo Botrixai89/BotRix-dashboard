@@ -287,7 +287,7 @@ export default function BuilderPage() {
             </Button>
                           <Button 
                 className="bg-teal-600 text-white border-0 hover:bg-teal-700"
-                onClick={saveBot}
+                onClick={handleSave}
                 disabled={isSaving}
               >
               {isSaving ? (

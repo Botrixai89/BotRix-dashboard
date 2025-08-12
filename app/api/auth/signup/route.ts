@@ -1,14 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
-import bcrypt from 'bcryptjs'
 import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
-import { 
-  generateToken, 
-  setAuthCookies, 
-  validatePassword, 
-  validateEmail,
-  generateEmailVerificationToken 
-} from '@/lib/auth'
+import { hashPassword, generateToken, validateEmail } from '@/lib/auth'
 
 export async function POST(request: NextRequest) {
   try {
@@ -31,18 +24,9 @@ export async function POST(request: NextRequest) {
     }
 
     // Validate password strength
-    const passwordValidation = validatePassword(password)
-    if (!passwordValidation.isValid) {
+    if (password.length < 6) {
       return NextResponse.json(
-        { error: 'Password requirements not met', details: passwordValidation.errors },
-        { status: 400 }
-      )
-    }
-
-    // Validate name length
-    if (name.trim().length < 2) {
-      return NextResponse.json(
-        { error: 'Name must be at least 2 characters long' },
+        { error: 'Password must be at least 6 characters long' },
         { status: 400 }
       )
     }
@@ -54,51 +38,66 @@ export async function POST(request: NextRequest) {
     const existingUser = await User.findOne({ email: email.toLowerCase() })
     if (existingUser) {
       return NextResponse.json(
-        { error: 'User already exists with this email' },
+        { error: 'User with this email already exists' },
         { status: 409 }
       )
     }
 
     // Hash password
-    const hashedPassword = await bcrypt.hash(password, 12)
-
-    // Generate email verification token
-    const emailVerificationToken = generateEmailVerificationToken()
-    const emailVerificationExpires = new Date(Date.now() + 24 * 60 * 60 * 1000) // 24 hours
+    const hashedPassword = await hashPassword(password)
 
     // Create new user
     const newUser = new User({
       name: name.trim(),
       email: email.toLowerCase().trim(),
       password: hashedPassword,
-      emailVerificationToken,
-      emailVerificationExpires,
     })
 
-    // Save user to database
-    const savedUser = await newUser.save()
+    await newUser.save()
+
+    // Send welcome email (optional - won't break if email service fails)
+    try {
+      const { sendWelcomeEmail } = await import('@/lib/email-service')
+      await sendWelcomeEmail(newUser.email, newUser.name)
+    } catch (emailError) {
+      console.warn('Failed to send welcome email:', emailError)
+      // Don't fail the signup process if email fails
+    }
 
     // Generate JWT token
-    const token = generateToken(savedUser)
+    const token = generateToken({ 
+      _id: newUser._id.toString(), 
+      email: newUser.email, 
+      name: newUser.name 
+    })
 
-    // Create response with user data
-    const response = NextResponse.json(
-      {
-        message: 'User created successfully. Please check your email to verify your account.',
-        user: {
-          _id: savedUser._id,
-          name: savedUser.name,
-          email: savedUser.email,
-          avatar: savedUser.avatar,
-          isEmailVerified: savedUser.isEmailVerified,
-          createdAt: savedUser.createdAt,
-        },
-      },
-      { status: 201 }
-    )
+    // Create response with user data (excluding password)
+    const userResponse = {
+      _id: newUser._id,
+      name: newUser.name,
+      email: newUser.email,
+      avatar: newUser.avatar,
+      logo: newUser.logo,
+      createdAt: newUser.createdAt,
+      lastLogin: newUser.lastLogin,
+    }
 
-    // Set authentication cookies
-    return setAuthCookies(response, token)
+    const response = NextResponse.json({
+      success: true,
+      message: 'Account created successfully',
+      user: userResponse
+    })
+
+    // Set JWT token as HTTP-only cookie
+    response.cookies.set('token', token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 7 * 24 * 60 * 60, // 7 days
+      path: '/',
+    })
+
+    return response
   } catch (error) {
     console.error('Signup error:', error)
     
@@ -110,25 +109,16 @@ export async function POST(request: NextRequest) {
       )
     }
     
-    // Handle MongoDB duplicate key error
-    if (error instanceof Error && 'code' in error && error.code === 11000) {
+    // Handle duplicate key errors
+    if (error instanceof Error && error.message.includes('duplicate key')) {
       return NextResponse.json(
-        { error: 'User already exists with this email' },
+        { error: 'User with this email already exists' },
         { status: 409 }
       )
     }
-
-    // Handle validation errors
-    if (error instanceof Error && error.name === 'ValidationError') {
-      const validationErrors = Object.values((error as any).errors).map((err: any) => err.message)
-      return NextResponse.json(
-        { error: 'Validation failed', details: validationErrors },
-        { status: 400 }
-      )
-    }
-
+    
     return NextResponse.json(
-      { error: 'Internal server error. Please try again.' },
+      { error: 'Internal server error' },
       { status: 500 }
     )
   }

@@ -23,7 +23,6 @@ export default function BotLayout({
   const pathname = usePathname()
   const [bot, setBot] = useState<BotData | null>(null)
   const [isLoading, setIsLoading] = useState(true)
-  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   useEffect(() => {
     fetchBot()
@@ -49,32 +48,51 @@ export default function BotLayout({
     { name: 'Messages', href: `/dashboard/bots/${params.id}/messages`, icon: MessageSquare },
     { name: 'Analytics', href: `/dashboard/bots/${params.id}/analytics`, icon: BarChart3 },
     { name: 'Builder', href: `/dashboard/bots/${params.id}/builder`, icon: Wrench },
-    { name: 'Team', href: `/dashboard/bots/${params.id}/team`, icon: Users },
     { name: 'Settings', href: `/dashboard/bots/${params.id}/settings`, icon: Settings },
-    { name: 'Embed Code', href: `/dashboard/bots/${params.id}/embed`, icon: Code },
+    { name: 'Embed', href: `/dashboard/bots/${params.id}/embed`, icon: Code },
   ]
 
   return (
-    <div className="flex h-screen bg-gray-50">
-      {/* Sidebar */}
-      <div className={`bg-white border-r border-gray-200 shadow-sm transition-all duration-300 ${sidebarOpen ? 'w-64' : 'w-16'}`}>
-        {/* Logo Header */}
-        <div className="flex items-center justify-between px-6 py-6 border-b border-gray-200" style={{height: '80px'}}>
-          <div className="flex items-center justify-center flex-1">
-            <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-10 w-auto" />
+    <div className="flex flex-col h-screen bg-gray-50">
+      {/* Top Navigation Bar */}
+      <header className="bg-white border-b border-gray-200 px-8 py-4 shadow-sm">
+        <div className="flex items-center justify-between">
+          {/* Left side - Back button and Bot info */}
+          <div className="flex items-center space-x-4">
+            <Link href="/dashboard">
+              <Button variant="ghost" size="sm" className="hover:bg-teal-50 text-teal-600 p-2">
+                <ArrowLeft className="h-4 w-4" />
+              </Button>
+            </Link>
+            
+            {bot && (
+              <div className="flex items-center space-x-3">
+                {bot.companyLogo ? (
+                  <img 
+                    src={bot.companyLogo} 
+                    alt="Company Logo" 
+                    className="object-cover border border-gray-200 w-8 h-8 rounded-lg" 
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center border border-gray-200">
+                    <Bot className="h-4 w-4 text-white" />
+                  </div>
+                )}
+                <div>
+                  <h1 className="font-bold text-lg text-gray-900">{bot.name}</h1>
+                  {bot.status === 'active' && (
+                    <span className="inline-block px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">active</span>
+                  )}
+                  {bot.status === 'inactive' && (
+                    <span className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 rounded">inactive</span>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="hover:bg-teal-50 text-teal-600 p-2"
-          >
-            {sidebarOpen ? <ChevronLeft className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-          </Button>
-        </div>
-        {/* Navigation */}
-        <nav className={`mt-4 ${sidebarOpen ? 'px-4' : 'px-1'}`}>
-          <div className="space-y-2">
+
+          {/* Right side - Navigation tabs */}
+          <div className="flex items-center space-x-1">
             {navigation.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
@@ -82,25 +100,25 @@ export default function BotLayout({
                 <Link
                   key={item.name}
                   href={item.href}
-                  className={`flex items-center ${sidebarOpen ? 'px-4 py-3' : 'justify-center py-3'} text-sm font-medium rounded-xl transition-all ${
+                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all ${
                     isActive
                       ? 'text-white bg-teal-600 shadow-sm'
                       : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50'
                   }`}
                 >
-                  <Icon className={`${sidebarOpen ? 'mr-3' : 'mr-0'} h-5 w-5`} />
-                  {sidebarOpen && <span>{item.name}</span>}
+                  <Icon className="mr-2 h-4 w-4" />
+                  <span>{item.name}</span>
                 </Link>
               )
             })}
           </div>
-        </nav>
-      </div>
+        </div>
+      </header>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden">
         {children}
-      </div>
+      </main>
     </div>
   )
 } 

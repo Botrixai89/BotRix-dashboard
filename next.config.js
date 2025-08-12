@@ -6,7 +6,7 @@ const nextConfig = {
     serverComponentsExternalPackages: [],
   },
   images: {
-    domains: ['localhost'],
+    domains: ['localhost', 'app.botrixai.com'],
   },
   
   // Add CORS headers for static files like widget.js
@@ -43,6 +43,23 @@ const nextConfig = {
           {
             key: 'Access-Control-Allow-Headers',
             value: 'Content-Type, Authorization',
+          },
+        ],
+      },
+      {
+        source: '/uploads/:path*',
+        headers: [
+          {
+            key: 'Access-Control-Allow-Origin',
+            value: '*',
+          },
+          {
+            key: 'Access-Control-Allow-Methods',
+            value: 'GET',
+          },
+          {
+            key: 'Cache-Control',
+            value: 'public, max-age=86400, must-revalidate',
           },
         ],
       },

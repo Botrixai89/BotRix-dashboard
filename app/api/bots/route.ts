@@ -2,15 +2,23 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Bot from '@/models/Bot';
 import { requireAuth } from '@/lib/auth';
+import { getNextAuthUser } from '@/lib/nextauth-helper';
 
 export async function POST(request: NextRequest) {
   try {
-    const authResult = await requireAuth(request);
-    if (authResult.error) {
-      return NextResponse.json(
-        { error: authResult.error },
-        { status: 401 }
-      );
+    // Try to get user from NextAuth first
+    let user = await getNextAuthUser(request);
+    
+    // If no NextAuth user, try the regular auth
+    if (!user) {
+      const authResult = await requireAuth(request);
+      if (authResult.error) {
+        return NextResponse.json(
+          { error: authResult.error },
+          { status: 401 }
+        );
+      }
+      user = authResult.user;
     }
 
     await dbConnect();
@@ -37,7 +45,7 @@ export async function POST(request: NextRequest) {
     const newBot = new Bot({
       name,
       description: description || '',
-      userId: authResult.user._id,
+      userId: user._id,
       companyLogo: companyLogo || null,
       settings: {
         welcomeMessage: welcomeMessage || 'Hello! How can I help you today?',
@@ -73,17 +81,24 @@ export async function POST(request: NextRequest) {
 
 export async function GET(request: NextRequest) {
   try {
-    const authResult = await requireAuth(request);
-    if (authResult.error) {
-      return NextResponse.json(
-        { error: authResult.error },
-        { status: 401 }
-      );
+    // Try to get user from NextAuth first
+    let user = await getNextAuthUser(request);
+    
+    // If no NextAuth user, try the regular auth
+    if (!user) {
+      const authResult = await requireAuth(request);
+      if (authResult.error) {
+        return NextResponse.json(
+          { error: authResult.error },
+          { status: 401 }
+        );
+      }
+      user = authResult.user;
     }
 
     await dbConnect();
     
-    const bots = await Bot.find({ userId: authResult.user._id }).sort({ createdAt: -1 });
+    const bots = await Bot.find({ userId: user._id }).sort({ createdAt: -1 });
     
     return NextResponse.json({
       success: true,

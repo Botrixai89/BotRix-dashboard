@@ -187,11 +187,56 @@ async function uploadToLocal(file: File, request: NextRequest) {
 
     // Generate URL - Use request headers to determine the correct base URL
     const host = request.headers.get('host');
-    const protocol = request.headers.get('x-forwarded-proto') || 'https';
-    const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`;
-    const url = `${baseUrl}/uploads/${filename}`;
-
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    
+    // Build the base URL more carefully
+    let baseUrl: string;
+    
+    // For local development, always use the request host
+    if (host && (host.includes('localhost') || host.includes('127.0.0.1') || host.includes(':'))) {
+      baseUrl = `${protocol}://${host}`;
+    } else if (process.env.NEXT_PUBLIC_BASE_URL) {
+      // Use environment variable for production
+      baseUrl = process.env.NEXT_PUBLIC_BASE_URL;
+    } else {
+      baseUrl = `${protocol}://${host}`;
+    }
+    
+    console.log('URL generation debug:', {
+      host,
+      protocol,
+      NEXT_PUBLIC_BASE_URL: process.env.NEXT_PUBLIC_BASE_URL,
+      baseUrlBeforeClean: baseUrl,
+      isLocalDevelopment: host && (host.includes('localhost') || host.includes('127.0.0.1') || host.includes(':'))
+    });
+    
+    // Clean up the base URL to avoid double slashes
+    baseUrl = baseUrl.replace(/\/+$/, ''); // Remove trailing slashes
+    
+    // Build the final URL more carefully
+    let url: string;
+    
+    // For local development, use relative URLs which are more reliable
+    if (host && (host.includes('localhost') || host.includes('127.0.0.1') || host.includes(':'))) {
+      url = `/uploads/${filename}`;
+    } else {
+      try {
+        url = new URL(`/uploads/${filename}`, baseUrl).href;
+      } catch (error) {
+        console.error('URL construction failed, using fallback:', error);
+        // Fallback: manually construct URL
+        url = `${baseUrl.replace(/\/+$/, '')}/uploads/${filename}`;
+      }
+    }
+    
     console.log('Upload successful, URL:', url);
+    console.log('Base URL details:', { 
+      original: process.env.NEXT_PUBLIC_BASE_URL || `${protocol}://${host}`,
+      cleaned: baseUrl,
+      final: url,
+      isRelativeUrl: url.startsWith('/'),
+      host: host
+    });
     return NextResponse.json({ url });
   } catch (error) {
     console.error('Local upload error:', error);

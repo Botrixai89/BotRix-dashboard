@@ -18,13 +18,17 @@ export default function CreateBotPage() {
   const [primaryColor, setPrimaryColor] = useState('#7c3aed')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [logoUploading, setLogoUploading] = useState(false)
+  const [logoLoading, setLogoLoading] = useState(false)
   const logoInputRef = useRef<HTMLInputElement>(null)
 
   const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     if (!file) return
+    
+    console.log('Logo upload started:', { name: file.name, type: file.type, size: file.size })
     setLogoUploading(true)
     setError('')
+    
     try {
       const formData = new FormData()
       formData.append('file', file)
@@ -33,12 +37,19 @@ export default function CreateBotPage() {
         body: formData,
       })
       const data = await res.json()
+      
+      console.log('Upload response:', { status: res.status, data })
+      
       if (res.ok && data.url) {
+        console.log('Logo uploaded successfully:', data.url)
+        setLogoLoading(true)
         setLogoUrl(data.url)
       } else {
+        console.error('Upload failed:', data.error)
         setError(data.error || 'Failed to upload logo')
       }
     } catch (err) {
+      console.error('Upload error:', err)
       setError('Failed to upload logo')
     } finally {
       setLogoUploading(false)
@@ -147,22 +158,55 @@ export default function CreateBotPage() {
                       <Label className="text-sm font-semibold text-gray-700 flex items-center">
                         Company Logo
                       </Label>
-                      <div className="flex items-center space-x-4">
-                        <input
-                          ref={logoInputRef}
-                          type="file"
-                          accept="image/*"
-                          className="hidden"
-                          onChange={handleLogoChange}
-                        />
-                        <Button type="button" variant="outline" onClick={() => logoInputRef.current?.click()} disabled={logoUploading}>
-                          {logoUploading ? 'Uploading...' : 'Upload Logo'}
-                        </Button>
-                        {logoUrl && (
-                          <img src={logoUrl} alt="Logo Preview" className="w-12 h-12 rounded-lg object-cover border" />
-                        )}
-                      </div>
-                      <p className="text-sm text-gray-500">This logo will appear next to your bot name in the dashboard.</p>
+                                             <div className="flex items-center space-x-4">
+                         <input
+                           ref={logoInputRef}
+                           type="file"
+                           accept="image/*"
+                           className="hidden"
+                           onChange={handleLogoChange}
+                         />
+                                                   <Button type="button" variant="outline" onClick={() => logoInputRef.current?.click()} disabled={logoUploading}>
+                            {logoUploading ? 'Uploading...' : 'Upload Logo'}
+                          </Button>
+
+                         <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden relative bg-white">
+                           {logoUrl ? (
+                             <>
+                               {logoLoading && (
+                                 <div className="absolute inset-0 bg-gray-100 flex items-center justify-center z-10">
+                                   <span className="text-gray-400 text-xs">Loading...</span>
+                                 </div>
+                               )}
+                               <img 
+                                 src={logoUrl} 
+                                 alt="Logo Preview" 
+                                 className="w-full h-full object-cover"
+                                 style={{ 
+                                   display: logoLoading ? 'none' : 'block',
+                                   maxWidth: '100%',
+                                   maxHeight: '100%'
+                                 }}
+                                 onLoad={() => {
+                                   console.log('Image loaded successfully:', logoUrl);
+                                   setLogoLoading(false);
+                                 }}
+                                 onError={(e) => {
+                                   console.error('Failed to load image:', logoUrl);
+                                   setLogoLoading(false);
+                                   // Show error but keep the URL for retry
+                                   setError('Failed to load uploaded image. The image may still be processing. You can try refreshing or uploading again.');
+                                 }}
+                               />
+                             </>
+                           ) : (
+                             <div className="w-full h-full bg-gray-100 flex items-center justify-center">
+                               <span className="text-gray-400 text-xs">Logo</span>
+                             </div>
+                           )}
+                         </div>
+                       </div>
+                                             <p className="text-sm text-gray-500">This logo will appear next to your bot name in the dashboard.</p>
                     </div>
 
                     <div className="space-y-3">
@@ -260,11 +304,11 @@ export default function CreateBotPage() {
                         name="webhookUrl"
                         type="url"
                         placeholder="https://your-automation.com/webhook/your-webhook-id"
-                        defaultValue=""
+                        defaultValue="https://automation.botrixai.com/webhook/8b0df4ab-cb69-48d7-b3f4-d8a68a420ef8/chat"
                         className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
                       />
                       <p className="text-sm text-gray-500">
-                        Your automation webhook URL for processing bot conversations
+                        Your automation webhook URL for processing bot conversations. You can change this to use a different webhook if needed.
                       </p>
                     </div>
                   </div>

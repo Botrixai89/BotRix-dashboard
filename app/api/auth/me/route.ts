@@ -1,53 +1,94 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { getTokenFromCookies, verifyToken } from '@/lib/auth'
+import { getTokenFromCookies, verifyToken, generateToken } from '@/lib/auth'
 import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
 
 export async function GET(request: NextRequest) {
   try {
-    // Get token from cookies
+    // First, try to get token from cookies
     const token = getTokenFromCookies(request)
     
-    if (!token) {
-      return NextResponse.json(
-        { error: 'Not authenticated' },
-        { status: 401 }
-      )
-    }
+    if (token) {
+      // Verify token
+      const payload = verifyToken(token)
+      if (payload) {
+        // Connect to database
+        await dbConnect()
 
-    // Verify token
-    const payload = verifyToken(token)
-    if (!payload) {
-      return NextResponse.json(
-        { error: 'Invalid or expired token' },
-        { status: 401 }
-      )
-    }
-
-    // Connect to database
-    await dbConnect()
-
-    // Get user from database
-    const user = await User.findById(payload.userId).select('-password')
-    if (!user) {
-      return NextResponse.json(
-        { error: 'User not found' },
-        { status: 404 }
-      )
-    }
-
-    return NextResponse.json({
-      user: {
-        _id: user._id,
-        name: user.name,
-        email: user.email,
-        avatar: user.avatar,
-        logo: user.logo,
-        isEmailVerified: user.isEmailVerified,
-        createdAt: user.createdAt,
-        lastLogin: user.lastLogin,
+        // Get user from database
+        const user = await User.findById(payload.userId).select('-password')
+        if (user) {
+          return NextResponse.json({
+            user: {
+              _id: user._id,
+              name: user.name,
+              email: user.email,
+              avatar: user.avatar,
+              logo: user.logo,
+              createdAt: user.createdAt,
+              lastLogin: user.lastLogin,
+            }
+          })
+        }
       }
-    })
+    }
+
+    // If no valid custom token, check for NextAuth session
+    const nextAuthToken = request.cookies.get('next-auth.session-token')?.value || 
+                         request.cookies.get('__Secure-next-auth.session-token')?.value;
+    
+    if (nextAuthToken) {
+      try {
+        const jwt = require('jsonwebtoken');
+        const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || 'your-nextauth-secret';
+        const payload = jwt.verify(nextAuthToken, NEXTAUTH_SECRET);
+        
+        if (payload?.email) {
+          await dbConnect();
+          const user = await User.findOne({ email: payload.email }).select('-password');
+          if (user) {
+            // Generate a custom token for this user
+            const customToken = generateToken({
+              _id: user._id.toString(),
+              email: user.email,
+              name: user.name
+            });
+            
+            // Set the custom token in cookies
+            const response = NextResponse.json({
+              user: {
+                _id: user._id,
+                name: user.name,
+                email: user.email,
+                avatar: user.avatar,
+                logo: user.logo,
+                createdAt: user.createdAt,
+                lastLogin: user.lastLogin,
+              }
+            });
+            
+            // Set the custom token cookie
+            response.cookies.set('auth-token', customToken, {
+              httpOnly: true,
+              secure: process.env.NODE_ENV === 'production',
+              sameSite: 'lax',
+              maxAge: 7 * 24 * 60 * 60, // 7 days
+              path: '/',
+            });
+            
+            return response;
+          }
+        }
+      } catch (error) {
+        console.log('NextAuth token verification failed:', error);
+        // Don't throw error, just continue to return 401
+      }
+    }
+    
+    return NextResponse.json(
+      { error: 'Not authenticated' },
+      { status: 401 }
+    )
   } catch (error) {
     console.error('Auth check error:', error)
     
