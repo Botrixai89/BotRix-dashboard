@@ -11,6 +11,7 @@ import { useParams } from 'next/navigation'
 import Link from 'next/link'
 import { showSuccess, showError } from '@/lib/toast'
 import { getVoiceService } from '@/lib/voice-service'
+import { Loading, ButtonLoading } from '@/components/ui/loading'
 
 interface Bot {
   _id: string;
@@ -237,9 +238,7 @@ export default function BuilderPage() {
         </header>
         <main className="flex-1 overflow-auto p-8">
           <div className="flex items-center justify-center h-64">
-            <div className="p-4 rounded-full bg-teal-600">
-              <Settings className="h-8 w-8 text-white animate-pulse" />
-            </div>
+            <Loading size="lg" text="Loading bot settings..." />
           </div>
         </main>
       </div>
@@ -292,8 +291,8 @@ export default function BuilderPage() {
               >
               {isSaving ? (
                 <>
-                  <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                  Saving...
+                  <ButtonLoading size="sm" />
+                  <span className="ml-2">Saving...</span>
                 </>
               ) : (
                 <>

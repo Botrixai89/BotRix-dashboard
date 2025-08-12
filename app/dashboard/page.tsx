@@ -10,6 +10,7 @@ import { showSuccess, showError } from '@/lib/toast'
 import { UserProfileDropdown } from '@/components/UserProfileDropdown'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { HelpDropdown } from '@/components/HelpDropdown'
+import { Loading, ButtonLoading } from '@/components/ui/loading'
 
 interface BotData {
   _id: string;
@@ -405,14 +406,12 @@ export default function DashboardPage() {
 
           {isLoading ? (
             /* Loading State */
-            <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-center">
-              <div className="p-4 rounded-full bg-teal-600 mb-4 sm:mb-6">
-                <Bot className="h-8 w-8 sm:h-12 sm:w-12 text-white animate-pulse" />
-              </div>
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
-                Loading your bots...
-              </h2>
-              <p className="text-sm sm:text-base text-gray-600">Please wait while we fetch your chatbots</p>
+            <div className="flex flex-col items-center justify-center h-48 sm:h-64">
+              <Loading 
+                size="lg" 
+                text="Loading your bots..." 
+                className="text-center"
+              />
             </div>
           ) : error ? (
             /* Error State */
@@ -650,8 +649,8 @@ export default function DashboardPage() {
               >
                 {deletingBotId === botToDelete?._id ? (
                   <>
-                    <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent mr-2" />
-                    Deleting...
+                    <ButtonLoading size="sm" />
+                    <span className="ml-2">Deleting...</span>
                   </>
                 ) : (
                   'Delete Bot'

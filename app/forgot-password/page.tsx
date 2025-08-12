@@ -8,6 +8,7 @@ import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Mail, CheckCircle } from 'lucide-react'
 import { showSuccess, showError, toastMessages } from '@/lib/toast'
+import { ButtonLoading } from '@/components/ui/loading'
 
 export default function ForgotPasswordPage() {
   const [email, setEmail] = useState('')
@@ -131,10 +132,10 @@ export default function ForgotPasswordPage() {
                   disabled={isLoading}
                 >
                   {isLoading ? (
-                    <div className="flex items-center">
-                      <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin mr-2"></div>
-                      Sending...
-                    </div>
+                    <>
+                      <ButtonLoading size="sm" />
+                      <span className="ml-2">Sending...</span>
+                    </>
                   ) : (
                     'Send Reset Link'
                   )}

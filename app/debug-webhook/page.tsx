@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
 import { TestTube, AlertTriangle, CheckCircle, XCircle, Send, RefreshCw, Bug, Info } from 'lucide-react'
 import { useState } from 'react'
+import { ButtonLoading } from '@/components/ui/loading'
 
 export default function DebugWebhookPage() {
   const [webhookUrl, setWebhookUrl] = useState('')
@@ -156,8 +157,8 @@ export default function DebugWebhookPage() {
             >
               {isLoading ? (
                 <>
-                  <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
-                  Testing...
+                  <ButtonLoading size="sm" />
+                  <span className="ml-2">Testing...</span>
                 </>
               ) : (
                 <>

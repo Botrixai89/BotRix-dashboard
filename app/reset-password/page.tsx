@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label'
 import { ArrowLeft, Lock, CheckCircle, AlertCircle } from 'lucide-react'
 import { useAuth } from '@/lib/auth-context'
 import { showSuccess, showError } from '@/lib/toast'
+import { ButtonLoading } from '@/components/ui/loading'
 
 export default function ResetPasswordPage() {
   const { resetPassword } = useAuth()
@@ -259,7 +260,14 @@ export default function ResetPasswordPage() {
                   className="w-full bg-teal-600 text-white border-0 h-11 hover:bg-teal-700 hover:shadow-lg hover:scale-[1.02] transition-all duration-300" 
                   disabled={isLoading}
                 >
-                  {isLoading ? 'Resetting...' : 'Reset password'}
+                  {isLoading ? (
+                    <>
+                      <ButtonLoading size="sm" />
+                      <span className="ml-2">Resetting...</span>
+                    </>
+                  ) : (
+                    'Reset password'
+                  )}
                 </Button>
               </form>
 

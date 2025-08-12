@@ -11,6 +11,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { showSuccess, showError, toastMessages } from '@/lib/toast'
 import { useAuth } from '@/lib/auth-context'
 import { signIn, useSession } from 'next-auth/react'
+import { Loading } from '@/components/ui/loading'
 
 export default function LoginPage() {
   const { login, user, loading } = useAuth()
@@ -134,30 +135,12 @@ export default function LoginPage() {
 
   // Show loading while checking authentication
   if (loading || status === 'loading') {
-    return (
-      <div className="min-h-screen bg-[#E0FFFF] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-          <p className="text-sm text-gray-500 mt-2">Auth Status: {status}</p>
-          <p className="text-sm text-gray-500">Loading State: {loading ? 'true' : 'false'}</p>
-        </div>
-      </div>
-    )
+    return <Loading variant="fullscreen" text="Loading..." />
   }
 
   // Don't render the form if user is authenticated (redirect will happen in useEffect)
   if (user || (status === 'authenticated' && session)) {
-    return (
-      <div className="min-h-screen bg-[#E0FFFF] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting to dashboard...</p>
-          <p className="text-sm text-gray-500 mt-2">User: {user ? 'Custom Auth' : 'NextAuth'}</p>
-          <p className="text-sm text-gray-500">Session: {session ? 'Active' : 'None'}</p>
-        </div>
-      </div>
-    )
+    return <Loading variant="fullscreen" text="Preparing your dashboard..." />
   }
 
   return (

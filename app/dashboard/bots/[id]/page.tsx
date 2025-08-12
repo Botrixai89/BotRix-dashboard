@@ -6,6 +6,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { Loading } from '@/components/ui/loading'
 
 interface Bot {
   _id: string;
@@ -92,9 +93,7 @@ export default function BotOverviewPage() {
   if (isLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="p-4 rounded-full bg-teal-600">
-          <Bot className="h-8 w-8 text-white animate-pulse" />
-        </div>
+        <Loading size="lg" text="Loading bot..." />
       </div>
     )
   }

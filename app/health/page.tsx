@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { Loading } from '@/components/ui/loading'
 
 export default function HealthPage() {
   const [health, setHealth] = useState<any>(null)
@@ -26,7 +27,7 @@ export default function HealthPage() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <div className="text-lg">Checking health...</div>
+        <Loading size="lg" text="Checking health..." />
       </div>
     )
   }

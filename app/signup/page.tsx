@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation'
 import { showSuccess, showError, toastMessages } from '@/lib/toast'
 import { useAuth } from '@/lib/auth-context'
 import { signIn, useSession } from 'next-auth/react'
+import { Loading } from '@/components/ui/loading'
 
 export default function SignupPage() {
   const { signup } = useAuth()
@@ -129,26 +130,12 @@ export default function SignupPage() {
 
   // Show loading while checking authentication
   if (status === 'loading') {
-    return (
-      <div className="min-h-screen bg-[#E0FFFF] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
+    return <Loading variant="fullscreen" text="Loading..." />
   }
 
   // Don't render the form if user is authenticated (redirect will happen in useEffect)
   if (status === 'authenticated' && session) {
-    return (
-      <div className="min-h-screen bg-[#E0FFFF] flex items-center justify-center">
-        <div className="text-center">
-          <div className="w-16 h-16 border-4 border-teal-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Redirecting to dashboard...</p>
-        </div>
-      </div>
-    )
+    return <Loading variant="fullscreen" text="Preparing your dashboard..." />
   }
   
   return (

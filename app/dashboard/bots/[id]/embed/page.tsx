@@ -8,6 +8,7 @@ import { Badge } from '@/components/ui/badge'
 import { Copy, ExternalLink, Settings, Eye, Code, Zap, Sparkles, Globe, TestTube } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
+import { Loading } from '@/components/ui/loading'
 
 interface Bot {
   _id: string;
@@ -147,9 +148,7 @@ export default function EmbedPage() {
         </header>
         <main className="flex-1 overflow-auto p-8">
           <div className="flex items-center justify-center h-64">
-            <div className="p-4 rounded-full bg-teal-600">
-              <Code className="h-8 w-8 text-white animate-pulse" />
-            </div>
+            <Loading size="lg" text="Loading embed code..." />
           </div>
         </main>
       </div>

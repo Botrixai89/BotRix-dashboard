@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ButtonLoading } from '@/components/ui/loading'
 
 export default function DebugBotsPage() {
   const [debugData, setDebugData] = useState<any>(null)
@@ -36,7 +37,14 @@ export default function DebugBotsPage() {
           </CardHeader>
           <CardContent>
             <Button onClick={fetchDebugData} disabled={loading}>
-              {loading ? 'Loading...' : 'Refresh Debug Data'}
+              {loading ? (
+                <>
+                  <ButtonLoading size="sm" />
+                  <span className="ml-2">Loading...</span>
+                </>
+              ) : (
+                'Refresh Debug Data'
+              )}
             </Button>
             
             {debugData && (
