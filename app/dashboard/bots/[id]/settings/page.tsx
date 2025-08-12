@@ -307,7 +307,7 @@ export default function BotSettingsPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm">
+      <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
             <h1 className="text-3xl font-bold text-gray-900">Bot Settings</h1>
@@ -335,7 +335,7 @@ export default function BotSettingsPage() {
       </header>
 
       {/* Content */}
-      <main className="flex-1 overflow-auto p-8">
+      <main className="flex-1 overflow-y-auto p-8 min-h-0">
         <div className="max-w-6xl mx-auto">
           {/* Tab Navigation */}
           <div className="flex space-x-1 mb-8 bg-white/50 backdrop-blur-sm rounded-xl p-2 border border-purple-100">

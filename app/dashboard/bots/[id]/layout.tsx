@@ -53,72 +53,69 @@ export default function BotLayout({
   ]
 
   return (
-    <div className="flex flex-col h-screen bg-gray-50">
-      {/* Top Navigation Bar */}
-      <header className="bg-white border-b border-gray-200 px-8 py-4 shadow-sm">
-        <div className="flex items-center justify-between">
-          {/* Left side - Back button and Bot info */}
-          <div className="flex items-center space-x-4">
+    <div className="flex h-screen bg-gray-50">
+      {/* Sidebar */}
+      <div className="w-64 bg-white border-r border-gray-200 flex flex-col">
+        {/* Bot Header */}
+        <div className="p-6 border-b border-gray-200">
+          {/* Logo and Back Button */}
+          <div className="flex items-center justify-between mb-4">
+            <img src="/botrix-logo01.png" alt="Botriut x Logo" className="h-10 w-auto" />
             <Link href="/dashboard">
               <Button variant="ghost" size="sm" className="hover:bg-teal-50 text-teal-600 p-2">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
-            
-            {bot && (
-              <div className="flex items-center space-x-3">
-                {bot.companyLogo ? (
-                  <img 
-                    src={bot.companyLogo} 
-                    alt="Company Logo" 
-                    className="object-cover border border-gray-200 w-8 h-8 rounded-lg" 
-                  />
-                ) : (
-                  <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center border border-gray-200">
-                    <Bot className="h-4 w-4 text-white" />
-                  </div>
-                )}
-                <div>
-                  <h1 className="font-bold text-lg text-gray-900">{bot.name}</h1>
-                  {bot.status === 'active' && (
-                    <span className="inline-block px-2 py-0.5 text-xs font-medium bg-green-100 text-green-800 rounded">active</span>
-                  )}
-                  {bot.status === 'inactive' && (
-                    <span className="inline-block px-2 py-0.5 text-xs font-medium bg-gray-100 text-gray-800 rounded">inactive</span>
-                  )}
-                </div>
-              </div>
-            )}
           </div>
+          
+          {bot && (
+            <div className="flex items-center space-x-3">
+              {bot.companyLogo ? (
+                <img 
+                  src={bot.companyLogo} 
+                  alt="Company Logo" 
+                  className="object-cover border border-gray-200 w-10 h-10 rounded-lg" 
+                />
+              ) : (
+                <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500 to-purple-500 flex items-center justify-center">
+                  <Bot className="h-5 w-5 text-white" />
+                </div>
+              )}
+              <div>
+                <h2 className="font-semibold text-gray-900">{bot.name}</h2>
+                <p className="text-sm text-gray-500">Customer Support</p>
+              </div>
+            </div>
+          )}
+        </div>
 
-          {/* Right side - Navigation tabs */}
-          <div className="flex items-center space-x-1">
+        {/* Navigation */}
+        <nav className="flex-1 p-4">
+          <div className="space-y-2">
             {navigation.map((item) => {
               const Icon = item.icon
               const isActive = pathname === item.href
               return (
-                <Link
-                  key={item.name}
-                  href={item.href}
-                  className={`flex items-center px-4 py-2 text-sm font-medium rounded-lg transition-all ${
+                <Link key={item.name} href={item.href}>
+                  <div className={`flex items-center space-x-3 px-3 py-2 rounded-lg transition-colors ${
                     isActive
-                      ? 'text-white bg-teal-600 shadow-sm'
-                      : 'text-gray-600 hover:text-teal-600 hover:bg-teal-50'
-                  }`}
-                >
-                  <Icon className="mr-2 h-4 w-4" />
-                  <span>{item.name}</span>
+                      ? 'bg-teal-50 text-teal-700 border border-teal-200'
+                      : 'text-gray-600 hover:bg-gray-50'
+                  }`}>
+                    <Icon className="h-4 w-4" />
+                    <span className={isActive ? 'font-medium' : ''}>{item.name}</span>
+                  </div>
                 </Link>
               )
             })}
           </div>
-        </div>
-      </header>
+        </nav>
+      </div>
 
       {/* Main Content */}
-      <main className="flex-1 overflow-hidden">
+      <div className="flex-1 flex flex-col h-full">
         {children}
-      </main>
+      </div>
     </div>
   )
 } 

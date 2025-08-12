@@ -201,10 +201,10 @@ export default function AnalyticsPage() {
   if (isLoading) {
     return (
       <div className="flex flex-col h-full">
-        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Analytics</h1>
         </header>
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 p-6 min-h-0">
           <div className="flex items-center justify-center h-64">
             <div className="text-gray-500 flex items-center gap-2">
               <RefreshCw className="h-4 w-4 animate-spin" />
@@ -219,10 +219,10 @@ export default function AnalyticsPage() {
   if (error || !bot) {
     return (
       <div className="flex flex-col h-full">
-        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+        <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Analytics</h1>
         </header>
-        <main className="flex-1 overflow-auto p-6">
+        <main className="flex-1 p-6 min-h-0">
           <div className="flex items-center justify-center h-64">
             <div className="text-red-500">{error || 'Bot not found'}</div>
           </div>
@@ -234,7 +234,7 @@ export default function AnalyticsPage() {
   return (
     <div className="flex flex-col h-full">
       {/* Header */}
-      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4">
+      <header className="bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700 px-6 py-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <h1 className="text-2xl font-semibold text-gray-900 dark:text-gray-100">Analytics</h1>
           <div className="flex items-center space-x-3">
@@ -295,8 +295,8 @@ export default function AnalyticsPage() {
         </div>
       </header>
 
-      {/* Content */}
-      <main className="flex-1 overflow-auto p-6">
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-6 min-h-0">
         {(!analytics || analytics.performance.totalConversations === 0) ? (
           /* Empty State */
           <div className="flex flex-col items-center justify-center h-full max-w-2xl mx-auto text-center">

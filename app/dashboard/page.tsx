@@ -43,27 +43,7 @@ export default function DashboardPage() {
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
 
-  // Sample notifications data
-  const sampleNotifications = [
-    {
-      id: '1',
-      message: 'Your bot "Customer Support Bot" has received 15 new messages',
-      timestamp: '2 hours ago',
-      read: false
-    },
-    {
-      id: '2',
-      message: 'Bot performance report is ready for review',
-      timestamp: '1 day ago',
-      read: true
-    },
-    {
-      id: '3',
-      message: 'New feature: Voice integration is now available',
-      timestamp: '3 days ago',
-      read: true
-    }
-  ]
+
 
   useEffect(() => {
     // Only proceed if we have a user, not loading, and not logging out
@@ -319,7 +299,7 @@ export default function DashboardPage() {
                 <span className="hidden sm:block text-sm font-medium text-gray-900">{user.name}</span>
                 
                 {/* Notification Dropdown */}
-                <NotificationDropdown notifications={sampleNotifications} />
+                <NotificationDropdown />
                 
                 {/* User Profile Dropdown */}
                 <UserProfileDropdown 

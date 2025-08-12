@@ -87,7 +87,6 @@ export default function MessagesPage() {
 
   const fetchConversations = async () => {
     try {
-      // Check if bot ID exists
       if (!params.id) {
         console.log('Bot ID not available yet')
         return
@@ -148,6 +147,17 @@ export default function MessagesPage() {
     }
   }, [params.id, activeTab, searchQuery])
 
+  // Auto-select the first conversation when conversations are loaded
+  useEffect(() => {
+    if (conversations.length > 0 && !selectedConversation) {
+      // Sort conversations by most recent first (based on updatedAt)
+      const sortedConversations = [...conversations].sort((a, b) => 
+        new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime()
+      )
+      setSelectedConversation(sortedConversations[0])
+    }
+  }, [conversations, selectedConversation])
+
   useEffect(() => {
     if (selectedConversation) {
       fetchConversationMessages(selectedConversation._id)
@@ -156,25 +166,21 @@ export default function MessagesPage() {
     }
   }, [selectedConversation])
 
-  // Join bot room for real-time updates
   useEffect(() => {
     if (params.id && isConnected) {
       joinBot(params.id as string)
     }
   }, [params.id, isConnected])
 
-  // Scroll to bottom when messages change
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
     }
   }, [conversationDetail?.messages?.length])
 
-  // Listen for new real-time messages
   useEffect(() => {
     if (!lastMessage || !selectedConversation || !conversationDetail) return
     if (lastMessage.conversationId !== selectedConversation._id) return
-    // Add new message to conversationDetail
     setConversationDetail(prev => {
       if (!prev) return prev
       return {
@@ -217,7 +223,6 @@ export default function MessagesPage() {
     return conv.status === activeTab
   })
 
-  // Avatars for sender types
   function getAvatar(sender: string) {
     if (sender === 'user') return <User className="h-6 w-6 text-blue-500 bg-blue-100 rounded-full p-1" />
     if (sender === 'bot') return <Sparkles className="h-6 w-6 text-teal-500 bg-teal-100 rounded-full p-1" />
@@ -226,12 +231,12 @@ export default function MessagesPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
-      {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
+    <div className="flex flex-col h-full">
+      {/* Page Header */}
+      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Messages</h1>
+            <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
             <p className="text-gray-600 mt-1">Manage conversations with your bot users</p>
           </div>
           <div className="flex items-center space-x-3">
@@ -250,14 +255,14 @@ export default function MessagesPage() {
             </Button>
           </div>
         </div>
-      </header>
+      </div>
 
-      {/* Content */}
-      <div className="flex flex-1 overflow-hidden">
+      {/* Main Content */}
+      <div className="flex flex-1 min-h-0 border-b border-gray-200">
         {/* Conversations List */}
         <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
           {/* Search */}
-                      <div className="p-6 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200 flex-shrink-0">
             <div className="relative">
               <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
               <Input 
@@ -275,7 +280,7 @@ export default function MessagesPage() {
           </div>
 
           {/* Tabs */}
-          <div className="px-6 py-4 border-b border-gray-200">
+          <div className="px-4 py-3 border-b border-gray-200 flex-shrink-0">
             <div className="flex flex-wrap gap-2">
               {tabs.map((tab) => (
                 <button
@@ -304,7 +309,7 @@ export default function MessagesPage() {
           </div>
 
           {/* Conversation List */}
-          <div className="flex-1 overflow-y-auto">
+          <div className="flex-1 overflow-y-auto min-h-0 border-b border-gray-200">
             {loading ? (
               <div className="flex items-center justify-center h-full p-6">
                 <div className="text-center">
@@ -325,62 +330,91 @@ export default function MessagesPage() {
                 </div>
               </div>
             ) : filteredConversations.length === 0 ? (
-              <div className="flex flex-col items-center justify-center h-full p-6 text-center">
-                <div className="relative mb-6">
-                  <div className="p-4 rounded-full bg-blue-100 text-blue-600">
-                    <MessageSquare className="h-12 w-12" />
+              <div className="flex-1 flex items-center justify-center bg-white">
+                <div className="text-center max-w-lg mx-auto p-8">
+                  <div className="relative mb-8">
+                    <div className="p-6 rounded-full bg-teal-600 mx-auto w-fit">
+                      <MessageSquare className="h-16 w-16 text-white" />
+                    </div>
+                    <div className="absolute -top-2 -right-2 p-2 rounded-full bg-yellow-400">
+                      <Sparkles className="h-5 w-5 text-white" />
+                    </div>
                   </div>
-                  <div className="absolute -top-1 -right-1 p-1 rounded-full bg-yellow-400">
-                    <Sparkles className="h-4 w-4 text-white" />
+                  <h2 className="text-2xl font-bold text-gray-900 mb-4">
+                    Welcome to your Messages Hub
+                  </h2>
+                  <p className="text-gray-600 mb-8 leading-relaxed">
+                    This is where you'll manage all conversations with your bot users. 
+                    Get started by adding the chat widget to your website and watch the magic happen!
+                  </p>
+                  <div className="space-y-4">
+                    <Link href={`/dashboard/bots/${params.id}/embed`}>
+                      <Button className="bg-teal-600 text-white border-0 px-8 py-3 hover:bg-teal-700 hover:shadow-lg transition-all">
+                        <Code className="h-5 w-5 mr-2" />
+                        Get Embed Code
+                      </Button>
+                    </Link>
+                    <p className="text-sm text-gray-500">
+                      Or test your bot's webhook integration first
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
+                    <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                      <div className="w-8 h-8 bg-teal-100 text-teal-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        <MessageSquare className="h-4 w-4" />
+                      </div>
+                      <p className="text-xs text-gray-600 font-medium">Real-time Chat</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                      <div className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        <User className="h-4 w-4" />
+                      </div>
+                      <p className="text-xs text-gray-600 font-medium">User Management</p>
+                    </div>
+                    <div className="text-center p-4 bg-white rounded-xl shadow-sm">
+                      <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mx-auto mb-2">
+                        <Filter className="h-4 w-4" />
+                      </div>
+                      <p className="text-xs text-gray-600 font-medium">Smart Filtering</p>
+                    </div>
                   </div>
                 </div>
-                <h3 className="text-lg font-semibold text-gray-900 mb-2">
-                  No conversations yet
-                </h3>
-                <p className="text-sm text-gray-600 mb-6 max-w-sm leading-relaxed">
-                  Once users start chatting with your bot, their conversations will appear here.
-                </p>
-                <Link href={`/dashboard/bots/${params.id}/embed`}>
-                  <Button size="sm" className="bg-teal-600 text-white border-0 hover:bg-teal-700">
-                    <Code className="h-4 w-4 mr-2" />
-                    Get Embed Code
-                  </Button>
-                </Link>
               </div>
             ) : (
               filteredConversations.map((conversation) => (
                 <div
                   key={conversation._id}
-                  className={`p-4 border-b border-purple-50 cursor-pointer hover:bg-purple-25 transition-colors ${
-                    selectedConversation?._id === conversation._id ? 'bg-purple-50' : ''
+                  className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-teal-50 transition-colors ${
+                    selectedConversation?._id === conversation._id ? 'bg-teal-50 border-teal-200' : ''
                   }`}
                   onClick={() => setSelectedConversation(conversation)}
                 >
                   <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-r from-blue-400 to-purple-400 rounded-full flex items-center justify-center">
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
                       <User className="h-5 w-5 text-white" />
                     </div>
                     
-                    <div className="flex-1 min-w-0">
+                    <div className="flex-1 min-w-0 space-y-2">
                       <div className="flex items-center justify-between">
                         <p className="text-sm font-medium text-gray-900 truncate">
                           {conversation.userInfo?.name || 'Anonymous User'}
                         </p>
                         {conversation.unreadCount > 0 && (
-                          <Badge variant="default" className="text-xs bg-red-500 text-white">
+                          <Badge variant="default" className="text-xs bg-red-500 text-white flex-shrink-0 ml-2">
                             {conversation.unreadCount}
                           </Badge>
                         )}
                       </div>
                       
-                      <p className="text-sm text-gray-600 truncate">
+                      <p className="text-sm text-gray-600 truncate leading-relaxed">
                         {conversation.lastMessage?.content || 'No messages'}
                       </p>
                       
-                      <div className="flex items-center justify-between mt-1">
+                      <div className="flex items-center justify-between">
                         <Badge 
                           variant={conversation.status === 'active' ? 'default' : 'secondary'}
-                          className={`text-xs ${
+                          className={`text-xs flex-shrink-0 ${
                             conversation.status === 'active' 
                               ? 'bg-green-100 text-green-800' 
                               : conversation.status === 'new'
@@ -396,8 +430,8 @@ export default function MessagesPage() {
                         </span>
                       </div>
                       
-                      <div className="flex items-center justify-between mt-1">
-                        <span className="text-xs text-gray-500">
+                      <div className="flex items-center justify-between pt-1">
+                        <span className="text-xs text-gray-500 font-medium">
                           {conversation.messageCount} messages
                         </span>
                         <span className="text-xs text-gray-500">
@@ -413,11 +447,28 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col relative">
-          {selectedConversation ? (
-            <div className="flex-1 flex flex-col h-full">
+        <div className="flex-1 flex flex-col bg-gray-50 min-h-0 border-b border-gray-200">
+          {loading ? (
+            // Show loading state when conversations are being fetched
+            <div className="flex-1 flex items-center justify-center bg-white">
+              <div className="text-center max-w-md mx-auto p-8">
+                <div className="relative mb-6">
+                  <div className="p-4 rounded-full bg-gray-100 mx-auto w-fit">
+                    <RefreshCw className="h-12 w-12 text-teal-600 animate-spin" />
+                  </div>
+                </div>
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Loading conversations
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  Please wait while we fetch your conversations...
+                </p>
+              </div>
+            </div>
+          ) : selectedConversation ? (
+            <div className="flex flex-col h-full">
               {/* Chat Header */}
-              <div className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-6 py-4">
+              <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
                 <div className="flex items-center justify-between">
                   <div>
                     <h3 className="font-semibold text-gray-900">
@@ -443,15 +494,11 @@ export default function MessagesPage() {
               </div>
               
               {/* Chat Messages */}
-              <div className="flex-1 relative overflow-y-auto bg-gradient-to-b from-gray-50 via-white to-blue-50 px-0 md:px-6 py-4 md:py-6 rounded-xl shadow-inner transition-all duration-300" style={{scrollBehavior:'smooth'}}>
-                {/* Fade top */}
-                <div className="pointer-events-none absolute top-0 left-0 w-full h-6 bg-gradient-to-b from-white/80 to-transparent z-10" />
-                {/* Fade bottom */}
-                <div className="pointer-events-none absolute bottom-0 left-0 w-full h-6 bg-gradient-to-t from-white/80 to-transparent z-10" />
+              <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
                 {loadingMessages ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
-                      <RefreshCw className="h-8 w-8 text-purple-600 animate-spin mx-auto mb-2" />
+                      <RefreshCw className="h-8 w-8 text-teal-600 animate-spin mx-auto mb-2" />
                       <p className="text-sm text-gray-600">Loading messages...</p>
                     </div>
                   </div>
@@ -468,7 +515,7 @@ export default function MessagesPage() {
                     </div>
                   </div>
                 ) : conversationDetail && conversationDetail.messages.length > 0 ? (
-                  <div className="flex flex-col gap-3 md:gap-4 pb-8">
+                  <div className="flex flex-col gap-4 pb-4">
                     {conversationDetail.messages.map((message, index) => {
                       const isUser = message.sender === 'user'
                       const isBot = message.sender === 'bot'
@@ -477,18 +524,16 @@ export default function MessagesPage() {
                         <div
                           key={message._id || index}
                           className={cn(
-                            'group flex items-end gap-2 md:gap-3',
+                            'group flex items-end gap-3',
                             isUser ? 'justify-end' : 'justify-start'
                           )}
                         >
-                          {/* Avatar */}
                           {!isUser && (
                             <div className="flex-shrink-0">{getAvatar(message.sender)}</div>
                           )}
-                          {/* Bubble */}
                           <div
                             className={cn(
-                              'relative max-w-[80vw] md:max-w-md px-4 py-2 rounded-2xl shadow-sm transition-all duration-200',
+                              'relative max-w-md px-4 py-2 rounded-2xl shadow-sm transition-all duration-200',
                               isUser
                                 ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-md'
                                 : isAgent
@@ -497,15 +542,16 @@ export default function MessagesPage() {
                               'hover:shadow-lg'
                             )}
                           >
-                            <p className="text-sm whitespace-pre-line break-words">{message.content}</p>
-                            <span className={cn(
-                              'absolute text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200',
-                              isUser ? 'right-2 bottom-1 text-purple-100' : 'left-2 bottom-1 text-gray-400'
-                            )}>
-                              {formatMessageTime(message.timestamp)}
-                            </span>
+                            <div className="relative">
+                              <p className="text-sm whitespace-pre-line break-words pr-8">{message.content}</p>
+                              <span className={cn(
+                                'absolute text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200',
+                                isUser ? 'right-0 bottom-0 text-blue-100' : 'right-0 bottom-0 text-gray-400'
+                              )}>
+                                {formatMessageTime(message.timestamp)}
+                              </span>
+                            </div>
                           </div>
-                          {/* Avatar for user on right */}
                           {isUser && (
                             <div className="flex-shrink-0">{getAvatar(message.sender)}</div>
                           )}
@@ -523,90 +569,55 @@ export default function MessagesPage() {
                   </div>
                 )}
               </div>
-              {/* Agent Message Input - sticky */}
-              <div className="sticky bottom-0 left-0 w-full z-20 bg-white/90 border-t flex items-center gap-2 px-4 py-3 md:px-6 shadow-lg rounded-b-xl">
-                <Input
-                  placeholder="Type a message as agent..."
-                  value={agentMessage}
-                  onChange={e => setAgentMessage(e.target.value)}
-                  onKeyDown={e => {
-                    if (e.key === 'Enter') handleSendAgentMessage()
-                  }}
-                  className="flex-1 bg-gray-50 border-gray-200 focus:border-purple-300 focus:ring-purple-200 rounded-full px-4 py-2"
-                  disabled={!isConnected || loadingMessages}
-                />
-                <Button
-                  onClick={handleSendAgentMessage}
-                  disabled={!agentMessage.trim() || !isConnected || loadingMessages}
-                  className="bg-teal-600 text-white border-0 rounded-full px-6 py-2 shadow-md hover:scale-105 transition-transform hover:bg-teal-700"
-                >
-                  <Send className="h-4 w-4 mr-1" />
-                  Send
-                </Button>
-              </div>
-            </div>
-          ) : filteredConversations.length === 0 ? (
-            <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-white/50 to-purple-50/50">
-              <div className="text-center max-w-lg mx-auto p-8">
-                <div className="relative mb-8">
-                  <div className="p-6 rounded-full bg-teal-600 mx-auto w-fit">
-                    <MessageSquare className="h-16 w-16 text-white" />
-                  </div>
-                  <div className="absolute -top-2 -right-2 p-2 rounded-full bg-yellow-400">
-                    <Sparkles className="h-5 w-5 text-white" />
-                  </div>
-                </div>
-                <h2 className="text-2xl font-bold text-gray-900 mb-4">
-                  Welcome to your Messages Hub
-                </h2>
-                <p className="text-gray-600 mb-8 leading-relaxed">
-                  This is where you'll manage all conversations with your bot users. 
-                  Get started by adding the chat widget to your website and watch the magic happen!
-                </p>
-                <div className="space-y-4">
-                  <Link href={`/dashboard/bots/${params.id}/embed`}>
-                    <Button className="bg-teal-600 text-white border-0 px-8 py-3 hover:bg-teal-700 hover:shadow-lg hover:scale-105 transition-all">
-                      <Code className="h-5 w-5 mr-2" />
-                      Get Embed Code
-                    </Button>
-                  </Link>
-                  <p className="text-sm text-gray-500">
-                    Or test your bot's webhook integration first
-                  </p>
-                </div>
-                
-                {/* Features preview */}
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mt-8">
-                  <div className="text-center p-4 bg-white/60 rounded-xl">
-                    <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center mx-auto mb-2">
-                      <MessageSquare className="h-4 w-4" />
-                    </div>
-                    <p className="text-xs text-gray-600 font-medium">Real-time Chat</p>
-                  </div>
-                  <div className="text-center p-4 bg-white/60 rounded-xl">
-                    <div className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center mx-auto mb-2">
-                      <User className="h-4 w-4" />
-                    </div>
-                    <p className="text-xs text-gray-600 font-medium">User Management</p>
-                  </div>
-                  <div className="text-center p-4 bg-white/60 rounded-xl">
-                    <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center mx-auto mb-2">
-                      <Filter className="h-4 w-4" />
-                    </div>
-                    <p className="text-xs text-gray-600 font-medium">Smart Filtering</p>
-                  </div>
+              
+              {/* Agent Message Input */}
+              <div className="bg-white border-t border-gray-200 px-6 py-4 flex-shrink-0">
+                <div className="flex items-center gap-3">
+                  <Input
+                    placeholder="Type a message as agent..."
+                    value={agentMessage}
+                    onChange={e => setAgentMessage(e.target.value)}
+                    onKeyDown={e => {
+                      if (e.key === 'Enter') handleSendAgentMessage()
+                    }}
+                    className="flex-1 border-gray-200 focus:border-teal-300 focus:ring-teal-200"
+                    disabled={!isConnected || loadingMessages}
+                  />
+                  <Button
+                    onClick={handleSendAgentMessage}
+                    disabled={!agentMessage.trim() || !isConnected || loadingMessages}
+                    className="bg-teal-600 text-white border-0 hover:bg-teal-700"
+                  >
+                    <Send className="h-4 w-4 mr-2" />
+                    Send
+                  </Button>
                 </div>
               </div>
             </div>
           ) : (
-            <div className="flex-1 flex items-center justify-center bg-gradient-to-br from-white/50 to-purple-50/50">
-              <div className="text-center">
-                <div className="w-16 h-16 bg-gray-100 text-gray-400 rounded-full flex items-center justify-center mx-auto mb-4">
-                  <MessageSquare className="h-8 w-8" />
+            <div className="flex-1 flex items-center justify-center bg-white">
+              <div className="text-center max-w-md mx-auto p-8">
+                <div className="relative mb-6">
+                  <div className="p-4 rounded-full bg-gray-100 mx-auto w-fit">
+                    <MessageSquare className="h-12 w-12 text-gray-400" />
+                  </div>
                 </div>
-                <p className="text-gray-500">
-                  Select a conversation to view messages
+                <h3 className="text-lg font-semibold text-gray-900 mb-2">
+                  Select a conversation
+                </h3>
+                <p className="text-sm text-gray-600 mb-6">
+                  Choose a conversation from the list to view and respond to messages
                 </p>
+                <div className="flex items-center justify-center space-x-2 text-xs text-gray-500">
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-teal-500 rounded-full"></div>
+                    <span>Active conversations</span>
+                  </div>
+                  <div className="flex items-center space-x-1">
+                    <div className="w-2 h-2 bg-blue-500 rounded-full"></div>
+                    <span>New conversations</span>
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -615,10 +626,8 @@ export default function MessagesPage() {
     </div>
   )
 
-  // --- Handler for agent send message ---
   function handleSendAgentMessage() {
     if (!agentMessage.trim() || !selectedConversation || !user) return
-    // Optimistically update UI
     setConversationDetail(prev => {
       if (!prev) return prev
       return {
@@ -635,7 +644,6 @@ export default function MessagesPage() {
         ],
       }
     })
-    // Send via socket
     sendMessage(
       params.id as string,
       selectedConversation._id,

@@ -113,38 +113,38 @@ export default function BotOverviewPage() {
 
   return (
     <div className="p-8 space-y-8">
-      {/* Action Buttons */}
-      <div className="flex items-center justify-end space-x-3">
-        <Button 
-          variant="outline" 
-          className="border-orange-200 text-orange-600 hover:bg-orange-50"
-          onClick={testBotConfiguration}
-          disabled={isTestingBot}
-        >
-          <TestTube className="mr-2 h-4 w-4" />
-          {isTestingBot ? 'Testing...' : 'Test Configuration'}
-        </Button>
-        <Button 
-          variant="outline" 
-          className="border-blue-200 text-blue-600 hover:bg-blue-50"
-          onClick={() => window.open(`/test-widget.html?botId=${params.id}`, '_blank')}
-        >
-          <Eye className="mr-2 h-4 w-4" />
-          Test Widget
-        </Button>
-        <Link href={`/dashboard/bots/${params.id}/builder`}>
-          <Button variant="outline" className="border-teal-200 text-teal-600 hover:bg-teal-50">
-            <Settings className="mr-2 h-4 w-4" />
-            Edit Bot
-          </Button>
-        </Link>
-        <Link href={`/dashboard/bots/${params.id}/messages`}>
-          <Button className="bg-teal-600 text-white border-0 hover:bg-teal-700">
-            <MessageSquare className="mr-2 h-4 w-4" />
-            View Messages
-          </Button>
-        </Link>
-      </div>
+          {/* Action Buttons */}
+          <div className="flex items-center justify-end space-x-3">
+            <Button 
+              variant="outline" 
+              className="border-orange-200 text-orange-600 hover:bg-orange-50"
+              onClick={testBotConfiguration}
+              disabled={isTestingBot}
+            >
+              <TestTube className="mr-2 h-4 w-4" />
+              {isTestingBot ? 'Testing...' : 'Test Configuration'}
+            </Button>
+            <Button 
+              variant="outline" 
+              className="border-blue-200 text-blue-600 hover:bg-blue-50"
+              onClick={() => window.open(`/test-widget.html?botId=${params.id}`, '_blank')}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              Test Widget
+            </Button>
+            <Link href={`/dashboard/bots/${params.id}/builder`}>
+              <Button variant="outline" className="border-teal-200 text-teal-600 hover:bg-teal-50">
+                <Settings className="mr-2 h-4 w-4" />
+                Edit Bot
+              </Button>
+            </Link>
+            <Link href={`/dashboard/bots/${params.id}/messages`}>
+              <Button className="bg-teal-600 text-white border-0 hover:bg-teal-700">
+                <MessageSquare className="mr-2 h-4 w-4" />
+                View Messages
+              </Button>
+            </Link>
+          </div>
 
       {/* Test Results */}
       {testResult && (
