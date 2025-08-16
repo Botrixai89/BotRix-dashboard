@@ -69,6 +69,18 @@ export default function BotSettingsPage() {
     debugMode: false,
   });
 
+  // Bot widget settings
+  const [widgetForm, setWidgetForm] = useState({
+    primaryColor: '#8b5cf6',
+    theme: 'modern',
+    welcomeMessage: 'Hello! How can I help you today?',
+    widgetIconType: 'default',
+    widgetIconEmoji: '💬',
+    headerColor: '#10b981',
+    footerColor: '#f8fafc',
+    bodyColor: '#ffffff',
+  });
+
   useEffect(() => {
     fetchBotSettings();
   }, [botId]);
@@ -97,6 +109,18 @@ export default function BotSettingsPage() {
             ipWhitelist: data.bot.settings.ipWhitelist || '',
             requireAuth: data.bot.settings.requireAuth !== false,
           }));
+          
+          // Load widget settings
+          setWidgetForm({
+            primaryColor: data.bot.settings.primaryColor || '#8b5cf6',
+            theme: data.bot.settings.theme || 'modern',
+            welcomeMessage: data.bot.settings.welcomeMessage || 'Hello! How can I help you today?',
+            widgetIconType: data.bot.settings.widgetIconType || 'default',
+            widgetIconEmoji: data.bot.settings.widgetIconEmoji || '💬',
+            headerColor: data.bot.settings.headerColor || '#10b981',
+            footerColor: data.bot.settings.footerColor || '#f8fafc',
+            bodyColor: data.bot.settings.bodyColor || '#ffffff',
+          });
           
           setIntegrationForm(prev => ({
             ...prev,
@@ -242,6 +266,40 @@ export default function BotSettingsPage() {
     }
   };
 
+  const handleWidgetSave = async () => {
+    setIsSaving(true);
+    try {
+      const res = await fetch(`/api/bots/${botId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          settings: {
+            primaryColor: widgetForm.primaryColor,
+            theme: widgetForm.theme,
+            welcomeMessage: widgetForm.welcomeMessage,
+            widgetIconType: widgetForm.widgetIconType,
+            widgetIconEmoji: widgetForm.widgetIconEmoji,
+            headerColor: widgetForm.headerColor,
+            footerColor: widgetForm.footerColor,
+            bodyColor: widgetForm.bodyColor,
+          }
+        }),
+        credentials: 'include',
+      });
+      if (res.ok) {
+        showSuccess('Widget settings updated successfully!');
+        fetchBotSettings();
+      } else {
+        const data = await res.json();
+        showError(data.error || 'Failed to update widget settings');
+      }
+    } catch (err) {
+      showError('Network error. Please try again.');
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const generateApiKey = () => {
     const key = `botrix_${botId}_${Math.random().toString(36).substring(2, 15)}`;
     setSecurityForm(prev => ({ ...prev, apiKey: key }));
@@ -301,6 +359,7 @@ export default function BotSettingsPage() {
     { id: 'general', label: 'General', icon: Bot },
     { id: 'security', label: 'Security', icon: Shield },
     { id: 'integration', label: 'Integrations', icon: Zap },
+    { id: 'widget', label: 'Widget', icon: Globe },
     { id: 'advanced', label: 'Advanced', icon: Settings },
   ];
 
@@ -655,6 +714,128 @@ export default function BotSettingsPage() {
                       className="gradient-primary text-white border-0 px-8 py-3 hover:shadow-lg hover:scale-105 transition-all"
                     >
                       {isSaving ? 'Saving...' : 'Save Integration Settings'}
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Widget Settings */}
+            {activeTab === 'widget' && (
+              <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center">
+                    <Globe className="w-5 h-5 mr-2 text-purple-500" />
+                    Widget Customization
+                  </CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-700">Primary Color</label>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          value={widgetForm.primaryColor}
+                          onChange={e => setWidgetForm(prev => ({ ...prev, primaryColor: e.target.value }))}
+                          placeholder="#8b5cf6"
+                          disabled={isLoading}
+                          className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                        />
+                        <input
+                          type="color"
+                          value={widgetForm.primaryColor}
+                          onChange={e => setWidgetForm(prev => ({ ...prev, primaryColor: e.target.value }))}
+                          className="w-12 h-12 border border-gray-300 rounded cursor-pointer"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Main color for buttons and accents</p>
+                    </div>
+                    
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-700">Theme</label>
+                      <select
+                        value={widgetForm.theme}
+                        onChange={e => setWidgetForm(prev => ({ ...prev, theme: e.target.value }))}
+                        disabled={isLoading}
+                        className="h-12 w-full border border-gray-200 rounded-lg px-3 focus:border-purple-300 focus:ring-purple-200"
+                      >
+                        <option value="modern">Modern</option>
+                        <option value="minimal">Minimal</option>
+                        <option value="gradient">Gradient</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">Widget visual style</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-700">Header Color</label>
+                      <div className="flex items-center space-x-2">
+                        <Input
+                          value={widgetForm.headerColor}
+                          onChange={e => setWidgetForm(prev => ({ ...prev, headerColor: e.target.value }))}
+                          placeholder="#10b981"
+                          disabled={isLoading}
+                          className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                        />
+                        <input
+                          type="color"
+                          value={widgetForm.headerColor}
+                          onChange={e => setWidgetForm(prev => ({ ...prev, headerColor: e.target.value }))}
+                          className="w-12 h-12 border border-gray-300 rounded cursor-pointer"
+                        />
+                      </div>
+                      <p className="text-xs text-gray-500 mt-1">Color of the widget header</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium mb-2 text-gray-700">Widget Icon Type</label>
+                      <select
+                        value={widgetForm.widgetIconType}
+                        onChange={e => setWidgetForm(prev => ({ ...prev, widgetIconType: e.target.value }))}
+                        disabled={isLoading}
+                        className="h-12 w-full border border-gray-200 rounded-lg px-3 focus:border-purple-300 focus:ring-purple-200"
+                      >
+                        <option value="default">Default</option>
+                        <option value="custom">Custom</option>
+                        <option value="emoji">Emoji</option>
+                      </select>
+                      <p className="text-xs text-gray-500 mt-1">Type of widget icon</p>
+                    </div>
+
+                    {widgetForm.widgetIconType === 'emoji' && (
+                      <div>
+                        <label className="block text-sm font-medium mb-2 text-gray-700">Widget Icon Emoji</label>
+                        <Input
+                          value={widgetForm.widgetIconEmoji}
+                          onChange={e => setWidgetForm(prev => ({ ...prev, widgetIconEmoji: e.target.value }))}
+                          placeholder="💬"
+                          disabled={isLoading}
+                          className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                        />
+                        <p className="text-xs text-gray-500 mt-1">Emoji to use as widget icon</p>
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium mb-2 text-gray-700">Welcome Message</label>
+                    <textarea
+                      value={widgetForm.welcomeMessage}
+                      onChange={e => setWidgetForm(prev => ({ ...prev, welcomeMessage: e.target.value }))}
+                      placeholder="Hello! How can I help you today?"
+                      disabled={isLoading}
+                      rows={3}
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 focus:border-purple-300 focus:ring-purple-200"
+                    />
+                    <p className="text-xs text-gray-500 mt-1">Message shown when widget opens</p>
+                  </div>
+
+                  <div className="pt-4">
+                    <Button 
+                      onClick={handleWidgetSave} 
+                      disabled={isSaving || isLoading}
+                      className="gradient-primary text-white border-0 px-8 py-3 hover:shadow-lg hover:scale-105 transition-all"
+                    >
+                      {isSaving ? 'Saving...' : 'Save Widget Settings'}
                     </Button>
                   </div>
                 </CardContent>

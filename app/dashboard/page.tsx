@@ -255,10 +255,10 @@ export default function DashboardPage() {
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
               <input
                 type="text"
-                placeholder="Search ..."
+                placeholder="Search bots..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-full rounded-[50vw]"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-full rounded-[50rem] text-sm sm:text-base bg-[#f4f4f6]"
               />
             </div>
           </div>
@@ -281,6 +281,8 @@ export default function DashboardPage() {
               >
                 Switch Account
               </button>
+
+              <span className="text-gray-600">|</span>
               
               {/* Help Dropdown */}
               <HelpDropdown
@@ -292,6 +294,8 @@ export default function DashboardPage() {
                 onExpertAssistance={handleExpertAssistance}
               />
             </div>
+
+            <span className="text-gray-600">|</span>
             
             {/* User profile */}
             {user && (
@@ -374,10 +378,11 @@ export default function DashboardPage() {
                   </Link>
                   <Button 
                     variant="outline" 
-                    className="border-gray-200 text-gray-600 hover:bg-gray-50"
+                    className="w-full sm:w-auto border-gray-200 text-gray-600 hover:bg-gray-50 text-sm sm:text-base "
                     onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
                   >
-                    <List className="h-4 w-4" />
+                    <List className="mr-2 h-4 w-4" />
+                    <span className="hidden sm:inline text-sm">List</span>
                   </Button>
                 </div>
               </div>
@@ -437,7 +442,7 @@ export default function DashboardPage() {
             /* Deployed Bots Grid */
             <div className="space-y-4 sm:space-y-6">
               {viewMode === 'grid' ? (
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4 sm:gap-6">
+                <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
                   {filteredBots.map((bot) => (
                     <Card key={bot._id} className="border border-gray-200 shadow-sm hover:shadow-md transition-all bg-white relative group">
                       <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
@@ -587,7 +592,7 @@ export default function DashboardPage() {
           onClick={cancelDelete}
         >
           <div 
-            className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-md mx-4 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center space-x-3 mb-4">
@@ -648,7 +653,7 @@ export default function DashboardPage() {
           onClick={closeAccountModal}
         >
           <div 
-            className="bg-white rounded-lg p-4 sm:p-6 max-w-md w-full mx-4 max-h-[90vh] overflow-y-auto"
+            className="bg-white rounded-lg p-4 sm:p-6 w-full max-w-sm sm:max-w-md mx-4 max-h-[90vh] overflow-y-auto"
             onClick={(e) => e.stopPropagation()}
           >
             <div className="flex items-center justify-between mb-4 sm:mb-6">

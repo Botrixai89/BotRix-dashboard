@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search, Filter, MessageSquare, User, Clock, Plus, Sparkles, Code, RefreshCw, Send } from 'lucide-react'
+import { Search, Filter, MessageSquare, User, Clock, Plus, Sparkles, Code, RefreshCw, Send, ArrowLeft } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -77,6 +77,7 @@ export default function MessagesPage() {
   const [agentMessage, setAgentMessage] = useState('')
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const { lastMessage, joinBot, sendMessage, isConnected } = useSocket()
+  const [showChatView, setShowChatView] = useState(false) // For mobile chat view toggle
 
   const tabs = [
     { id: 'all', label: 'All', count: conversations.length },
@@ -161,6 +162,10 @@ export default function MessagesPage() {
   useEffect(() => {
     if (selectedConversation) {
       fetchConversationMessages(selectedConversation._id)
+      // On mobile, switch to chat view when a conversation is selected
+      if (window.innerWidth < 768) {
+        setShowChatView(true)
+      }
     } else {
       setConversationDetail(null)
     }
@@ -223,35 +228,62 @@ export default function MessagesPage() {
     return conv.status === activeTab
   })
 
-  function getAvatar(sender: string) {
-    if (sender === 'user') return <User className="h-6 w-6 text-blue-500 bg-blue-100 rounded-full p-1" />
+  // Helper function to generate initials from name
+  const getInitials = (name: string | undefined): string => {
+    if (!name || name.trim() === '') return 'AU' // Anonymous User
+    
+    const words = name.trim().split(/\s+/)
+    if (words.length === 1) {
+      return words[0].slice(0, 2).toUpperCase()
+    }
+    return words.slice(0, 2).map(word => word[0]).join('').toUpperCase()
+  }
+
+  function getAvatar(sender: string, userName?: string) {
+    if (sender === 'user') {
+      const initials = getInitials(userName)
+      return (
+        <div className="h-6 w-6 bg-blue-500 text-white rounded-full flex items-center justify-center text-xs font-medium">
+          {initials}
+        </div>
+      )
+    }
     if (sender === 'bot') return <Sparkles className="h-6 w-6 text-teal-500 bg-teal-100 rounded-full p-1" />
     if (sender === 'agent') return <Badge className="h-6 w-6 text-green-600 bg-green-100 rounded-full p-1">A</Badge>
-    return <User className="h-6 w-6 text-gray-400 bg-gray-100 rounded-full p-1" />
+    return (
+      <div className="h-6 w-6 bg-gray-400 text-white rounded-full flex items-center justify-center text-xs font-medium">
+        AU
+      </div>
+    )
   }
 
   return (
     <div className="flex flex-col h-full">
       {/* Page Header */}
-      <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
-        <div className="flex items-center justify-between">
+      <div className="bg-white border-b border-gray-200 px-4 sm:px-6 pt-4 pb-3 sm:pb-[0.5rem] flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between space-y-3 sm:space-y-0">
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Messages</h1>
-            <p className="text-gray-600 mt-1">Manage conversations with your bot users</p>
+            <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Messages</h1>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <Button 
               variant="outline" 
               size="sm" 
-              className="border-teal-200 text-teal-600 hover:bg-teal-50"
+              className="border-teal-200 text-teal-600 hover:bg-teal-50 text-xs sm:text-sm"
               onClick={fetchConversations}
               disabled={loading}
             >
-              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
-              Refresh
+              <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Refresh</span>
+              <span className="sm:hidden">Sync</span>
             </Button>
-            <Button size="sm" disabled className="bg-teal-600 text-white border-0 hover:bg-teal-700">
-              Mark All as Read
+            <Button 
+              size="sm" 
+              disabled 
+              className="bg-teal-600 text-white border-0 hover:bg-teal-700 text-xs sm:text-sm"
+            >
+              <span className="hidden sm:inline">Mark All as Read</span>
+              <span className="sm:hidden">Mark Read</span>
             </Button>
           </div>
         </div>
@@ -260,7 +292,9 @@ export default function MessagesPage() {
       {/* Main Content */}
       <div className="flex flex-1 min-h-0 border-b border-gray-200">
         {/* Conversations List */}
-        <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        <div className={`bg-white border-r border-gray-200 flex flex-col ${
+          showChatView ? 'hidden md:flex md:w-80 lg:w-96' : 'w-full md:w-80 lg:w-96'
+        }`}>
           {/* Search */}
           <div className="p-4 border-b border-gray-200 flex-shrink-0">
             <div className="relative">
@@ -388,11 +422,17 @@ export default function MessagesPage() {
                   className={`p-4 border-b border-gray-100 cursor-pointer hover:bg-teal-50 transition-colors ${
                     selectedConversation?._id === conversation._id ? 'bg-teal-50 border-teal-200' : ''
                   }`}
-                  onClick={() => setSelectedConversation(conversation)}
+                  onClick={() => {
+                    setSelectedConversation(conversation)
+                    // On mobile, switch to chat view
+                    if (window.innerWidth < 768) {
+                      setShowChatView(true)
+                    }
+                  }}
                 >
                   <div className="flex items-start space-x-3">
-                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0">
-                      <User className="h-5 w-5 text-white" />
+                    <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center flex-shrink-0 text-white font-medium text-sm">
+                      {getInitials(conversation.userInfo?.name)}
                     </div>
                     
                     <div className="flex-1 min-w-0 space-y-2">
@@ -447,7 +487,9 @@ export default function MessagesPage() {
         </div>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col bg-gray-50 min-h-0 border-b border-gray-200">
+        <div className={`flex flex-col bg-gray-50 min-h-0 border-b border-gray-200 ${
+          showChatView ? 'flex-1' : 'hidden md:flex md:flex-1'
+        }`}>
           {loading ? (
             // Show loading state when conversations are being fetched
             <div className="flex-1 flex items-center justify-center bg-white">
@@ -468,15 +510,24 @@ export default function MessagesPage() {
           ) : selectedConversation ? (
             <div className="flex flex-col h-full">
               {/* Chat Header */}
-              <div className="bg-white border-b border-gray-200 px-6 py-4 flex-shrink-0">
+              <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 flex-shrink-0">
                 <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">
-                      {selectedConversation.userInfo?.name || 'Anonymous User'}
-                    </h3>
-                    <p className="text-sm text-gray-600">
-                      {selectedConversation.messageCount} messages • Started {formatTime(selectedConversation.createdAt)}
-                    </p>
+                  <div className="flex items-center space-x-3">
+                    {/* Mobile back button */}
+                    <button
+                      onClick={() => setShowChatView(false)}
+                      className="md:hidden p-2 text-gray-600 hover:text-gray-900 hover:bg-gray-100 rounded-full transition-colors"
+                    >
+                      <ArrowLeft className="h-5 w-5" />
+                    </button>
+                    <div>
+                      <h3 className="font-semibold text-gray-900 text-sm sm:text-base">
+                        {selectedConversation.userInfo?.name || 'Anonymous User'}
+                      </h3>
+                      <p className="text-xs sm:text-sm text-gray-600">
+                        {selectedConversation.messageCount} messages • Started {formatTime(selectedConversation.createdAt)}
+                      </p>
+                    </div>
                   </div>
                   <Badge 
                     variant={selectedConversation.status === 'active' ? 'default' : 'secondary'}
@@ -494,7 +545,7 @@ export default function MessagesPage() {
               </div>
               
               {/* Chat Messages */}
-              <div className="flex-1 overflow-y-auto px-6 py-4 min-h-0">
+              <div className="flex-1 overflow-y-auto px-4 sm:px-6 py-4 min-h-0">
                 {loadingMessages ? (
                   <div className="flex items-center justify-center h-full">
                     <div className="text-center">
@@ -524,36 +575,39 @@ export default function MessagesPage() {
                         <div
                           key={message._id || index}
                           className={cn(
-                            'group flex items-end gap-3',
+                            'group flex gap-3',
                             isUser ? 'justify-end' : 'justify-start'
                           )}
                         >
                           {!isUser && (
-                            <div className="flex-shrink-0">{getAvatar(message.sender)}</div>
+                            <div className="flex-shrink-0 self-end">{getAvatar(message.sender, selectedConversation?.userInfo?.name)}</div>
                           )}
-                          <div
-                            className={cn(
-                              'relative max-w-md px-4 py-2 rounded-2xl shadow-sm transition-all duration-200',
-                              isUser
-                                ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-md'
-                                : isAgent
-                                ? 'bg-gradient-to-r from-green-400 to-green-200 text-white rounded-bl-md'
-                                : 'bg-white border border-gray-200 text-gray-900 rounded-bl-md',
-                              'hover:shadow-lg'
-                            )}
-                          >
-                            <div className="relative">
-                              <p className="text-sm whitespace-pre-line break-words pr-8">{message.content}</p>
-                              <span className={cn(
-                                'absolute text-xs opacity-0 group-hover:opacity-100 transition-opacity duration-200',
-                                isUser ? 'right-0 bottom-0 text-blue-100' : 'right-0 bottom-0 text-gray-400'
-                              )}>
-                                {formatMessageTime(message.timestamp)}
-                              </span>
+                          <div className={cn(
+                            'flex flex-col max-w-xs sm:max-w-md',
+                            isUser ? 'items-end' : 'items-start'
+                          )}>
+                            <div
+                              className={cn(
+                                'px-3 sm:px-4 py-2 rounded-2xl shadow-sm transition-all duration-200',
+                                isUser
+                                  ? 'bg-gradient-to-r from-blue-500 to-purple-500 text-white rounded-br-md'
+                                  : isAgent
+                                  ? 'bg-gradient-to-r from-green-400 to-green-200 text-white rounded-bl-md'
+                                  : 'bg-white border border-gray-200 text-gray-900 rounded-bl-md',
+                                'hover:shadow-lg'
+                              )}
+                            >
+                              <p className="text-sm whitespace-pre-line break-words">{message.content}</p>
                             </div>
+                            <span className={cn(
+                              'text-xs mt-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200',
+                              isUser ? 'text-blue-300' : 'text-gray-400'
+                            )}>
+                              {formatMessageTime(message.timestamp)}
+                            </span>
                           </div>
                           {isUser && (
-                            <div className="flex-shrink-0">{getAvatar(message.sender)}</div>
+                            <div className="flex-shrink-0 self-end">{getAvatar(message.sender, selectedConversation?.userInfo?.name)}</div>
                           )}
                         </div>
                       )
@@ -571,8 +625,8 @@ export default function MessagesPage() {
               </div>
               
               {/* Agent Message Input */}
-              <div className="bg-white border-t border-gray-200 px-6 py-4 flex-shrink-0">
-                <div className="flex items-center gap-3">
+              <div className="bg-white border-t border-gray-200 px-4 sm:px-6 py-4 flex-shrink-0">
+                <div className="flex items-center gap-2 sm:gap-3">
                   <Input
                     placeholder="Type a message as agent..."
                     value={agentMessage}
@@ -580,16 +634,17 @@ export default function MessagesPage() {
                     onKeyDown={e => {
                       if (e.key === 'Enter') handleSendAgentMessage()
                     }}
-                    className="flex-1 border-gray-200 focus:border-teal-300 focus:ring-teal-200"
+                    className="flex-1 border-gray-200 focus:border-teal-300 focus:ring-teal-200 text-sm"
                     disabled={!isConnected || loadingMessages}
                   />
                   <Button
                     onClick={handleSendAgentMessage}
                     disabled={!agentMessage.trim() || !isConnected || loadingMessages}
-                    className="bg-teal-600 text-white border-0 hover:bg-teal-700"
+                    className="bg-teal-600 text-white border-0 hover:bg-teal-700 px-3 sm:px-4"
+                    size="sm"
                   >
-                    <Send className="h-4 w-4 mr-2" />
-                    Send
+                    <Send className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Send</span>
                   </Button>
                 </div>
               </div>

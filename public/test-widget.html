@@ -4,142 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Botrix Chat Widget Test</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        'brand-teal': '#14b8a6',
+                        'brand-teal-light': '#f0fdfa',
+                        'brand-teal-dark': '#0f766e',
+                    }
+                }
+            }
+        }
+    </script>
     <style>
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-            margin: 0;
-            padding: 20px;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
         }
         
-        .container {
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-            color: white;
+        .hero-pattern {
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(20, 184, 166, 0.15) 1px, transparent 0);
+            background-size: 20px 20px;
         }
         
-        .header {
-            margin-bottom: 40px;
+        .card-glow {
+            box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.1), 
+                        0 2px 4px rgba(20, 184, 166, 0.1),
+                        0 8px 16px rgba(20, 184, 166, 0.1);
         }
         
-        .header h1 {
-            font-size: 2.5rem;
-            margin-bottom: 10px;
-            font-weight: 700;
+        .card-glow:hover {
+            box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.2), 
+                        0 4px 8px rgba(20, 184, 166, 0.15),
+                        0 16px 32px rgba(20, 184, 166, 0.15);
         }
         
-        .header p {
-            font-size: 1.2rem;
-            opacity: 0.9;
-            margin-bottom: 20px;
-        }
-        
-        .bot-info {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-        }
-        
-        .bot-info h2 {
-            margin-bottom: 16px;
-            font-size: 1.5rem;
-        }
-        
-        .bot-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 16px;
-            text-align: left;
-        }
-        
-        .detail-item {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 12px;
-            border-radius: 8px;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-        }
-        
-        .detail-label {
-            font-size: 0.9rem;
-            opacity: 0.8;
-            margin-bottom: 4px;
-        }
-        
-        .detail-value {
-            font-weight: 600;
-            word-break: break-all;
-        }
-        
-        .instructions {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 16px;
-            padding: 24px;
-            margin-bottom: 40px;
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            text-align: left;
-        }
-        
-        .instructions h3 {
-            margin-bottom: 16px;
-            font-size: 1.3rem;
-        }
-        
-        .instructions ol {
-            margin: 0;
-            padding-left: 20px;
-        }
-        
-        .instructions li {
-            margin-bottom: 8px;
-            line-height: 1.5;
-        }
-        
-        .status-indicator {
-            display: inline-block;
-            width: 12px;
-            height: 12px;
+        .status-dot {
+            width: 8px;
+            height: 8px;
             border-radius: 50%;
+            display: inline-block;
             margin-right: 8px;
         }
         
-        .status-active {
-            background: #10b981;
-            box-shadow: 0 0 8px rgba(16, 185, 129, 0.5);
-        }
-        
-        .status-inactive {
-            background: #f59e0b;
-            box-shadow: 0 0 8px rgba(245, 158, 11, 0.5);
-        }
-        
-        .status-draft {
-            background: #6b7280;
-            box-shadow: 0 0 8px rgba(107, 114, 128, 0.5);
-        }
-        
-        .loading {
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-            font-size: 1.1rem;
-        }
+        .status-active { background-color: #10b981; }
+        .status-inactive { background-color: #f59e0b; }
+        .status-draft { background-color: #6b7280; }
         
         .spinner {
             width: 20px;
             height: 20px;
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-top: 2px solid white;
+            border: 2px solid #e5e7eb;
+            border-top: 2px solid #14b8a6;
             border-radius: 50%;
             animation: spin 1s linear infinite;
         }
@@ -149,69 +69,200 @@
             100% { transform: rotate(360deg); }
         }
         
-        .error {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-            color: #fecaca;
-            padding: 16px;
-            border-radius: 8px;
-            margin-bottom: 20px;
+        .fade-in {
+            animation: fadeIn 0.5s ease-in-out;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .gradient-text {
+            background: linear-gradient(135deg, #14b8a6 0%, #0f766e 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
     </style>
 </head>
-<body>
-    <div class="container">
-        <div class="header">
-            <h1>🤖 Botrix Chat Widget Test</h1>
-            <p>Test your chatbot widget in a real environment</p>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <img src="/botrix-logo01.png" alt="Botrix" class="w-18 h-12">
+                </div>
+            </div>
         </div>
-        
-        <div id="loading" class="loading">
-            <div class="spinner"></div>
-            Loading bot information...
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-12 fade-in">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                Chat Widget Test
+            </h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Test your Botrix chatbot widget in a real environment. See how it looks and behaves before embedding it on your website.
+            </p>
         </div>
-        
-        <div id="error" class="error" style="display: none;"></div>
-        
-        <div id="content" style="display: none;">
-            <div class="bot-info">
-                <h2>📋 Bot Information</h2>
-                <div class="bot-details">
-                    <div class="detail-item">
-                        <div class="detail-label">Bot Name</div>
-                        <div class="detail-value" id="botName">-</div>
+
+        <!-- Loading State -->
+        <div id="loading" class="text-center py-12">
+            <div class="spinner mx-auto mb-4"></div>
+            <p class="text-gray-600">Loading bot information...</p>
+        </div>
+
+        <!-- Error State -->
+        <div id="error" class="hidden">
+            <div class="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+                <div class="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-6 h-6 text-red-600" fill="currentColor" viewBox="0 0 20 20">
+                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clip-rule="evenodd"/>
+                    </svg>
+                </div>
+                <h3 class="text-lg font-semibold text-red-800 mb-2">Error Loading Bot</h3>
+                <p id="errorMessage" class="text-red-600"></p>
+            </div>
+        </div>
+
+        <!-- Content -->
+        <div id="content" class="hidden space-y-8">
+            <!-- Bot Information Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 card-glow hover-lift transition-all duration-300 fade-in">
+                <div class="p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-brand-teal-light rounded-lg flex items-center justify-center mr-4">
+                            <svg class="w-5 h-5 text-brand-teal" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900">Bot Information</h2>
                     </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Bot ID</div>
-                        <div class="detail-value" id="botId">-</div>
-                    </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Status</div>
-                        <div class="detail-value">
-                            <span class="status-indicator" id="statusIndicator"></span>
-                            <span id="botStatus">-</span>
+                    
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-500">Bot Name</label>
+                            <p id="botName" class="text-gray-900 font-medium">-</p>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-500">Status</label>
+                            <div class="flex items-center">
+                                <span class="status-dot" id="statusIndicator"></span>
+                                <span id="botStatus" class="text-gray-900 font-medium">-</span>
+                            </div>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-500">Bot ID</label>
+                            <p id="botId" class="text-gray-900 font-mono text-sm break-all">-</p>
+                        </div>
+                        
+                        <div class="space-y-2">
+                            <label class="text-sm font-medium text-gray-500">Welcome Message</label>
+                            <p id="welcomeMessage" class="text-gray-900">-</p>
                         </div>
                     </div>
-                    <div class="detail-item">
-                        <div class="detail-label">Welcome Message</div>
-                        <div class="detail-value" id="welcomeMessage">-</div>
+                </div>
+        </div>
+        
+            <!-- Testing Instructions Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 card-glow hover-lift transition-all duration-300 fade-in">
+                <div class="p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-brand-teal-light rounded-lg flex items-center justify-center mr-4">
+                            <svg class="w-5 h-5 text-brand-teal" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900">How to Test</h2>
+        </div>
+        
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 bg-brand-teal text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
+                                1
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900 mb-1">Look for the chat widget</h3>
+                                <p class="text-gray-600">It should appear in the bottom-right corner of this page</p>
+                            </div>
+                        </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 bg-brand-teal text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
+                                2
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900 mb-1">Click the chat icon</h3>
+                                <p class="text-gray-600">This will open the chat interface</p>
+                            </div>
+                    </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 bg-brand-teal text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
+                                3
+                    </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900 mb-1">Send a test message</h3>
+                                <p class="text-gray-600">Try saying "Hello" or ask a question</p>
+                        </div>
+                    </div>
+                        
+                        <div class="flex items-start space-x-4">
+                            <div class="w-8 h-8 bg-brand-teal text-white rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
+                                4
+                            </div>
+                            <div>
+                                <h3 class="font-medium text-gray-900 mb-1">Check the response</h3>
+                                <p class="text-gray-600">The bot should respond based on your webhook configuration</p>
                     </div>
                 </div>
             </div>
             
-            <div class="instructions">
-                <h3>🧪 How to Test</h3>
-                <ol>
-                    <li><strong>Look for the chat widget</strong> - It should appear in the bottom-right corner of this page</li>
-                    <li><strong>Click the chat icon</strong> - This will open the chat interface</li>
-                    <li><strong>Send a test message</strong> - Try saying "Hello" or ask a question</li>
-                    <li><strong>Check the response</strong> - The bot should respond based on your webhook configuration</li>
-                    <li><strong>Test different inputs</strong> - Try various messages to see how your bot handles them</li>
-                </ol>
-                <p><strong>💡 Tip:</strong> Open your browser's Developer Tools (F12) and check the Network tab to see the API calls being made.</p>
+                    <div class="mt-6 p-4 bg-brand-teal-light rounded-lg border border-brand-teal/20">
+                        <div class="flex items-start space-x-3">
+                            <svg class="w-5 h-5 text-brand-teal mt-0.5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+                                <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clip-rule="evenodd"/>
+                            </svg>
+                            <div>
+                                <h4 class="font-medium text-gray-900 mb-1">Pro Tip</h4>
+                                <p class="text-gray-600 text-sm">Open your browser's Developer Tools (F12) and check the Network tab to see the API calls being made by the widget.</p>
+                            </div>
+                        </div>
             </div>
         </div>
     </div>
+
+            <!-- Widget Preview Card -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 card-glow hover-lift transition-all duration-300 fade-in">
+                <div class="p-6">
+                    <div class="flex items-center mb-6">
+                        <div class="w-10 h-10 bg-brand-teal-light rounded-lg flex items-center justify-center mr-4">
+                            <svg class="w-5 h-5 text-brand-teal" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+                            </svg>
+                        </div>
+                        <h2 class="text-xl font-semibold text-gray-900">Widget Preview</h2>
+                    </div>
+                    
+                    <div class="bg-gray-50 rounded-lg p-6 text-center">
+                        <div class="w-16 h-16 bg-brand-teal-light rounded-full flex items-center justify-center mx-auto mb-4">
+                            <svg class="w-8 h-8 text-brand-teal" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M2 5a2 2 0 012-2h7a2 2 0 012 2v4a2 2 0 01-2 2H9l-3 3v-3H4a2 2 0 01-2-2V5z"/>
+                            </svg>
+                        </div>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Chat Widget Active</h3>
+                        <p class="text-gray-600">The widget should appear in the bottom-right corner. Click it to start testing!</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
 
     <script>
         // Get bot ID from URL parameter
@@ -219,19 +270,19 @@
         const botId = urlParams.get('botId');
         
         if (!botId) {
-            document.getElementById('error').style.display = 'block';
-            document.getElementById('error').innerHTML = '❌ No bot ID provided. Please add ?botId=YOUR_BOT_ID to the URL.';
-            document.getElementById('loading').style.display = 'none';
+            document.getElementById('loading').classList.add('hidden');
+            document.getElementById('error').classList.remove('hidden');
+            document.getElementById('errorMessage').textContent = 'No bot ID provided. Please add ?botId=YOUR_BOT_ID to the URL.';
         } else {
             // Fetch bot information
             fetch(`/api/bots/${botId}`)
                 .then(response => response.json())
                 .then(data => {
-                    document.getElementById('loading').style.display = 'none';
+                    document.getElementById('loading').classList.add('hidden');
                     
                     if (data.error) {
-                        document.getElementById('error').style.display = 'block';
-                        document.getElementById('error').innerHTML = `❌ Error: ${data.error}`;
+                        document.getElementById('error').classList.remove('hidden');
+                        document.getElementById('errorMessage').textContent = data.error;
                         return;
                     }
                     
@@ -245,18 +296,18 @@
                     
                     // Update status indicator
                     const statusIndicator = document.getElementById('statusIndicator');
-                    statusIndicator.className = `status-indicator status-${bot.status}`;
+                    statusIndicator.className = `status-dot status-${bot.status}`;
                     
                     // Show content
-                    document.getElementById('content').style.display = 'block';
+                    document.getElementById('content').classList.remove('hidden');
                     
-                    // Load the chat widget
+                    // Load the chat widget using the same method as embedded widget
                     loadChatWidget(bot);
                 })
                 .catch(error => {
-                    document.getElementById('loading').style.display = 'none';
-                    document.getElementById('error').style.display = 'block';
-                    document.getElementById('error').innerHTML = `❌ Network error: ${error.message}`;
+                    document.getElementById('loading').classList.add('hidden');
+                    document.getElementById('error').classList.remove('hidden');
+                    document.getElementById('errorMessage').textContent = `Network error: ${error.message}`;
                 });
         }
         
@@ -265,13 +316,23 @@
             const script = document.createElement('script');
             script.src = '/widget.js';
             script.onload = function() {
-                // Initialize the chat widget
-                window.BotrixChat.createWidget(bot._id, {
-                    primaryColor: bot.settings.primaryColor,
-                    position: 'bottom-right',
-                    welcomeMessage: bot.settings.welcomeMessage,
-                    baseUrl: window.location.origin
-                });
+                // Use the same initialization method as embedded widget
+                // Create a script element with data attributes to match embedded widget behavior
+                const widgetScript = document.createElement('script');
+                widgetScript.setAttribute('data-botrix-bot-id', bot._id);
+                widgetScript.setAttribute('data-botrix-primary-color', bot.settings.primaryColor || '#14b8a6');
+                widgetScript.setAttribute('data-botrix-secondary-color', bot.settings.secondaryColor || '#0f766e');
+                widgetScript.setAttribute('data-botrix-position', 'bottom-right');
+                widgetScript.setAttribute('data-botrix-welcome-message', bot.settings.welcomeMessage);
+                widgetScript.setAttribute('data-botrix-enable-voice', 'true');
+                widgetScript.setAttribute('data-botrix-theme', 'modern');
+                
+                // Add the script to trigger auto-initialization
+                document.head.appendChild(widgetScript);
+                
+                // Trigger the DOMContentLoaded event to initialize the widget
+                const event = new Event('DOMContentLoaded');
+                document.dispatchEvent(event);
             };
             script.async = true;
             document.head.appendChild(script);

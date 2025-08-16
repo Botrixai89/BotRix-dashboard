@@ -161,6 +161,39 @@
     @apply h-10 sm:h-11 lg:h-12 text-sm sm:text-base;
   }
   
+  /* Enhanced responsive utilities */
+  .grid-responsive {
+    @apply grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6;
+  }
+  
+  .flex-responsive {
+    @apply flex flex-col sm:flex-row items-stretch sm:items-center;
+  }
+  
+  .sidebar-responsive {
+    @apply hidden lg:flex lg:w-64 lg:flex-col lg:fixed lg:inset-y-0;
+  }
+  
+  .main-responsive {
+    @apply flex-1 lg:pl-64;
+  }
+  
+  .card-responsive {
+    @apply p-4 sm:p-6 lg:p-8;
+  }
+  
+  .modal-responsive {
+    @apply w-full max-w-md sm:max-w-lg lg:max-w-xl mx-4 max-h-[90vh] overflow-y-auto;
+  }
+  
+  .table-responsive {
+    @apply overflow-x-auto;
+  }
+  
+  .nav-responsive {
+    @apply flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-4;
+  }
+  
   /* Mobile-specific improvements */
   @media (max-width: 640px) {
     .mobile-padding {
@@ -174,5 +207,53 @@
     .mobile-text {
       @apply text-sm;
     }
+    
+    .mobile-full {
+      @apply w-full;
+    }
+    
+    .mobile-hidden {
+      @apply hidden;
+    }
+    
+    .mobile-block {
+      @apply block;
+    }
+  }
+  
+  /* Tablet-specific improvements */
+  @media (min-width: 641px) and (max-width: 1024px) {
+    .tablet-grid-2 {
+      @apply grid-cols-2;
+    }
+    
+    .tablet-flex-row {
+      @apply flex-row;
+    }
+    
+    .tablet-px-6 {
+      @apply px-6;
+    }
+  }
+  
+  /* Desktop-specific improvements */
+  @media (min-width: 1025px) {
+    .desktop-grid-4 {
+      @apply grid-cols-4;
+    }
+    
+    .desktop-px-8 {
+      @apply px-8;
+    }
+  }
+  
+  /* Touch-friendly improvements */
+  .touch-friendly {
+    @apply min-h-[44px] min-w-[44px];
+  }
+  
+  /* Overflow handling */
+  .overflow-responsive {
+    @apply overflow-x-auto overflow-y-visible;
   }
 } 

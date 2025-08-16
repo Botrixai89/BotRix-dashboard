@@ -30,7 +30,7 @@ export function HelpDropdown({
 
       <DropdownMenuContent
         align="end"
-        className="w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-0 z-[1000]"
+        className="w-full max-w-xs sm:w-64 bg-white border border-gray-200 rounded-lg shadow-lg p-0 z-[1000]"
         sideOffset={8}
       >
         <div className="py-2">

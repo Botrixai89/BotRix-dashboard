@@ -37,7 +37,7 @@ export async function GET(
 
     // If export is requested
     if (format === 'csv') {
-      const csvData = await exportAnalyticsData(params.id, 'csv');
+      const csvData = await exportAnalyticsData(params.id, 'csv', period, start, end);
       return new NextResponse(csvData, {
         headers: {
           'Content-Type': 'text/csv',
@@ -79,7 +79,12 @@ export async function POST(
     const { action, format, period, startDate, endDate } = body;
 
     if (action === 'export') {
-      const exportData = await exportAnalyticsData(params.id, format || 'json');
+      // Parse dates if provided
+      let start: Date | undefined, end: Date | undefined;
+      if (startDate) start = parseISO(startDate);
+      if (endDate) end = parseISO(endDate);
+
+      const exportData = await exportAnalyticsData(params.id, format || 'csv', period || 'month', start, end);
       
       if (format === 'csv') {
         return new NextResponse(exportData, {

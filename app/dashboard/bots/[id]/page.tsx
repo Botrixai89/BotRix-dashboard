@@ -112,43 +112,49 @@ export default function BotOverviewPage() {
   }
 
   return (
-    <div className="p-8 space-y-8">
-          {/* Action Buttons */}
-          <div className="flex items-center justify-end space-x-3">
-            <Button 
-              variant="outline" 
-              className="border-orange-200 text-orange-600 hover:bg-orange-50"
-              onClick={testBotConfiguration}
-              disabled={isTestingBot}
-            >
-              <TestTube className="mr-2 h-4 w-4" />
-              {isTestingBot ? 'Testing...' : 'Test Configuration'}
-            </Button>
-            <Button 
-              variant="outline" 
-              className="border-blue-200 text-blue-600 hover:bg-blue-50"
-              onClick={() => window.open(`/test-widget.html?botId=${params.id}`, '_blank')}
-            >
-              <Eye className="mr-2 h-4 w-4" />
-              Test Widget
-            </Button>
-            <Link href={`/dashboard/bots/${params.id}/builder`}>
-              <Button variant="outline" className="border-teal-200 text-teal-600 hover:bg-teal-50">
-                <Settings className="mr-2 h-4 w-4" />
-                Edit Bot
-              </Button>
-            </Link>
-            <Link href={`/dashboard/bots/${params.id}/messages`}>
-              <Button className="bg-teal-600 text-white border-0 hover:bg-teal-700">
-                <MessageSquare className="mr-2 h-4 w-4" />
-                View Messages
-              </Button>
-            </Link>
-          </div>
+    <div className="flex-1 bg-gray-50 min-h-full overflow-auto">
+      <div className="p-4 sm:p-6 lg:p-8 space-y-6">
+        {/* Overview Header */}
+        <div className="mb-8">
+          <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Overview</h1>
+        </div>
+
+      {/* Action Buttons */}
+      <div className="flex items-center justify-end space-x-3">
+        <Button 
+          variant="outline" 
+          className="border-gray-200 text-gray-600 hover:bg-gray-50"
+          onClick={testBotConfiguration}
+          disabled={isTestingBot}
+        >
+          <TestTube className="mr-2 h-4 w-4" />
+          {isTestingBot ? 'Testing...' : 'Test Configuration'}
+        </Button>
+        <Button 
+          variant="outline" 
+          className="border-gray-200 text-gray-600 hover:bg-gray-50"
+          onClick={() => window.open(`/test-widget.html?botId=${params.id}`, '_blank')}
+        >
+          <Eye className="mr-2 h-4 w-4" />
+          Test Widget
+        </Button>
+        <Link href={`/dashboard/bots/${params.id}/builder`}>
+          <Button variant="outline" className="border-gray-200 text-gray-600 hover:bg-gray-50">
+            <Settings className="mr-2 h-4 w-4" />
+            Edit Bot
+          </Button>
+        </Link>
+        <Link href={`/dashboard/bots/${params.id}/messages`}>
+          <Button className="bg-blue-600 text-white border-0 hover:bg-blue-700">
+            <MessageSquare className="mr-2 h-4 w-4" />
+            View Messages
+          </Button>
+        </Link>
+      </div>
 
       {/* Test Results */}
       {testResult && (
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+        <Card className="border border-gray-200 shadow-sm bg-white">
           <CardHeader>
             <div className="flex items-center space-x-3">
               <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
@@ -218,143 +224,123 @@ export default function BotOverviewPage() {
       )}
 
       {/* Key Metrics */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        <Card className="border-0 shadow-sm card-glow bg-white/70 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700">Total Conversations</CardTitle>
-            <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
-              <MessageSquare className="h-4 w-4" />
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <Card className="border border-gray-200 shadow-sm bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-small text-gray-700">Total Conversations</CardTitle>
+            <div className="w-6 h-6 bg-blue-100 text-blue-600 rounded-md flex items-center justify-center">
+              <MessageSquare className="h-3 w-3" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900 mb-1">{bot.metrics.totalConversations}</div>
-            <p className="text-xs text-gray-600">
-              {bot.metrics.totalConversations > 0 ? '+0% from last month' : 'Start your first conversation!'}
+          <CardContent className="pt-2">
+            <div className="text-xl font-bold text-gray-900">{bot.metrics.totalConversations}</div>
+            <p className="text-xs text-gray-500 mt-1">
+              {bot.metrics.totalConversations > 0 ? 'Active conversations' : 'Start your first conversation!'}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm card-glow bg-white/70 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700">New Messages (24h)</CardTitle>
-            <div className="w-8 h-8 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
-              <TrendingUp className="h-4 w-4" />
+        <Card className="border border-gray-200 shadow-sm bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700">New Messages (24h)</CardTitle>
+            <div className="w-6 h-6 bg-green-100 text-green-600 rounded-md flex items-center justify-center">
+              <TrendingUp className="h-3 w-3" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900 mb-1">{bot.metrics.newMessages24h}</div>
-            <p className="text-xs text-gray-600">
-              {bot.metrics.newMessages24h > 0 ? '+0% from yesterday' : 'No messages today'}
+          <CardContent className="pt-2">
+            <div className="text-xl font-bold text-gray-900">{bot.metrics.newMessages24h}</div>
+            <p className="text-xs text-gray-500 mt-1">
+              {bot.metrics.newMessages24h > 0 ? 'Recent activity' : 'No messages today'}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm card-glow bg-white/70 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700">Avg. Response Time</CardTitle>
-            <div className="w-8 h-8 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center">
-              <Clock className="h-4 w-4" />
+        <Card className="bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700">Avg. Response Time</CardTitle>
+            <div className="w-6 h-6 bg-orange-100 text-orange-600 rounded-md flex items-center justify-center">
+              <Clock className="h-3 w-3" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900 mb-1">
+          <CardContent className="pt-2">
+            <div className="text-xl font-bold text-gray-900">
               {bot.metrics.averageResponseTime > 0 ? `${bot.metrics.averageResponseTime}s` : 'N/A'}
             </div>
-            <p className="text-xs text-gray-600">
-              {bot.metrics.averageResponseTime > 0 ? 'Based on recent activity' : 'No data yet'}
+            <p className="text-xs text-gray-500 mt-1">
+              {bot.metrics.averageResponseTime > 0 ? 'Response performance' : 'No data yet'}
             </p>
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-sm card-glow bg-white/70 backdrop-blur-sm">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3">
-            <CardTitle className="text-sm font-semibold text-gray-700">Handover Rate</CardTitle>
-            <div className="w-8 h-8 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
-              <Users className="h-4 w-4" />
+        <Card className="border border-gray-200 shadow-sm bg-white hover:shadow-md transition-shadow">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-700">Handover Rate</CardTitle>
+            <div className="w-6 h-6 bg-purple-100 text-purple-600 rounded-md flex items-center justify-center">
+              <Users className="h-3 w-3" />
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="text-3xl font-bold text-gray-900 mb-1">
+          <CardContent className="pt-2">
+            <div className="text-xl font-bold text-gray-900">
               {bot.metrics.handoverRate > 0 ? `${bot.metrics.handoverRate}%` : '0%'}
             </div>
-            <p className="text-xs text-gray-600">
-              {bot.metrics.handoverRate > 0 ? 'Human takeover rate' : 'No handovers yet'}
+            <p className="text-xs text-gray-500 mt-1">
+              {bot.metrics.handoverRate > 0 ? 'Human intervention' : 'No handovers yet'}
             </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Getting Started or Recent Activity */}
+      {/* Getting Started Section */}
       {bot.metrics.totalConversations === 0 ? (
-        /* Getting Started */
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+        <Card className="border border-gray-200 shadow-sm bg-white">
           <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="p-3 rounded-xl bg-teal-600">
-                <Bot className="h-6 w-6 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-2xl">Get Started with Your Bot</CardTitle>
-                <CardDescription className="text-gray-600">
-                  Your bot "{bot.name}" is ready! Here's how to start getting conversations:
-                </CardDescription>
-              </div>
-            </div>
+            <CardTitle className="text-xl font-semibold">Getting Started</CardTitle>
+            <CardDescription className="text-gray-600">
+              As easy as 1-2-3
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <Link href={`/dashboard/bots/${params.id}/embed`}>
-                  <Card className="cursor-pointer hover-lift border-0 bg-gradient-to-r from-blue-50 to-cyan-50 hover:from-blue-100 hover:to-cyan-100 transition-all">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center">
-                          <Code className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">Get Embed Code</CardTitle>
-                          <CardDescription>
-                            Copy the embed code and add it to your website
-                          </CardDescription>
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                </Link>
-
-                <Link href={`/dashboard/bots/${params.id}/builder`}>
-                  <Card className="cursor-pointer hover-lift border-0 bg-gradient-to-r from-purple-50 to-pink-50 hover:from-purple-100 hover:to-pink-100 transition-all">
-                    <CardHeader className="pb-4">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-10 h-10 bg-purple-500 text-white rounded-lg flex items-center justify-center">
-                          <Settings className="h-5 w-5" />
-                        </div>
-                        <div>
-                          <CardTitle className="text-lg">Configure Responses</CardTitle>
-                          <CardDescription>
-                            Set up your bot's responses and conversation flows
-                          </CardDescription>
-                        </div>
-                      </div>
-                    </CardHeader>
-                  </Card>
-                </Link>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                <div className="w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center font-semibold text-sm">
+                  ✓
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">Create a bot</div>
+                </div>
               </div>
-
-              <div className="bg-gradient-to-r from-blue-50 to-purple-50 p-6 rounded-xl border border-blue-200">
-                <div className="flex items-start space-x-3">
-                  <div className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center flex-shrink-0 mt-1">
-                    <BarChart3 className="h-4 w-4" />
+              
+              <div className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                <div className="w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center font-semibold text-sm">
+                  ✓
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">Build conversational flows</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg">
+                <div className="w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center font-semibold text-sm">
+                  ✓
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">Train the bot</div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-4 p-4 border border-gray-200 rounded-lg bg-blue-50">
+                <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-sm">
+                  ✓
+                </div>
+                <div className="flex-1">
+                  <div className="font-medium text-gray-900">Deploy the bot</div>
+                  <div className="text-sm text-gray-600 mt-1">
+                    Finally, lets do this - Configure and deploy the bot across multiple channels
                   </div>
-                  <div>
-                    <h4 className="font-semibold text-blue-900 mb-2">
-                      Webhook Integration Ready
-                    </h4>
-                    <p className="text-sm text-blue-800 leading-relaxed">
-                      Your bot is connected to your automation workflow. All messages will be processed 
-                      through your configured webhook for intelligent responses. Start conversations to see 
-                      your automation in action!
-                    </p>
+                  <div className="mt-3">
+                    <Button className="bg-blue-600 hover:bg-blue-700 text-white">
+                      Deploy
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -363,15 +349,15 @@ export default function BotOverviewPage() {
         </Card>
       ) : (
         /* Recent Activity */
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+        <Card className="border border-gray-200 shadow-sm bg-white">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="text-2xl">Recent Activity</CardTitle>
+                <CardTitle className="text-xl">Recent Activity</CardTitle>
                 <CardDescription className="text-gray-600">Latest interactions with your bot</CardDescription>
               </div>
               <Link href={`/dashboard/bots/${params.id}/messages`}>
-                <Button variant="ghost" size="sm" className="hover:bg-purple-50 text-purple-600">
+                <Button variant="ghost" size="sm" className="hover:bg-gray-50 text-gray-600">
                   View All
                   <ArrowUpRight className="ml-2 h-4 w-4" />
                 </Button>
@@ -388,6 +374,46 @@ export default function BotOverviewPage() {
           </CardContent>
         </Card>
       )}
+
+      {/* Feature Cards Section - Like AI Life Bot */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
+        {/* Live Chat Card */}
+        <Card className="border border-gray-200 shadow-sm bg-white">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">Live Chat</CardTitle>
+            <CardDescription className="text-gray-600">
+              Connect with your customers in real-time across multiple channels. Respond to incoming conversations across channels leveraging the One-
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <MessageSquare className="h-8 w-8" />
+              </div>
+              <p className="text-gray-500 mb-4">Real-time customer conversations</p>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Analytics Card */}
+        <Card className="border border-gray-200 shadow-sm bg-white">
+          <CardHeader>
+            <CardTitle className="text-xl font-semibold">Analytics</CardTitle>
+            <CardDescription className="text-gray-600">
+              View, monitor bot and team performance. Track engagement and retention across multiple channels over time
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="text-center py-8">
+              <div className="w-16 h-16 bg-green-100 text-green-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <BarChart3 className="h-8 w-8" />
+              </div>
+              <p className="text-gray-500 mb-4">Performance insights and metrics</p>
+            </div>
+          </CardContent>
+        </Card>
+        </div>
+      </div>
     </div>
   )
 } 

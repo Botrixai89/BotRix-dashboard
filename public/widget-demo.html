@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Botrix Widget Demo - Enhanced UI</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+        }
+        
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            text-align: center;
+        }
+        
+        h1 {
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.3);
+        }
+        
+        .subtitle {
+            font-size: 1.2rem;
+            margin-bottom: 2rem;
+            opacity: 0.9;
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin: 2rem 0;
+        }
+        
+        .feature {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .feature h3 {
+            margin-top: 0;
+            color: #fbbf24;
+        }
+        
+        .demo-text {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            margin: 2rem 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        
+        .highlight {
+            color: #fbbf24;
+            font-weight: bold;
+        }
+
+        .comparison {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+            margin: 2rem 0;
+        }
+
+        .comparison-item {
+            background: rgba(255,255,255,0.1);
+            padding: 20px;
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .comparison-item h3 {
+            color: #fbbf24;
+            margin-top: 0;
+        }
+
+        .bad {
+            border-left: 4px solid #ef4444;
+        }
+
+        .good {
+            border-left: 4px solid #10b981;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 Botrix Widget Demo</h1>
+        <p class="subtitle">Experience the enhanced, modern chat widget UI</p>
+        
+        <div class="demo-text">
+            <p>This demo showcases the <span class="highlight">completely redesigned</span> Botrix chat widget with improved user experience!</p>
+        </div>
+
+        <div class="comparison">
+            <div class="comparison-item bad">
+                <h3>❌ Old Design Issues</h3>
+                <ul style="text-align: left;">
+                    <li>Inconsistent message bubbles</li>
+                    <li>Poor visual hierarchy</li>
+                    <li>Disjointed conversation flow</li>
+                    <li>Generic input fields</li>
+                    <li>Repetitive branding elements</li>
+                    <li>Basic color scheme</li>
+                </ul>
+            </div>
+            
+            <div class="comparison-item good">
+                <h3>✅ New Design Improvements</h3>
+                <ul style="text-align: left;">
+                    <li>Clean, consistent message bubbles</li>
+                    <li>Clear visual hierarchy</li>
+                    <li>Smooth conversation flow</li>
+                    <li>Modern input design</li>
+                    <li>Professional branding</li>
+                    <li>Enhanced color palette</li>
+                </ul>
+            </div>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🎨 Modern Design</h3>
+                <p>Clean, professional interface with improved typography and spacing</p>
+            </div>
+            
+            <div class="feature">
+                <h3>📱 Responsive</h3>
+                <p>Optimized for all devices with enhanced mobile experience</p>
+            </div>
+            
+            <div class="feature">
+                <h3>⚡ Smooth Interactions</h3>
+                <p>Fluid animations and intuitive user interactions</p>
+            </div>
+            
+            <div class="feature">
+                <h3>🎯 Better UX</h3>
+                <p>Improved message bubbles, clear visual feedback, and intuitive design</p>
+            </div>
+        </div>
+        
+        <div class="demo-text">
+            <p><strong>Look for the chat button in the bottom-right corner!</strong> 🎉</p>
+            <p>The widget now features a clean, professional design that provides an excellent user experience.</p>
+        </div>
+        
+        <div class="features">
+            <div class="feature">
+                <h3>🔧 Key Improvements</h3>
+                <ul style="text-align: left;">
+                    <li>Clean white background</li>
+                    <li>Green header for better contrast</li>
+                    <li>Improved message bubble design</li>
+                    <li>Better button styling</li>
+                    <li>Enhanced color scheme</li>
+                    <li>Professional typography</li>
+                </ul>
+            </div>
+            
+            <div class="feature">
+                <h3>🎨 Visual Enhancements</h3>
+                <ul style="text-align: left;">
+                    <li>Consistent message bubbles</li>
+                    <li>Clear visual hierarchy</li>
+                    <li>Improved quick reply buttons</li>
+                    <li>Better status indicators</li>
+                    <li>Enhanced input field design</li>
+                    <li>Professional footer</li>
+                </ul>
+            </div>
+        </div>
+    </div>
+
+    <!-- Botrix Widget Script -->
+    <script src="widget.js" data-botrix-bot-id="demo-bot" 
+            data-botrix-primary-color="#8b5cf6" 
+            data-botrix-secondary-color="#ec4899"
+            data-botrix-position="bottom-right"
+            data-botrix-welcome-message="Hello! How can I help you today?"
+            data-botrix-enable-voice="true"
+            data-botrix-theme="modern"></script>
+</body>
+</html>
+
+
+
+

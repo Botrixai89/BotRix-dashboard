@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Botrix Widget UI Improvements Test</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .test-info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        .test-info h3 {
+            color: #495057;
+            margin-top: 0;
+        }
+        .test-info ul {
+            color: #6c757d;
+            line-height: 1.6;
+        }
+        .test-info li {
+            margin-bottom: 8px;
+        }
+        .status {
+            padding: 10px;
+            border-radius: 5px;
+            margin: 10px 0;
+            font-weight: bold;
+        }
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+        .status.info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+        .status.warning {
+            background: #fff3cd;
+            color: #856404;
+            border: 1px solid #ffeaa7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🤖 Botrix Widget UI Improvements Test</h1>
+        
+        <div class="test-info">
+            <h3>✅ Previously Applied Improvements:</h3>
+            <ul>
+                <li><strong>Avatar Background:</strong> Changed from green to white background while keeping green border</li>
+                <li><strong>Widget Height:</strong> Increased from 560px to 620px (desktop) for better usability</li>
+                <li><strong>Voice Icon:</strong> Replaced volume icon with microphone icon in input area</li>
+                <li><strong>"Powered by" Text:</strong> Changed to lowercase as requested</li>
+                <li><strong>Footer Padding:</strong> Reduced excessive padding around the footer</li>
+                <li><strong>Responsive Design:</strong> Updated all media queries to maintain consistent height improvements</li>
+            </ul>
+        </div>
+
+        <div class="test-info">
+            <h3>🆕 New Improvements Applied:</h3>
+            <ul>
+                <li><strong>Input Border Consistency:</strong> Reduced border from 2px to 1px for cleaner, more consistent appearance</li>
+                <li><strong>Footer Spacing:</strong> Decreased gap between "powered by" text and logo from 8px to 4px</li>
+                <li><strong>Logo Size:</strong> Reduced logo size from 90x32px to 70x25px for better proportion</li>
+                <li><strong>Focus States:</strong> Adjusted focus box-shadow to match the new 1px border design</li>
+            </ul>
+        </div>
+
+        <div class="status success">
+            ✅ Widget loaded successfully! Look for the chat button in the bottom-right corner.
+        </div>
+
+        <div class="status info">
+            💡 Test Instructions:
+            <ul>
+                <li>Click the chat button to open the widget</li>
+                <li>Verify the avatar has a white background with green border</li>
+                <li>Check that the widget is taller than before</li>
+                <li>Look for the microphone icon in the input area</li>
+                <li>Notice the "powered by" text is now lowercase</li>
+                <li><strong>NEW:</strong> Check that the input border is thinner (1px) and more consistent</li>
+                <li><strong>NEW:</strong> Verify the gap between "powered by" and logo is smaller</li>
+                <li><strong>NEW:</strong> Confirm the logo size is smaller and more proportional</li>
+                <li>Test on different screen sizes to verify responsiveness</li>
+            </ul>
+        </div>
+
+        <div class="status warning">
+            🔍 <strong>Focus Testing:</strong> Click on the input field to see the improved focus state with the new border design.
+        </div>
+
+        <div class="test-info">
+            <h3>📱 Responsive Testing:</h3>
+            <p>Try resizing your browser window or testing on different devices to ensure the widget maintains proper proportions and functionality across all screen sizes. All improvements should be consistent across desktop, tablet, and mobile views.</p>
+        </div>
+    </div>
+
+    <!-- Botrix Widget Script -->
+    <script src="widget.js" data-botrix-bot-id="test-bot" data-botrix-primary-color="#10b981" data-botrix-secondary-color="#ec4899" data-botrix-position="bottom-right" data-botrix-welcome-message="Hello! I'm here to help you test the improved UI. How can I assist you today?" data-botrix-enable-voice="true"></script>
+</body>
+</html>

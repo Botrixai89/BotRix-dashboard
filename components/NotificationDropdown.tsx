@@ -30,7 +30,7 @@ export function NotificationDropdown({ notifications = [] }: NotificationDropdow
 
       <DropdownMenuContent
         align="end"
-        className="w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-0 z-[1000]"
+        className="w-full max-w-sm sm:w-80 bg-white border border-gray-200 rounded-lg shadow-lg p-0 z-[1000]"
         sideOffset={8}
       >
         {/* Header Section */}

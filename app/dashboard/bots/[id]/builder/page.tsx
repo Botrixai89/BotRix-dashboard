@@ -5,7 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Plus, Edit, Trash2, MessageSquare, Save, Settings, Zap, Globe, Palette, TestTube, AlertTriangle, CheckCircle, XCircle, Volume2, VolumeX, Play, Pause } from 'lucide-react'
+import { 
+  Plus, Edit, Trash2, MessageSquare, Save, Settings, Zap, Globe, Palette, TestTube, 
+  AlertTriangle, CheckCircle, XCircle, Volume2, VolumeX, Play, Pause, Search, 
+  ArrowRight, Copy, MoreVertical, Image, Clock, User, Home, FileText, Share2,
+  ChevronDown, ChevronRight, RotateCcw
+} from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import Link from 'next/link'
@@ -45,6 +50,22 @@ interface TestResult {
   };
 }
 
+interface FlowNode {
+  id: string;
+  type: 'welcome' | 'message' | 'image' | 'pause' | 'condition' | 'webhook';
+  title: string;
+  content: string;
+  position: { x: number; y: number };
+  connections: string[];
+}
+
+interface Path {
+  id: string;
+  name: string;
+  nodes: FlowNode[];
+  isActive: boolean;
+}
+
 export default function BuilderPage() {
   const params = useParams()
   const [bot, setBot] = useState<Bot | null>(null)
@@ -53,6 +74,44 @@ export default function BuilderPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [isTestingWebhook, setIsTestingWebhook] = useState(false)
+  
+  // New state for the flow builder
+  const [activeSection, setActiveSection] = useState('paths')
+  const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null)
+  const [paths, setPaths] = useState<Path[]>([
+    {
+      id: 'welcome-new-user',
+      name: 'Welcome new user',
+      isActive: true,
+      nodes: []
+    },
+    {
+      id: 'greet-returning-user',
+      name: 'Greet returning user',
+      isActive: false,
+      nodes: []
+    },
+    {
+      id: 'default-message',
+      name: 'Default Message',
+      isActive: false,
+      nodes: []
+    },
+    {
+      id: 'post-resolution',
+      name: 'Post resolution',
+      isActive: false,
+      nodes: []
+    },
+    {
+      id: 'agent-unavailable',
+      name: 'Agent Unavailable',
+      isActive: false,
+      nodes: []
+    }
+  ])
+  const [selectedPath, setSelectedPath] = useState(paths[0])
+  const [expandedSections, setExpandedSections] = useState<string[]>(['paths'])
 
   // Form state
   const [formData, setFormData] = useState({
@@ -80,6 +139,13 @@ export default function BuilderPage() {
   useEffect(() => {
     fetchBot()
   }, [params.id])
+
+  useEffect(() => {
+    // Initialize paths only once when bot data is first loaded
+    if (bot && paths.length > 0 && paths[0].nodes.length === 0) {
+      initializeDefaultPaths()
+    }
+  }, [bot, formData.welcomeMessage, formData.fallbackMessage])
 
   const fetchBot = async () => {
     try {
@@ -109,6 +175,24 @@ export default function BuilderPage() {
           logo: result.bot.settings?.logo || '',
           widgetImages: result.bot.settings?.widgetImages || ['']
         })
+
+        // Load conversation flows if they exist, otherwise initialize defaults
+        if (result.bot.settings?.conversationFlows && result.bot.settings.conversationFlows.paths) {
+          setPaths(result.bot.settings.conversationFlows.paths)
+          const activePath = result.bot.settings.conversationFlows.paths.find(
+            (p: Path) => p.id === result.bot.settings.conversationFlows.activePath
+          )
+          if (activePath) {
+            setSelectedPath(activePath)
+          } else {
+            setSelectedPath(result.bot.settings.conversationFlows.paths[0])
+          }
+        } else {
+          // Initialize with default structure and populate with form data
+          setTimeout(() => {
+            initializeDefaultPaths()
+          }, 100)
+        }
       } else {
         setError(result.error || 'Failed to fetch bot')
       }
@@ -157,7 +241,12 @@ export default function BuilderPage() {
         footerColor: formData.footerColor,
         bodyColor: formData.bodyColor,
         logo: formData.logo,
-        widgetImages: cleanedWidgetImages
+        widgetImages: cleanedWidgetImages,
+        // Save the conversation flows
+        conversationFlows: {
+          paths: paths,
+          activePath: selectedPath.id
+        }
       }
 
       console.log('Saving bot settings:', settingsData)
@@ -230,6 +319,191 @@ export default function BuilderPage() {
     }))
   }
 
+  const addNewNode = (type: FlowNode['type']) => {
+    const newNode: FlowNode = {
+      id: `node-${Date.now()}`,
+      type,
+      title: getNodeTitle(type),
+      content: getDefaultContent(type),
+      position: { x: 100, y: 200 },
+      connections: []
+    }
+
+    const updatedPath = {
+      ...selectedPath,
+      nodes: [...selectedPath.nodes, newNode]
+    }
+
+    setSelectedPath(updatedPath)
+    setPaths(prevPaths => 
+      prevPaths.map(path => 
+        path.id === selectedPath.id ? updatedPath : path
+      )
+    )
+    setSelectedNode(newNode)
+  }
+
+  const getNodeTitle = (type: FlowNode['type']): string => {
+    switch (type) {
+      case 'welcome': return 'Welcome Message'
+      case 'message': return 'Send Message'
+      case 'image': return 'Send Image'
+      case 'pause': return 'Pause'
+      case 'condition': return 'Condition'
+      case 'webhook': return 'Webhook Call'
+      default: return 'New Node'
+    }
+  }
+
+  const getDefaultContent = (type: FlowNode['type']): string => {
+    switch (type) {
+      case 'welcome': return 'Hello! Welcome'
+      case 'message': return 'Enter your message here...'
+      case 'image': return ''
+      case 'pause': return '2'
+      case 'condition': return 'if condition'
+      case 'webhook': return '/api/webhook'
+      default: return ''
+    }
+  }
+
+  const updateNodeContent = (nodeId: string, content: string) => {
+    const updatedPath = {
+      ...selectedPath,
+      nodes: selectedPath.nodes.map(node =>
+        node.id === nodeId ? { ...node, content } : node
+      )
+    }
+
+    setSelectedPath(updatedPath)
+    setPaths(prevPaths =>
+      prevPaths.map(path =>
+        path.id === selectedPath.id ? updatedPath : path
+      )
+    )
+
+    if (selectedNode && selectedNode.id === nodeId) {
+      setSelectedNode({ ...selectedNode, content })
+    }
+  }
+
+  const deleteNode = (nodeId: string) => {
+    const updatedPath = {
+      ...selectedPath,
+      nodes: selectedPath.nodes.filter(node => node.id !== nodeId)
+    }
+
+    setSelectedPath(updatedPath)
+    setPaths(prevPaths =>
+      prevPaths.map(path =>
+        path.id === selectedPath.id ? updatedPath : path
+      )
+    )
+
+    if (selectedNode && selectedNode.id === nodeId) {
+      setSelectedNode(null)
+    }
+  }
+
+  const addNewPath = (name: string) => {
+    const newPath: Path = {
+      id: `path-${Date.now()}`,
+      name,
+      isActive: false,
+      nodes: []
+    }
+
+    setPaths(prevPaths => [...prevPaths, newPath])
+    setSelectedPath(newPath)
+  }
+
+  const duplicatePath = (pathId: string) => {
+    const pathToDuplicate = paths.find(p => p.id === pathId)
+    if (pathToDuplicate) {
+      const duplicatedPath: Path = {
+        ...pathToDuplicate,
+        id: `path-${Date.now()}`,
+        name: `${pathToDuplicate.name} (Copy)`,
+        isActive: false,
+        nodes: pathToDuplicate.nodes.map(node => ({
+          ...node,
+          id: `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
+        }))
+      }
+      setPaths(prevPaths => [...prevPaths, duplicatedPath])
+      setSelectedPath(duplicatedPath)
+    }
+  }
+
+  const toggleSection = (sectionId: string) => {
+    setExpandedSections(prev => 
+      prev.includes(sectionId) 
+        ? prev.filter(id => id !== sectionId)
+        : [...prev, sectionId]
+    )
+  }
+
+  const selectPathByType = (pathType: string) => {
+    const path = paths.find(p => p.id === pathType)
+    if (path) {
+      setSelectedPath(path)
+      setSelectedNode(null)
+    }
+  }
+
+  const initializeDefaultPaths = () => {
+    // Create default nodes based on current form data
+    const defaultPaths: Path[] = [
+      {
+        id: 'welcome-new-user',
+        name: 'Welcome new user',
+        isActive: true,
+        nodes: formData.welcomeMessage ? [{
+          id: 'welcome-node-1',
+          type: 'welcome',
+          title: 'Welcome Message',
+          content: formData.welcomeMessage,
+          position: { x: 100, y: 100 },
+          connections: []
+        }] : []
+      },
+      {
+        id: 'greet-returning-user',
+        name: 'Greet returning user',
+        isActive: false,
+        nodes: []
+      },
+      {
+        id: 'default-message',
+        name: 'Default Message',
+        isActive: false,
+        nodes: formData.fallbackMessage ? [{
+          id: 'fallback-node-1',
+          type: 'message',
+          title: 'Fallback Message',
+          content: formData.fallbackMessage,
+          position: { x: 100, y: 100 },
+          connections: []
+        }] : []
+      },
+      {
+        id: 'post-resolution',
+        name: 'Post resolution',
+        isActive: false,
+        nodes: []
+      },
+      {
+        id: 'agent-unavailable',
+        name: 'Agent Unavailable',
+        isActive: false,
+        nodes: []
+      }
+    ]
+    
+    setPaths(defaultPaths)
+    setSelectedPath(defaultPaths[0])
+  }
+
   if (isLoading) {
     return (
       <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
@@ -260,652 +534,629 @@ export default function BuilderPage() {
     )
   }
 
+  const renderNodeIcon = (type: string) => {
+    switch (type) {
+      case 'welcome':
+        return <MessageSquare className="h-4 w-4" />
+      case 'message':
+        return <MessageSquare className="h-4 w-4" />
+      case 'image':
+        return <Image className="h-4 w-4" />
+      case 'pause':
+        return <Clock className="h-4 w-4" />
+      case 'condition':
+        return <Share2 className="h-4 w-4" />
+      case 'webhook':
+        return <Globe className="h-4 w-4" />
+      default:
+        return <MessageSquare className="h-4 w-4" />
+    }
+  }
+
+  const renderNode = (node: FlowNode, index: number) => {
+    const isSelected = selectedNode?.id === node.id
   return (
-    <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
-      {/* Header */}
-      <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm flex-shrink-0">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-3xl font-bold text-gray-900">Bot Builder</h1>
-            <p className="text-gray-600 mt-1">Configure your chatbot settings and behavior</p>
+      <div key={node.id} className="flex items-center mb-2">
+        <div 
+          className={`flex-1 flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
+            isSelected 
+              ? 'border-orange-400 bg-orange-50' 
+              : 'border-gray-200 bg-white hover:border-gray-300'
+          }`}
+          onClick={() => setSelectedNode(node)}
+        >
+          <div className={`p-2 rounded-lg mr-3 ${
+            node.type === 'welcome' ? 'bg-orange-100 text-orange-600' :
+            node.type === 'message' ? 'bg-orange-100 text-orange-600' :
+            node.type === 'image' ? 'bg-blue-100 text-blue-600' :
+            node.type === 'pause' ? 'bg-green-100 text-green-600' :
+            'bg-gray-100 text-gray-600'
+          }`}>
+            {renderNodeIcon(node.type)}
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex-1">
+            <div className="font-medium text-gray-900">{node.title}</div>
+            {node.content && (
+              <div className="text-sm text-gray-500 truncate">
+                {node.content.length > 30 ? `${node.content.substring(0, 30)}...` : node.content}
+              </div>
+            )}
+          </div>
+          <div className="flex items-center space-x-2">
             <Button 
-              variant="outline" 
-              className="border-orange-200 text-orange-600 hover:bg-orange-50"
-              onClick={testWebhook}
-              disabled={isTestingWebhook}
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0"
+              onClick={(e) => {
+                e.stopPropagation()
+                setSelectedNode(node)
+              }}
             >
-              <TestTube className="mr-2 h-4 w-4" />
-              {isTestingWebhook ? 'Testing...' : 'Test Webhook'}
+              <Edit className="h-4 w-4" />
             </Button>
                           <Button 
-                className="bg-teal-600 text-white border-0 hover:bg-teal-700"
-                onClick={handleSave}
-                disabled={isSaving}
-              >
-              {isSaving ? (
-                <>
-                  <ButtonLoading size="sm" />
-                  <span className="ml-2">Saving...</span>
-                </>
-              ) : (
-                <>
-                  <Save className="mr-2 h-4 w-4" />
-                  Save Changes
-                </>
-              )}
+              size="sm" 
+              variant="ghost" 
+              className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+              onClick={(e) => {
+                e.stopPropagation()
+                deleteNode(node.id)
+              }}
+            >
+              <Trash2 className="h-4 w-4" />
             </Button>
           </div>
         </div>
-      </header>
+        {index < selectedPath.nodes.length - 1 && (
+          <ArrowRight className="h-4 w-4 text-gray-400 mx-2" />
+        )}
+      </div>
+    )
+  }
 
-      {/* Main Content */}
-      <main className="flex-1 overflow-y-auto p-8 min-h-0">
-        {/* Webhook Test Results */}
-        {testResult && (
-          <Card className="border-0 shadow-lg bg-white/80 backdrop-blur-sm">
-            <CardHeader>
-              <div className="flex items-center space-x-3">
-                <div className={`w-10 h-10 rounded-lg flex items-center justify-center ${
-                  testResult.webhookTest.status === 'success' ? 'bg-green-500' : 'bg-red-500'
-                } text-white`}>
-                  {testResult.webhookTest.status === 'success' ? <CheckCircle className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
+  return (
+    <div className="flex h-screen bg-gray-50">
+      {/* Left Sidebar */}
+      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+        {/* Sidebar Header */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+              <MessageSquare className="h-4 w-4 text-orange-600" />
                 </div>
                 <div>
-                  <CardTitle>Webhook Test Result</CardTitle>
-                  <CardDescription>{testResult.webhookTest.message}</CardDescription>
+              <h1 className="font-semibold text-gray-900">{bot?.name || '#LittUpLocal'}</h1>
+              <p className="text-sm text-gray-500">Welcome new user</p>
                 </div>
               </div>
-            </CardHeader>
-            {testResult.webhookTest.response && (
-              <CardContent>
-                <div className="space-y-2">
-                  <Label className="font-medium">Response from Webhook:</Label>
-                  <pre className="text-sm bg-gray-100 p-3 rounded-lg overflow-x-auto">
-                    {JSON.stringify(testResult.webhookTest.response, null, 2)}
-                  </pre>
+          
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+              placeholder="Search path..."
+              className="pl-10 h-9 bg-gray-50 border-gray-200"
+            />
                 </div>
-              </CardContent>
+            </div>
+
+        {/* Paths Section */}
+        <div className="flex-1 overflow-y-auto">
+          <div className="p-4">
+                        <div className="flex items-center justify-between mb-3">
+              <button
+                className="flex items-center font-semibold text-gray-900 hover:text-gray-700 transition-colors"
+                onClick={() => toggleSection('paths')}
+              >
+                {expandedSections.includes('paths') ? (
+                  <ChevronDown className="h-4 w-4 mr-1" />
+                ) : (
+                  <ChevronRight className="h-4 w-4 mr-1" />
+                )}
+                Paths
+              </button>
+              <Button 
+                size="sm" 
+                variant="ghost" 
+                className="h-8 w-8 p-0"
+                onClick={() => {
+                  const pathName = prompt("Enter path name:")
+                  if (pathName && pathName.trim()) {
+                    addNewPath(pathName.trim())
+                  }
+                }}
+              >
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            
+            {expandedSections.includes('paths') && (
+              <div className="space-y-1 mb-6">
+                {paths.filter(path => path.id.startsWith('welcome-new-user') || path.id.startsWith('path-')).map((path) => (
+                  <div
+                    key={path.id}
+                    className={`p-2 rounded-lg cursor-pointer transition-colors group ${
+                      selectedPath.id === path.id
+                        ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                        : 'hover:bg-gray-50'
+                    }`}
+                    onClick={() => setSelectedPath(path)}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{path.name}</span>
+                      <div className="flex items-center space-x-1">
+                        {path.isActive && (
+                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
+                        )}
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
+                          onClick={(e) => {
+                            e.stopPropagation()
+                            duplicatePath(path.id)
+                          }}
+                        >
+                          <Copy className="h-3 w-3" />
+                        </Button>
+              </div>
+              </div>
+            </div>
+                ))}
+            </div>
             )}
-          </Card>
-        )}
 
-        {/* Webhook Integration Settings */}
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-500 text-white rounded-lg flex items-center justify-center">
-                <Globe className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Webhook Integration</CardTitle>
-                <CardDescription>
-                  Configure your webhook for intelligent responses
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
+            {/* Predefined conversation flows */}
             <div className="space-y-3">
-              <Label htmlFor="webhookUrl" className="text-sm font-semibold text-gray-700">
-                Webhook URL *
-              </Label>
-              <Input
-                id="webhookUrl"
-                type="url"
-                value={formData.webhookUrl}
-                onChange={(e) => handleInputChange('webhookUrl', e.target.value)}
-                placeholder="https://your-automation.com/webhook/your-webhook-id"
-                className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-              />
-              <p className="text-sm text-gray-600">
-                Enter your webhook endpoint URL for intelligent responses
-              </p>
+              <button
+                className={`w-full text-left p-2 rounded-lg transition-colors ${
+                  selectedPath.id === 'greet-returning-user'
+                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                    : 'hover:bg-gray-50'
+                }`}
+                onClick={() => selectPathByType('greet-returning-user')}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ChevronRight className="h-4 w-4 mr-2 text-gray-500" />
+                    <span className="font-medium text-gray-900">Greet returning user</span>
             </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="fallbackMessage" className="text-sm font-semibold text-gray-700">
-                Fallback Message
-              </Label>
-              <Input
-                id="fallbackMessage"
-                value={formData.fallbackMessage}
-                onChange={(e) => handleInputChange('fallbackMessage', e.target.value)}
-                placeholder="I'm sorry, I didn't understand that. Can you please rephrase?"
-                className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-              />
-              <p className="text-sm text-gray-600">
-                Message shown when webhook fails or doesn't respond
-              </p>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Bot Personality Settings */}
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center">
-                <MessageSquare className="h-5 w-5" />
+                  <div className="text-xs text-gray-500">
+                    {paths.find(p => p.id === 'greet-returning-user')?.nodes.length || 0} nodes
               </div>
-              <div>
-                <CardTitle className="text-xl">Bot Personality</CardTitle>
-                <CardDescription>
-                  Customize your bot's appearance and initial greeting
-                </CardDescription>
               </div>
+              </button>
+              
+              <button
+                className={`w-full text-left p-2 rounded-lg transition-colors ${
+                  selectedPath.id === 'default-message'
+                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                    : 'hover:bg-gray-50'
+                }`}
+                onClick={() => selectPathByType('default-message')}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ChevronRight className="h-4 w-4 mr-2 text-gray-500" />
+                    <span className="font-medium text-gray-900">Default Message</span>
             </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <Label htmlFor="welcomeMessage" className="text-sm font-semibold text-gray-700">
-                Welcome Message
-              </Label>
-              <Input
-                id="welcomeMessage"
-                value={formData.welcomeMessage}
-                onChange={(e) => handleInputChange('welcomeMessage', e.target.value)}
-                placeholder="Hello! How can I help you today?"
-                className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-              />
-              <p className="text-sm text-gray-600">
-                The first message visitors see when they open the chat
-              </p>
+                  <div className="text-xs text-gray-500">
+                    {paths.find(p => p.id === 'default-message')?.nodes.length || 0} nodes
             </div>
-
-            <div className="space-y-3">
-              <Label htmlFor="primaryColor" className="text-sm font-semibold text-gray-700">
-                Primary Color
-              </Label>
-              <div className="flex items-center space-x-3">
-                <input
-                  type="color"
-                  value={formData.primaryColor}
-                  onChange={(e) => handleInputChange('primaryColor', e.target.value)}
-                  className="w-16 h-12 rounded-lg border-2 border-white shadow-lg cursor-pointer"
-                />
-                <Input
-                  value={formData.primaryColor}
-                  onChange={(e) => handleInputChange('primaryColor', e.target.value)}
-                  placeholder="#7c3aed"
-                  className="flex-1 h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                />
-              </div>
-              <p className="text-sm text-gray-600">
-                The color used for your chat widget header and buttons
-              </p>
-            </div>
-
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold text-gray-700">
-                Widget Icon
-              </Label>
-              <div className="space-y-4">
-                {/* Icon Type Selection */}
-                <div className="flex space-x-4">
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="widgetIconType"
-                      value="default"
-                      checked={formData.widgetIconType === 'default'}
-                      onChange={(e) => handleInputChange('widgetIconType', e.target.value)}
-                      className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Default</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="widgetIconType"
-                      value="emoji"
-                      checked={formData.widgetIconType === 'emoji'}
-                      onChange={(e) => handleInputChange('widgetIconType', e.target.value)}
-                      className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Emoji</span>
-                  </label>
-                  <label className="flex items-center space-x-2 cursor-pointer">
-                    <input
-                      type="radio"
-                      name="widgetIconType"
-                      value="custom"
-                      checked={formData.widgetIconType === 'custom'}
-                      onChange={(e) => handleInputChange('widgetIconType', e.target.value)}
-                      className="w-4 h-4 text-purple-600 border-gray-300 focus:ring-purple-500"
-                    />
-                    <span className="text-sm font-medium text-gray-700">Custom Image</span>
-                  </label>
                 </div>
-
-                {/* Emoji Input */}
-                {formData.widgetIconType === 'emoji' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="widgetIconEmoji" className="text-sm font-medium text-gray-700">
-                      Choose Emoji
-                    </Label>
-                    <div className="flex items-center space-x-3">
-                      <Input
-                        id="widgetIconEmoji"
-                        value={formData.widgetIconEmoji}
-                        onChange={(e) => handleInputChange('widgetIconEmoji', e.target.value)}
-                        placeholder="💬"
-                        className="w-20 h-12 text-center text-2xl border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                      />
-                      <div className="flex space-x-2">
-                        {['💬', '🤖', '👋', '💡', '🎯', '⭐', '🚀', '💎'].map((emoji) => (
+              </button>
+              
+              <button
+                className={`w-full text-left p-2 rounded-lg transition-colors ${
+                  selectedPath.id === 'post-resolution'
+                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                    : 'hover:bg-gray-50'
+                }`}
+                onClick={() => selectPathByType('post-resolution')}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ChevronRight className="h-4 w-4 mr-2 text-gray-500" />
+                    <span className="font-medium text-gray-900">Post resolution</span>
+              </div>
+                  <div className="text-xs text-gray-500">
+                    {paths.find(p => p.id === 'post-resolution')?.nodes.length || 0} nodes
+            </div>
+                </div>
+              </button>
+              
                           <button
-                            key={emoji}
-                            type="button"
-                            onClick={() => handleInputChange('widgetIconEmoji', emoji)}
-                            className="w-10 h-10 text-xl border border-gray-200 rounded-lg hover:border-purple-300 focus:border-purple-500 focus:ring-2 focus:ring-purple-200"
-                          >
-                            {emoji}
+                className={`w-full text-left p-2 rounded-lg transition-colors ${
+                  selectedPath.id === 'agent-unavailable'
+                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
+                    : 'hover:bg-gray-50'
+                }`}
+                onClick={() => selectPathByType('agent-unavailable')}
+              >
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center">
+                    <ChevronRight className="h-4 w-4 mr-2 text-gray-500" />
+                    <span className="font-medium text-gray-900">Agent Unavailable</span>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {paths.find(p => p.id === 'agent-unavailable')?.nodes.length || 0} nodes
+                  </div>
+                </div>
                           </button>
-                        ))}
                       </div>
                     </div>
                   </div>
-                )}
+      </div>
 
-                {/* Custom Image Input */}
-                {formData.widgetIconType === 'custom' && (
-                  <div className="space-y-2">
-                    <Label htmlFor="widgetIcon" className="text-sm font-medium text-gray-700">
-                      Custom Icon URL
-                    </Label>
-                    <Input
-                      id="widgetIcon"
-                      type="url"
-                      value={formData.widgetIcon}
-                      onChange={(e) => handleInputChange('widgetIcon', e.target.value)}
-                      placeholder="https://example.com/your-icon.png"
-                      className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                    />
-                    <p className="text-sm text-gray-600">
-                      Enter a URL to your custom icon (PNG, JPG, or SVG recommended)
-                    </p>
+      {/* Main Content Area */}
+      <div className="flex-1 flex flex-col">
+        {/* Top Navigation Bar */}
+        <div className="bg-white border-b border-gray-200 px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <h2 className="text-lg font-semibold text-gray-900">Builder</h2>
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="border-gray-300"
+              >
+                <Play className="h-4 w-4 mr-2" />
+                Start
+              </Button>
                   </div>
+
+                  <div className="flex items-center space-x-3">
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={testWebhook}
+                disabled={isTestingWebhook || !formData.webhookUrl}
+              >
+                <TestTube className="h-4 w-4 mr-2" />
+                {isTestingWebhook ? 'Testing...' : 'Test'}
+              </Button>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  if (confirm('Are you sure you want to reset this conversation flow? This will remove all nodes.')) {
+                    const resetPath = {
+                      ...selectedPath,
+                      nodes: []
+                    }
+                    setSelectedPath(resetPath)
+                    setPaths(prevPaths =>
+                      prevPaths.map(path =>
+                        path.id === selectedPath.id ? resetPath : path
+                      )
+                    )
+                    setSelectedNode(null)
+                  }
+                }}
+              >
+                <RotateCcw className="h-4 w-4 mr-2" />
+                Reset
+              </Button>
+              <Button 
+                size="sm"
+                className="bg-blue-600 hover:bg-blue-700 text-white"
+                onClick={handleSave}
+                disabled={isSaving}
+              >
+                {isSaving ? (
+                  <>
+                    <ButtonLoading size="sm" />
+                    <span className="ml-2">Saving...</span>
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Save
+                  </>
+                )}
+              </Button>
+              <Button variant="outline" size="sm">
+                <Share2 className="h-4 w-4 mr-2" />
+                Share
+              </Button>
+                    </div>
+                    </div>
+                  </div>
+
+        {/* Flow Builder Canvas */}
+        <div className="flex-1 flex">
+          <div className="flex-1 p-6 overflow-auto">
+            <div className="max-w-4xl">
+              <div className="bg-white rounded-lg border border-gray-200 p-6">
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <h3 className="text-lg font-semibold text-gray-900">{selectedPath.name}</h3>
+                    <p className="text-sm text-gray-500">Configure your conversation flow</p>
+                </div>
+                  <div className="flex items-center space-x-2">
+                    <select 
+                      onChange={(e) => {
+                        if (e.target.value) {
+                          addNewNode(e.target.value as FlowNode['type'])
+                          e.target.value = ''
+                        }
+                      }}
+                      className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                      defaultValue=""
+                    >
+                      <option value="" disabled>Add Node</option>
+                      <option value="message">Send Message</option>
+                      <option value="image">Send Image</option>
+                      <option value="pause">Pause</option>
+                      <option value="condition">Condition</option>
+                      <option value="webhook">Webhook</option>
+                    </select>
+                    </div>
+                    </div>
+                
+                                {/* Flow visualization */}
+                <div className="space-y-4">
+                  {selectedPath.nodes.length === 0 ? (
+                    <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
+                      <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                      <h3 className="text-lg font-medium text-gray-900 mb-2">No nodes in this path</h3>
+                      <p className="text-gray-500 mb-4">Add your first node to start building the conversation flow</p>
+                      <select 
+                        onChange={(e) => {
+                          if (e.target.value) {
+                            addNewNode(e.target.value as FlowNode['type'])
+                            e.target.value = ''
+                          }
+                        }}
+                        className="px-4 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                        defaultValue=""
+                      >
+                        <option value="" disabled>Add First Node</option>
+                        <option value="welcome">Welcome Message</option>
+                        <option value="message">Send Message</option>
+                        <option value="image">Send Image</option>
+                        <option value="pause">Pause</option>
+                        <option value="webhook">Webhook</option>
+                      </select>
+                  </div>
+                  ) : (
+                    <div className="space-y-4">
+                      {selectedPath.nodes.map((node, index) => renderNode(node, index))}
+                </div>
+                  )}
+              </div>
+            </div>
+              </div>
+            </div>
+
+          {/* Right Configuration Panel */}
+          <div className="w-80 bg-white border-l border-gray-200 p-6">
+            {selectedNode ? (
+              <div>
+                <div className="flex items-center space-x-3 mb-6">
+                  <div className={`p-2 rounded-lg ${
+                    selectedNode.type === 'welcome' ? 'bg-orange-100 text-orange-600' :
+                    selectedNode.type === 'message' ? 'bg-orange-100 text-orange-600' :
+                    selectedNode.type === 'image' ? 'bg-blue-100 text-blue-600' :
+                    selectedNode.type === 'pause' ? 'bg-green-100 text-green-600' :
+                    'bg-gray-100 text-gray-600'
+                  }`}>
+                    {renderNodeIcon(selectedNode.type)}
+              </div>
+                  <div>
+                    <h3 className="font-semibold text-gray-900">{selectedNode.title}</h3>
+                    <p className="text-sm text-gray-500 capitalize">{selectedNode.type} node</p>
+            </div>
+            </div>
+
+                {selectedNode.type === 'welcome' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="welcomeContent" className="text-sm font-medium">
+                        Welcome Message
+              </Label>
+                <Input
+                        id="welcomeContent"
+                        value={selectedNode.content}
+                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
+                        placeholder="Hello! Welcome"
+                        className="mt-1"
+                />
+              </div>
+            </div>
                 )}
 
-                {/* Icon Preview */}
-                <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-                  <Label className="text-sm font-medium text-gray-700 mb-2 block">
-                    Icon Preview
+                {selectedNode.type === 'message' && (
+                  <div className="space-y-4">
+              <div>
+                      <Label htmlFor="messageContent" className="text-sm font-medium">
+                        Message Content
+              </Label>
+                      <textarea
+                        id="messageContent"
+                        value={selectedNode.content}
+                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
+                        placeholder="Enter your message..."
+                        rows={4}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      />
+                  </div>
+              </div>
+                )}
+
+                {selectedNode.type === 'image' && (
+                  <div className="space-y-4">
+              <div>
+                      <Label htmlFor="imageUrl" className="text-sm font-medium">
+                        Image URL
                   </Label>
-                  <div className="flex items-center space-x-3">
-                    <div className="w-12 h-12 bg-white border border-gray-200 rounded-lg flex items-center justify-center shadow-sm">
-                      {formData.widgetIconType === 'default' && (
-                        <MessageSquare className="h-6 w-6 text-gray-600" />
-                      )}
-                      {formData.widgetIconType === 'emoji' && (
-                        <span className="text-2xl">{formData.widgetIconEmoji}</span>
-                      )}
-                      {formData.widgetIconType === 'custom' && formData.widgetIcon && (
+                      <Input
+                        id="imageUrl"
+                        value={selectedNode.content}
+                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
+                        placeholder="https://example.com/image.jpg"
+                        className="mt-1"
+                      />
+                </div>
+                    {selectedNode.content && (
+                      <div className="border border-gray-300 rounded-lg p-4">
                         <img 
-                          src={formData.widgetIcon} 
-                          alt="Custom Icon" 
-                          className="w-6 h-6 object-contain"
+                          src={selectedNode.content} 
+                          alt="Preview" 
+                          className="w-full h-32 object-cover rounded"
                           onError={(e) => {
-                            e.currentTarget.style.display = 'none';
-                            e.currentTarget.nextElementSibling?.classList.remove('hidden');
+                            e.currentTarget.style.display = 'none'
                           }}
                         />
-                      )}
-                      {formData.widgetIconType === 'custom' && !formData.widgetIcon && (
-                        <span className="text-gray-400 text-sm">No image</span>
-                      )}
-                    </div>
-                    <div className="text-sm text-gray-600">
-                      This is how your widget icon will appear
-                    </div>
-                  </div>
                 </div>
+                    )}
+                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
+                      <Image className="h-8 w-8 text-gray-400 mx-auto mb-2" />
+                      <p className="text-sm text-gray-500">Upload or paste image URL</p>
               </div>
             </div>
-            <div className="space-y-3">
-              <Label htmlFor="headerColor" className="text-sm font-semibold text-gray-700">
-                Header Color
-              </Label>
-              <div className="flex items-center space-x-3">
-                <input
-                  type="color"
-                  value={formData.headerColor || '#8b5cf6'}
-                  onChange={(e) => handleInputChange('headerColor', e.target.value)}
-                  className="w-16 h-12 rounded-lg border-2 border-white shadow-lg cursor-pointer"
-                />
-                <Input
-                  value={formData.headerColor || '#8b5cf6'}
-                  onChange={(e) => handleInputChange('headerColor', e.target.value)}
-                  placeholder="#8b5cf6"
-                  className="flex-1 h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                />
-              </div>
-              <p className="text-sm text-gray-600">
-                The color used for your chat widget header
-              </p>
-            </div>
-            <div className="space-y-3">
-              <Label htmlFor="footerColor" className="text-sm font-semibold text-gray-700">
-                Footer Color
-              </Label>
-              <div className="flex items-center space-x-3">
-                <input
-                  type="color"
-                  value={formData.footerColor || '#f8fafc'}
-                  onChange={(e) => handleInputChange('footerColor', e.target.value)}
-                  className="w-16 h-12 rounded-lg border-2 border-white shadow-lg cursor-pointer"
-                />
-                <Input
-                  value={formData.footerColor || '#f8fafc'}
-                  onChange={(e) => handleInputChange('footerColor', e.target.value)}
-                  placeholder="#f8fafc"
-                  className="flex-1 h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                />
-              </div>
-              <p className="text-sm text-gray-600">
-                The color used for your chat widget footer
-              </p>
-            </div>
-            <div className="space-y-3">
-              <Label htmlFor="bodyColor" className="text-sm font-semibold text-gray-700">
-                Body Color
-              </Label>
-              <div className="flex items-center space-x-3">
-                <input
-                  type="color"
-                  value={formData.bodyColor || '#ffffff'}
-                  onChange={(e) => handleInputChange('bodyColor', e.target.value)}
-                  className="w-16 h-12 rounded-lg border-2 border-white shadow-lg cursor-pointer"
-                />
-                <Input
-                  value={formData.bodyColor || '#ffffff'}
-                  onChange={(e) => handleInputChange('bodyColor', e.target.value)}
-                  placeholder="#ffffff"
-                  className="flex-1 h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                />
-              </div>
-              <p className="text-sm text-gray-600">
-                The color used for your chat widget body
-              </p>
-            </div>
-            <div className="space-y-3">
-              <Label htmlFor="logo" className="text-sm font-semibold text-gray-700">
-                Widget Logo (URL)
-              </Label>
-              <Input
-                id="logo"
-                type="url"
-                value={formData.logo || ''}
-                onChange={(e) => handleInputChange('logo', e.target.value)}
-                placeholder="https://example.com/your-logo.png"
-                className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-              />
-              {formData.logo && (
-                <img src={formData.logo} alt="Logo preview" className="mt-2 h-16 w-16 object-contain rounded" />
-              )}
-              <p className="text-sm text-gray-600">
-                Upload or provide a URL for your widget logo
-              </p>
-            </div>
-            <div className="space-y-3">
-              <Label className="text-sm font-semibold text-gray-700">
-                Widget Images (URLs)
-              </Label>
-              <div className="space-y-2">
-                {(formData.widgetImages || []).map((img: string, idx: number) => (
-                  <div key={idx} className="flex items-center space-x-2">
-                    <Input
-                      value={img}
-                      onChange={e => {
-                        const newImages = [...(formData.widgetImages || [])];
-                        newImages[idx] = e.target.value;
-                        handleInputChange('widgetImages', newImages);
-                      }}
-                      placeholder="https://example.com/widget-image.png"
-                      className="flex-1"
-                    />
-                    <button
-                      type="button"
-                      className="text-red-500 hover:text-red-700 px-2 py-1 rounded"
-                      onClick={() => {
-                        const newImages = [...(formData.widgetImages || [])];
-                        newImages.splice(idx, 1);
-                        // Ensure we always have at least one empty field
-                        if (newImages.length === 0) {
-                          newImages.push('');
-                        }
-                        handleInputChange('widgetImages', newImages);
-                      }}
-                    >
-                      Remove
-                    </button>
-                    {img && <img src={img} alt="Widget" className="h-10 w-10 object-contain rounded" />}
-                  </div>
-                ))}
-                <Button
-                  type="button"
-                  variant="outline"
-                  onClick={() => handleInputChange('widgetImages', [...(formData.widgetImages || []), ''])}
-                >
-                  Add Image
-                </Button>
-              </div>
-              <p className="text-sm text-gray-600">
-                Add one or more images to customize your widget (PNG, JPG, SVG URLs)
-              </p>
-            </div>
-          </CardContent>
-        </Card>
+                )}
 
-        {/* Voice Settings */}
-        <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-purple-500 text-white rounded-lg flex items-center justify-center">
-                <Volume2 className="h-5 w-5" />
-              </div>
-              <div>
-                <CardTitle className="text-xl">Voice Settings</CardTitle>
-                <CardDescription>
-                  Enable text-to-speech for your bot responses
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label className="text-sm font-semibold text-gray-700">
-                    Enable Voice Responses
-                  </Label>
-                  <p className="text-sm text-gray-600">
-                    Allow your bot to speak its responses aloud
-                  </p>
-                </div>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="checkbox"
-                    id="voiceEnabled"
-                    checked={formData.voiceEnabled}
-                    onChange={(e) => handleInputChange('voiceEnabled', e.target.checked)}
-                    className="w-4 h-4 text-purple-600 border-gray-300 rounded focus:ring-purple-500"
-                  />
-                  <Label htmlFor="voiceEnabled" className="text-sm font-medium text-gray-700">
-                    {formData.voiceEnabled ? 'Enabled' : 'Disabled'}
-                  </Label>
-                </div>
-              </div>
-            </div>
-
-            {formData.voiceEnabled && (
-              <>
-                <div className="space-y-3">
-                  <Label htmlFor="voice" className="text-sm font-semibold text-gray-700">
-                    Voice Type
+                {selectedNode.type === 'pause' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="pauseDuration" className="text-sm font-medium">
+                        Pause Duration (seconds)
                   </Label>
                   <select
-                    id="voice"
-                    value={formData.voiceSettings.voice}
-                    onChange={(e) => handleVoiceSettingsChange('voice', e.target.value as any)}
-                    className="w-full h-12 border border-gray-200 rounded-lg px-3 focus:border-purple-300 focus:ring-purple-200"
-                  >
-                    <option value="alloy">Alloy - Balanced & Clear</option>
-                    <option value="echo">Echo - Deep & Authoritative</option>
-                    <option value="fable">Fable - Warm & Friendly</option>
-                    <option value="onyx">Onyx - Professional & Calm</option>
-                    <option value="nova">Nova - Energetic & Engaging</option>
-                    <option value="shimmer">Shimmer - Soft & Gentle</option>
+                        id="pauseDuration"
+                        value={selectedNode.content}
+                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                      >
+                        <option value="1">1 second</option>
+                        <option value="2">2 seconds</option>
+                        <option value="3">3 seconds</option>
+                        <option value="5">5 seconds</option>
+                        <option value="10">10 seconds</option>
                   </select>
-                  <p className="text-sm text-gray-600">
-                    Choose the voice personality for your bot
-                  </p>
                 </div>
+                  </div>
+                )}
 
-                <div className="grid grid-cols-2 gap-4">
-                  <div className="space-y-3">
-                    <Label htmlFor="speed" className="text-sm font-semibold text-gray-700">
-                      Speed
+                {selectedNode.type === 'webhook' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="webhookUrl" className="text-sm font-medium">
+                        Webhook URL
                     </Label>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="range"
-                        id="speed"
-                        min="0.25"
-                        max="4.0"
-                        step="0.25"
-                        value={formData.voiceSettings.speed}
-                        onChange={(e) => handleVoiceSettingsChange('speed', parseFloat(e.target.value))}
-                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      <Input
+                        id="webhookUrl"
+                        value={selectedNode.content}
+                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
+                        placeholder="/api/webhook"
+                        className="mt-1"
                       />
-                      <span className="text-sm font-medium text-gray-700 w-12">
-                        {formData.voiceSettings.speed}x
-                      </span>
                     </div>
                   </div>
+                )}
 
-                  <div className="space-y-3">
-                    <Label htmlFor="pitch" className="text-sm font-semibold text-gray-700">
-                      Pitch
+                {selectedNode.type === 'condition' && (
+                  <div className="space-y-4">
+                    <div>
+                      <Label htmlFor="conditionLogic" className="text-sm font-medium">
+                        Condition Logic
                     </Label>
-                    <div className="flex items-center space-x-3">
-                      <input
-                        type="range"
-                        id="pitch"
-                        min="0.25"
-                        max="4.0"
-                        step="0.25"
-                        value={formData.voiceSettings.pitch}
-                        onChange={(e) => handleVoiceSettingsChange('pitch', parseFloat(e.target.value))}
-                        className="flex-1 h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer slider"
+                      <textarea
+                        id="conditionLogic"
+                        value={selectedNode.content}
+                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
+                        placeholder="if user.message contains 'help'"
+                        rows={3}
+                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
-                      <span className="text-sm font-medium text-gray-700 w-12">
-                        {formData.voiceSettings.pitch}x
-                      </span>
                     </div>
                   </div>
-                </div>
+                )}
 
-                <div className="space-y-3">
-                  <Label htmlFor="language" className="text-sm font-semibold text-gray-700">
-                    Language
-                  </Label>
-                  <select
-                    id="language"
-                    value={formData.voiceSettings.language}
-                    onChange={(e) => handleVoiceSettingsChange('language', e.target.value)}
-                    className="w-full h-12 border border-gray-200 rounded-lg px-3 focus:border-purple-300 focus:ring-purple-200"
-                  >
-                    <option value="en-US">English (US)</option>
-                    <option value="en-GB">English (UK)</option>
-                    <option value="es-ES">Spanish</option>
-                    <option value="fr-FR">French</option>
-                    <option value="de-DE">German</option>
-                    <option value="it-IT">Italian</option>
-                    <option value="pt-BR">Portuguese (Brazil)</option>
-                    <option value="ja-JP">Japanese</option>
-                    <option value="ko-KR">Korean</option>
-                    <option value="zh-CN">Chinese (Simplified)</option>
-                  </select>
-                  <p className="text-sm text-gray-600">
-                    Select the language for voice synthesis
-                  </p>
-                </div>
-
-                <div className="p-4 bg-purple-50 rounded-lg border border-purple-200">
-                  <div className="flex items-center space-x-3 mb-3">
-                    <Volume2 className="h-5 w-5 text-purple-600" />
-                    <h4 className="font-semibold text-purple-900">Voice Preview</h4>
-                  </div>
-                  <p className="text-sm text-purple-700 mb-3">
-                    Test how your bot will sound with the current settings
-                  </p>
+                <div className="mt-6 pt-4 border-t border-gray-200">
                   <Button
-                    onClick={() => {
-                      const voiceService = getVoiceService();
-                      if (voiceService.isSpeechSupported()) {
-                        voiceService.speak(
-                          "Hello! This is how your bot will sound. I'm here to help you with any questions.",
-                          formData.voiceSettings
-                        );
-                      }
-                    }}
-                    className="bg-purple-600 text-white hover:bg-purple-700 border-0"
+                    variant="outline"
+                    size="sm"
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                    onClick={() => deleteNode(selectedNode.id)}
                   >
-                    <Play className="h-4 w-4 mr-2" />
-                    Test Voice
+                    <Trash2 className="h-4 w-4 mr-2" />
+                    Delete Node
                   </Button>
                 </div>
-              </>
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {/* Bot Status Section */}
+                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+                  <div className="flex items-start space-x-3">
+                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
+                      <User className="h-4 w-4 text-blue-600" />
+                    </div>
+                    <div className="flex-1">
+                      <h4 className="font-medium text-blue-900 mb-1">Bot Status</h4>
+                      <div className="space-y-1">
+                        <p className="text-sm text-blue-700">
+                          Status: <span className="font-medium">{bot?.status || 'Loading...'}</span>
+                        </p>
+                        <p className="text-sm text-blue-700">
+                          Webhook: {formData.webhookUrl ? (
+                            <span className="text-green-600 font-medium">✓ Configured</span>
+                          ) : (
+                            <span className="text-orange-600 font-medium">⚠ Not configured</span>
+                          )}
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* QR Code Section */}
+                <div className="border border-gray-200 rounded-lg p-4">
+                  <h4 className="font-medium text-gray-900 mb-3">Widget QR Code</h4>
+                  <div className="bg-white border-2 border-gray-200 rounded-lg p-6 text-center">
+                    <div className="w-32 h-32 bg-gray-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
+                      {/* QR Code - using a real QR code pattern based on bot URL */}
+                      <img 
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=${encodeURIComponent(
+                          `${typeof window !== 'undefined' ? window.location.origin : 'https://yoursite.com'}/widget/${bot?._id || 'demo'}`
+                        )}`}
+                        alt="Bot QR Code"
+                        className="w-full h-full rounded"
+                        onError={(e) => {
+                          // Fallback to pattern if QR service fails
+                          e.currentTarget.style.display = 'none'
+                          const parent = e.currentTarget.parentElement
+                          if (parent) {
+                            parent.innerHTML = `
+                              <div class="w-full h-full bg-gray-300 rounded flex items-center justify-center">
+                                <svg class="w-16 h-16 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
+                                  <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z" clip-rule="evenodd"/>
+                                </svg>
+                  </div>
+                            `
+                          }
+                        }}
+                      />
+                </div>
+                    <p className="text-sm text-gray-600">Scan to test your bot</p>
+                    <p className="text-xs text-gray-400 mt-1">
+                      Bot ID: {bot?._id ? bot._id.slice(-8) : 'loading...'}
+                    </p>
+                  </div>
+                </div>
+
+                {/* No Node Selected */}
+                <div className="text-center text-gray-500 mt-8">
+                  <Settings className="h-12 w-12 text-gray-300 mx-auto mb-4" />
+                  <h3 className="font-medium text-gray-900 mb-2">No node selected</h3>
+                  <p className="text-sm">Select a node from the flow to configure its settings</p>
+                </div>
+              </div>
             )}
-          </CardContent>
-        </Card>
-      </main>
+          </div>
+        </div>
+      </div>
     </div>
   )
-}
-
-// Add custom styles for the range sliders
-const styles = `
-  .slider::-webkit-slider-thumb {
-    appearance: none;
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #7c3aed;
-    cursor: pointer;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-
-  .slider::-moz-range-thumb {
-    height: 20px;
-    width: 20px;
-    border-radius: 50%;
-    background: #7c3aed;
-    cursor: pointer;
-    border: none;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-  }
-
-  .slider::-webkit-slider-track {
-    background: #e5e7eb;
-    height: 8px;
-    border-radius: 4px;
-  }
-
-  .slider::-moz-range-track {
-    background: #e5e7eb;
-    height: 8px;
-    border-radius: 4px;
-    border: none;
-  }
-`;
-
-// Inject styles
-if (typeof document !== 'undefined') {
-  const styleSheet = document.createElement('style');
-  styleSheet.textContent = styles;
-  document.head.appendChild(styleSheet);
 } 

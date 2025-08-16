@@ -39,6 +39,11 @@ const BotSettingsSchema = new Schema({
     type: String,
     default: '💬',
   },
+  theme: {
+    type: String,
+    enum: ['modern', 'minimal', 'gradient'],
+    default: 'modern',
+  },
   headerColor: {
     type: String,
     default: '#8b5cf6',

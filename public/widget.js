@@ -1,14 +1,11 @@
 (function() {
   'use strict';
-
-  // Chat Service Class
   class ChatService {
     constructor(botId, baseUrl = '') {
       this.botId = botId;
       this.baseUrl = baseUrl || window.location.origin;
       this.conversationId = null;
     }
-
     async sendMessage(message, userInfo = {}) {
       try {
         const response = await fetch(`${this.baseUrl}/api/chat`, {
@@ -34,8 +31,6 @@
         }
 
         const data = await response.json();
-        
-        // Store conversation ID for future messages
         if (Array.isArray(data) && data.length > 0 && data[0]._id) {
           this.conversationId = data[0]._id;
         } else if (data.conversationId) {
@@ -313,7 +308,7 @@
         primaryColor: '#8b5cf6',
         secondaryColor: '#ec4899',
         position: 'bottom-right',
-        welcomeMessage: '👋 Hello! How can I help you today?',
+        welcomeMessage: 'Hello! How can I help you today?',
         baseUrl: '',
         demoMode: false,
         showAvatar: true,
@@ -330,10 +325,10 @@
       this.messages = [];
       this.isTyping = false;
       this.quickReplies = [
-        '👋 Hello',
-        '❓ Help',
-        '📞 Contact',
-        '💎 Pricing'
+        '👋 Say Hello',
+        '❓ Get Help',
+        '📞 Contact Us',
+        '💎 View Pricing'
       ];
       this.userName = null; // Store the user's name
       this.botLogo = null; // Store the bot's company logo
@@ -349,6 +344,15 @@
       this.loadUserName();
       
       this.init();
+    }
+
+    adjustColor(color, amount) {
+      const hex = color.replace('#', '');
+      const num = parseInt(hex, 16);
+      const r = Math.max(0, Math.min(255, (num >> 16) + amount));
+      const g = Math.max(0, Math.min(255, ((num >> 8) & 0x00FF) + amount));
+      const b = Math.max(0, Math.min(255, (num & 0x0000FF) + amount));
+      return `#${((r << 16) | (g << 8) | b).toString(16).padStart(6, '0')}`;
     }
 
     loadUserName() {
@@ -401,7 +405,20 @@
               console.log('No logo available, using fallback icon');
             }
             // Store color and image settings
-            this.headerColor = data.bot.settings?.headerColor || '#8b5cf6';
+            let botHeaderColor = data.bot.settings?.headerColor || '#8b5cf6';
+            // Force darker colors for better visibility
+            if (botHeaderColor) {
+              // If it's a light green color, make it darker
+              if (botHeaderColor.toLowerCase() === '#10b981' || botHeaderColor.toLowerCase() === '#059669' || 
+                  botHeaderColor.toLowerCase() === '#34d399' || botHeaderColor.toLowerCase() === '#6ee7b7') {
+                this.headerColor = '#059669'; // Use darker green
+              } else {
+                // For other colors, make them slightly darker
+                this.headerColor = this.adjustColor(botHeaderColor, -20);
+              }
+            } else {
+              this.headerColor = '#8b5cf6';
+            }
             this.footerColor = data.bot.settings?.footerColor || '#f8fafc';
             this.bodyColor = data.bot.settings?.bodyColor || '#ffffff';
             this.widgetImages = data.bot.settings?.widgetImages || [];
@@ -487,7 +504,18 @@
 
     createStyles(forceUpdate = false) {
       // Use dynamic colors if available
-      const headerColor = this.headerColor || this.options.primaryColor || '#8b5cf6';
+      let headerColor = this.headerColor || this.options.primaryColor || '#8b5cf6';
+      // Ensure the color is dark enough for good visibility
+      if (headerColor) {
+        // If it's a light green color, make it darker
+        if (headerColor.toLowerCase() === '#10b981' || headerColor.toLowerCase() === '#34d399' || 
+            headerColor.toLowerCase() === '#6ee7b7') {
+          headerColor = '#059669'; // Use darker green
+        } else if (!this.headerColor) {
+          // For initial load, make the primary color darker
+          headerColor = this.adjustColor(headerColor, -20);
+        }
+      }
       const footerColor = this.footerColor || '#f8fafc';
       const bodyColor = this.bodyColor || '#ffffff';
       const styleId = 'botrix-widget-styles';
@@ -501,21 +529,24 @@
           position: fixed;
           ${this.options.position === 'bottom-left' ? 'left: 20px;' : 'right: 20px;'}
           bottom: 20px;
-          width: 320px;
-          height: 480px;
-          background: ${bodyColor};
-          border-radius: 16px;
-          box-shadow: 0 20px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(255,255,255,0.05);
+          width: 400px;
+          height: 620px;
+          background: #ffffff;
+          border-radius: 20px;
+          box-shadow: 
+            0 25px 50px rgba(0, 0, 0, 0.12),
+            0 0 0 1px rgba(0, 0, 0, 0.03),
+            0 8px 16px rgba(0, 0, 0, 0.08);
           font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
           z-index: 10000;
           display: none;
           flex-direction: column;
-          backdrop-filter: blur(20px);
-          border: 1px solid rgba(255,255,255,0.1);
           overflow: hidden;
           transform: translateY(20px) scale(0.95);
           opacity: 0;
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+          backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .botrix-widget.open {
@@ -524,113 +555,119 @@
         }
 
         .botrix-widget-header {
-          background: ${headerColor};
+          background: linear-gradient(135deg, ${headerColor} 0%, ${this.adjustColor(headerColor, -30)} 100%);
           color: white;
-          padding: 16px;
-          border-radius: 16px 16px 0 0;
+          padding: 18px 20px;
+          border-radius: 20px 20px 0 0;
           display: flex;
           justify-content: space-between;
           align-items: center;
           position: relative;
-          overflow: hidden;
-        }
-
-        .botrix-widget-header::before {
-          content: '';
-          position: absolute;
-          top: 0;
-          left: 0;
-          right: 0;
-          bottom: 0;
-          background: url('data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><circle cx="20" cy="20" r="2" fill="rgba(255,255,255,0.1)"/><circle cx="80" cy="40" r="1" fill="rgba(255,255,255,0.1)"/><circle cx="40" cy="80" r="1.5" fill="rgba(255,255,255,0.1)"/></svg>');
-          pointer-events: none;
+          box-shadow: 0 4px 20px ${this.adjustColor(headerColor, -20)}40;
+          border-bottom: 1px solid rgba(255, 255, 255, 0.1);
         }
 
         .botrix-widget-header-info {
           display: flex;
           align-items: center;
-          gap: 12px;
+          gap: 14px;
         }
 
         .botrix-widget-avatar {
-          width: 32px;
-          height: 32px;
+          width: 42px;
+          height: 42px;
           border-radius: 50%;
-          background: rgba(255,255,255,0.2);
+          background: #ffffff;
           display: flex;
           align-items: center;
           justify-content: center;
-          font-size: 14px;
-          border: 2px solid rgba(255,255,255,0.3);
+          font-size: 16px;
+          border: 2px solid rgba(255,255,255,0.25);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+          backdrop-filter: blur(10px);
         }
 
         .botrix-widget-title {
-          font-weight: 600;
-          font-size: 14px;
-          margin-bottom: 2px;
+          font-weight: 700;
+          font-size: 16px;
+          margin-bottom: 3px;
+          letter-spacing: -0.02em;
         }
 
         .botrix-widget-status {
-          font-size: 11px;
-          opacity: 0.9;
+          font-size: 12px;
+          opacity: 0.95;
           display: flex;
           align-items: center;
-          gap: 4px;
+          gap: 6px;
+          font-weight: 500;
         }
 
         .botrix-status-indicator {
-          width: 6px;
-          height: 6px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
-          background: #10b981;
+          background: #ffffff;
           animation: pulse 2s infinite;
+          box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
         }
 
         @keyframes pulse {
-          0%, 100% { opacity: 1; }
-          50% { opacity: 0.5; }
+          0%, 100% { 
+            opacity: 1; 
+            transform: scale(1);
+            box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.3);
+          }
+          50% { 
+            opacity: 0.8; 
+            transform: scale(1.1);
+            box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+          }
         }
 
         .botrix-widget-controls {
           display: flex;
           align-items: center;
-          gap: 8px;
+          gap: 10px;
         }
 
         .botrix-control-btn {
-          background: rgba(255,255,255,0.2);
+          background: rgba(255,255,255,0.15);
           border: none;
           color: white;
-          width: 28px;
-          height: 28px;
+          width: 32px;
+          height: 32px;
           border-radius: 50%;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           backdrop-filter: blur(10px);
+          border: 1px solid rgba(255, 255, 255, 0.2);
         }
 
         .botrix-control-btn:hover {
-          background: rgba(255,255,255,0.3);
+          background: rgba(255,255,255,0.25);
           transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
         }
 
         .botrix-control-btn.active {
-          background: rgba(255,255,255,0.4);
+          background: rgba(255,255,255,0.3);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
         }
 
         .botrix-widget-messages {
           flex: 1;
-          padding: 16px;
+          padding: 20px;
           overflow-y: auto;
           scroll-behavior: smooth;
-          background: #ffffff;
+          background: linear-gradient(180deg, #fafbfc 0%, #ffffff 100%);
         }
 
         .botrix-widget-messages::-webkit-scrollbar {
-          width: 4px;
+          width: 6px;
         }
 
         .botrix-widget-messages::-webkit-scrollbar-track {
@@ -638,21 +675,31 @@
         }
 
         .botrix-widget-messages::-webkit-scrollbar-thumb {
-          background: rgba(0,0,0,0.1);
-          border-radius: 2px;
+          background: rgba(0, 0, 0, 0.1);
+          border-radius: 3px;
+        }
+
+        .botrix-widget-messages::-webkit-scrollbar-thumb:hover {
+          background: rgba(0, 0, 0, 0.2);
         }
 
         .botrix-message {
-          margin-bottom: 12px;
+          margin-bottom: 20px;
           display: flex;
           align-items: flex-end;
-          gap: 6px;
-          animation: messageSlide 0.3s ease-out;
+          gap: 10px;
+          animation: messageSlide 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
         @keyframes messageSlide {
-          from { opacity: 0; transform: translateY(10px); }
-          to { opacity: 1; transform: translateY(0); }
+          from { 
+            opacity: 0; 
+            transform: translateY(15px) scale(0.95); 
+          }
+          to { 
+            opacity: 1; 
+            transform: translateY(0) scale(1); 
+          }
         }
 
         .botrix-message.user {
@@ -664,10 +711,10 @@
         }
 
         .botrix-message-avatar {
-          width: 24px;
-          height: 24px;
+          width: 28px;
+          height: 28px;
           border-radius: 50%;
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
+          background: linear-gradient(135deg, ${headerColor} 0%, ${this.adjustColor(headerColor, -20)} 100%);
           display: flex;
           align-items: center;
           justify-content: center;
@@ -675,6 +722,8 @@
           font-size: 12px;
           font-weight: 600;
           flex-shrink: 0;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+          border: 2px solid rgba(255, 255, 255, 0.2);
         }
 
         .botrix-message-content {
@@ -684,33 +733,36 @@
         }
 
         .botrix-message-bubble {
-          padding: 10px 14px;
-          border-radius: 16px;
-          font-size: 13px;
-          line-height: 1.4;
+          padding: 12px 16px;
+          border-radius: 18px;
+          font-size: 14px;
+          line-height: 1.5;
           word-wrap: break-word;
           position: relative;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
         .botrix-message.user .botrix-message-bubble {
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
+          background: linear-gradient(135deg, ${headerColor} 0%, ${this.adjustColor(headerColor, -20)} 100%);
           color: white;
-          border-bottom-right-radius: 4px;
+          border-bottom-right-radius: 6px;
+          box-shadow: 0 4px 12px ${this.adjustColor(headerColor, -20)}40;
         }
 
         .botrix-message.bot .botrix-message-bubble {
           background: #ffffff;
-          color: #374151;
+          color: #1f2937;
           border: 1px solid #e5e7eb;
-          border-bottom-left-radius: 4px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          border-bottom-left-radius: 6px;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
         .botrix-message-time {
-          font-size: 10px;
+          font-size: 11px;
           color: #9ca3af;
-          margin-top: 3px;
+          margin-top: 6px;
           text-align: right;
+          font-weight: 500;
         }
 
         .botrix-message.bot .botrix-message-time {
@@ -721,20 +773,20 @@
           display: flex;
           align-items: center;
           gap: 6px;
-          padding: 10px 14px;
-          background: #ffffff;
+          padding: 14px 18px;
+          background: #f8fafc;
           border: 1px solid #e5e7eb;
-          border-radius: 16px;
-          border-bottom-left-radius: 4px;
+          border-radius: 20px;
+          border-bottom-left-radius: 6px;
           max-width: 70px;
-          box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
         }
 
         .botrix-typing-dot {
-          width: 5px;
-          height: 5px;
+          width: 8px;
+          height: 8px;
           border-radius: 50%;
-          background: #9ca3af;
+          background: ${headerColor};
           animation: typingDot 1.4s infinite ease-in-out;
         }
 
@@ -747,91 +799,127 @@
             opacity: 0.5;
           }
           40% {
-            transform: scale(1);
+            transform: scale(1.2);
             opacity: 1;
           }
         }
 
         .botrix-quick-replies {
           display: flex;
-          gap: 6px;
-          margin-top: 10px;
+          gap: 10px;
+          margin-top: 16px;
           flex-wrap: wrap;
+          animation: quickRepliesSlide 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        
+        @keyframes quickRepliesSlide {
+          from {
+            opacity: 0;
+            transform: translateY(12px) scale(0.95);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+          }
         }
 
         .botrix-quick-reply {
-          background: linear-gradient(135deg, #fce7f3, #fdf2f8);
-          border: 1px solid #fbcfe8;
-          color: #be185d;
-          padding: 6px 10px;
-          border-radius: 14px;
-          font-size: 11px;
+          background: #ffffff;
+          border: 2px solid ${this.options.secondaryColor};
+          color: ${this.options.secondaryColor};
+          padding: 8px 14px;
+          border-radius: 20px;
+          font-size: 12px;
           cursor: pointer;
-          transition: all 0.2s;
-          font-weight: 500;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          font-weight: 600;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+          min-height: 36px;
+          display: flex;
+          align-items: center;
+          justify-content: center;
         }
 
         .botrix-quick-reply:hover {
-          background: linear-gradient(135deg, #f9a8d4, #fbcfe8);
-          transform: translateY(-1px);
-          box-shadow: 0 4px 12px rgba(236, 72, 153, 0.2);
+          background: ${this.options.secondaryColor};
+          color: white;
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px ${this.options.secondaryColor}40;
         }
 
         .botrix-widget-input-container {
-          padding: 16px;
+          padding: 20px;
           background: #ffffff;
           border-top: 1px solid #e5e7eb;
-          border-radius: 0 0 16px 16px;
+          border-radius: 20px 20px 20px 20px;
+          box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.04);
         }
 
         .botrix-widget-input-row {
           display: flex;
           align-items: center;
-          background: #ffffff;
-          border: 2px solid #fce7f3;
-          border-radius: 20px;
-          padding: 3px;
-          transition: all 0.2s;
+          background: #f8fafc;
+          border: 1px solid #e5e7eb;
+          border-radius: 28px;
+          padding: 6px;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           position: relative;
-          overflow: hidden;
+          box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
         }
 
         .botrix-widget-input-row.focused {
-          border-color: #ec4899;
-          box-shadow: 0 0 0 3px rgba(236, 72, 153, 0.1);
+          border-color: ${headerColor};
+          box-shadow: 0 0 0 3px ${headerColor}15, 0 4px 12px rgba(0, 0, 0, 0.08);
+          background: #ffffff;
         }
 
         .botrix-widget-input-row.listening {
           border-color: #ef4444;
-          box-shadow: 0 0 0 3px #ef444420;
-          animation: listening 1s infinite;
+          box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08);
+          animation: listening 1.5s infinite;
         }
 
         @keyframes listening {
-          0%, 100% { box-shadow: 0 0 0 3px #ef444420; }
-          50% { box-shadow: 0 0 0 6px #ef444430; }
+          0%, 100% { 
+            box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.15), 0 4px 12px rgba(0, 0, 0, 0.08); 
+          }
+          50% { 
+            box-shadow: 0 0 0 6px rgba(239, 68, 68, 0.2), 0 6px 16px rgba(0, 0, 0, 0.12); 
+          }
         }
 
         .botrix-widget-input {
           flex: 1;
-          padding: 10px 14px;
+          padding: 12px 16px;
           border: none;
           outline: none;
-          font-size: 13px;
+          font-size: 14px;
           background: transparent;
           font-family: inherit;
           min-width: 0;
+          color: #1f2937;
+          font-weight: 500;
         }
 
         .botrix-widget-input::placeholder {
           color: #9ca3af;
+          font-style: italic;
+          font-weight: 400;
+        }
+        
+        .botrix-widget-input:focus {
+          outline: none;
+        }
+        
+        .botrix-widget-input:focus::placeholder {
+          opacity: 0.7;
         }
 
         .botrix-input-actions {
           display: flex;
           align-items: center;
-          gap: 4px;
-          margin-right: 4px;
+          gap: 6px;
+          margin-right: 6px;
           flex-shrink: 0;
         }
 
@@ -839,30 +927,6 @@
           background: transparent;
           border: none;
           color: #6b7280;
-          width: 28px;
-          height: 28px;
-          border-radius: 50%;
-          cursor: pointer;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          transition: all 0.2s;
-        }
-
-        .botrix-action-btn:hover {
-          background: #e5e7eb;
-          color: #374151;
-        }
-
-        .botrix-action-btn.active {
-          background: #ec4899;
-          color: white;
-        }
-
-        .botrix-widget-send {
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
-          color: white;
-          border: none;
           width: 32px;
           height: 32px;
           border-radius: 50%;
@@ -870,20 +934,48 @@
           display: flex;
           align-items: center;
           justify-content: center;
-          transition: all 0.2s;
-          box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .botrix-action-btn:hover {
+          background: #f3f4f6;
+          color: #374151;
+          transform: scale(1.05);
+        }
+
+        .botrix-action-btn.active {
+          background: ${this.options.secondaryColor};
+          color: white;
+          box-shadow: 0 4px 12px ${this.options.secondaryColor}40;
+        }
+
+        .botrix-widget-send {
+          background: linear-gradient(135deg, ${headerColor} 0%, ${this.adjustColor(headerColor, -20)} 100%);
+          color: white;
+          border: none;
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           flex-shrink: 0;
+          box-shadow: 0 4px 12px ${headerColor}40;
         }
 
         .botrix-widget-send:hover {
+          background: linear-gradient(135deg, ${this.adjustColor(headerColor, -20)} 0%, ${this.adjustColor(headerColor, -40)} 100%);
           transform: scale(1.05);
-          box-shadow: 0 6px 16px rgba(139, 92, 246, 0.4);
+          box-shadow: 0 6px 16px ${headerColor}50;
         }
 
         .botrix-widget-send:disabled {
           background: #9ca3af;
           cursor: not-allowed;
           transform: none;
+          opacity: 0.6;
           box-shadow: none;
         }
 
@@ -891,25 +983,25 @@
           position: fixed;
           ${this.options.position === 'bottom-left' ? 'left: 20px;' : 'right: 20px;'}
           bottom: 20px;
-          width: 50px;
-          height: 50px;
-          background: linear-gradient(135deg, #8b5cf6, #ec4899);
+          width: 60px;
+          height: 60px;
+          background: linear-gradient(135deg, ${this.adjustColor(headerColor, -20)} 0%, ${this.adjustColor(headerColor, -50)} 100%);
           color: white;
           border: none;
           border-radius: 50%;
           cursor: pointer;
-          font-size: 20px;
-          box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+          font-size: 24px;
+          box-shadow: 0 16px 40px ${headerColor}60, 0 0 0 1px rgba(255, 255, 255, 0.15);
           z-index: 10001;
-          transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           display: flex;
           align-items: center;
           justify-content: center;
+          backdrop-filter: blur(10px);
         }
 
         .botrix-toggle-button:hover {
           transform: scale(1.1);
-          box-shadow: 0 12px 30px rgba(0,0,0,0.2);
         }
 
         .botrix-toggle-button.pulse {
@@ -917,33 +1009,41 @@
         }
 
         @keyframes buttonPulse {
-          0%, 100% { box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 0 rgba(139, 92, 246, 0.4); }
-          50% { box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 10px rgba(139, 92, 246, 0); }
+          0%, 100% { 
+            box-shadow: 0 16px 40px ${headerColor}60, 0 0 0 1px rgba(255, 255, 255, 0.15); 
+          }
+          50% { 
+            box-shadow: 0 16px 40px ${headerColor}60, 0 0 0 1px rgba(255, 255, 255, 0.15), 0 0 0 12px ${headerColor}1a; 
+          }
         }
 
         .botrix-widget-footer {
           text-align: center;
-          font-size: 10px;
-          color: #9ca3af;
-          padding: 10px 16px;
-          background: ${footerColor};
+          font-size: 7px;
+          color: #6b7280;
+          padding: 8px 20px;
+          background: #f8fafc;
           display: flex;
           align-items: center;
           justify-content: center;
-          gap: 4px;
+          border-top: 1px solid #e5e7eb;
+          font-weight: 600;
+          letter-spacing: 0.02em;
         }
 
         .botrix-powered-logo {
-          width: 14px;
-          height: 14px;
-          opacity: 0.6;
-          transition: opacity 0.2s, transform 0.2s;
+          width: 70px;
+          height: 25px;
+          opacity: 0.8;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
           cursor: pointer;
+          filter: grayscale(0.2);
         }
 
         .botrix-powered-logo:hover {
           opacity: 1;
           transform: scale(1.05);
+          filter: grayscale(0);
         }
 
         .botrix-widget-images {
@@ -962,43 +1062,1191 @@
 
         .botrix-notification {
           position: absolute;
-          top: -35px;
+          top: -50px;
           right: 0;
-          background: #ef4444;
+          background: linear-gradient(135deg, #10b981 0%, #059669 100%);
           color: white;
-          padding: 6px 10px;
-          border-radius: 10px;
-          font-size: 11px;
-          font-weight: 500;
-          transform: translateY(-10px);
+          padding: 10px 16px;
+          border-radius: 16px;
+          font-size: 13px;
+          font-weight: 600;
+          transform: translateY(-15px) scale(0.9);
           opacity: 0;
-          transition: all 0.3s;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+          border: 1px solid rgba(255, 255, 255, 0.2);
+          backdrop-filter: blur(10px);
+          letter-spacing: 0.02em;
         }
 
         .botrix-notification.show {
-          transform: translateY(0);
+          transform: translateY(0) scale(1);
           opacity: 1;
         }
 
+        /* Enhanced Responsive Design - Mobile First Approach */
+        
+        /* Large Desktop (1400px and above) */
+        @media (min-width: 1400px) {
+          .botrix-widget {
+            width: 400px;
+            height: 580px;
+          }
+          
+          .botrix-widget-header {
+            padding: 16px 20px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 40px;
+            height: 40px;
+            font-size: 16px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 16px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 20px;
+          }
+          
+          .botrix-message-bubble {
+            padding: 12px 16px;
+            font-size: 14px;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 20px;
+          }
+          
+          .botrix-widget-input {
+            padding: 12px 16px;
+            font-size: 14px;
+          }
+          
+          .botrix-toggle-button {
+            width: 60px;
+            height: 60px;
+            font-size: 24px;
+          }
+        }
+
+        /* Desktop (1200px to 1399px) */
+        @media (min-width: 1200px) and (max-width: 1399px) {
+          .botrix-widget {
+            width: 380px;
+            height: 560px;
+          }
+          
+          .botrix-widget-header {
+            padding: 14px 18px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 38px;
+            height: 38px;
+            font-size: 15px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 15px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 18px;
+          }
+          
+          .botrix-message-bubble {
+            padding: 11px 15px;
+            font-size: 13px;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 18px;
+          }
+          
+          .botrix-widget-input {
+            padding: 11px 15px;
+            font-size: 13px;
+          }
+          
+          .botrix-toggle-button {
+            width: 58px;
+            height: 58px;
+            font-size: 22px;
+          }
+        }
+
+        /* Small Desktop (1024px to 1199px) */
+        @media (min-width: 1024px) and (max-width: 1199px) {
+          .botrix-widget {
+            width: 360px;
+            height: 540px;
+          }
+          
+          .botrix-widget-header {
+            padding: 12px 16px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 36px;
+            height: 36px;
+            font-size: 14px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 14px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 16px;
+          }
+          
+          .botrix-message-bubble {
+            padding: 10px 14px;
+            font-size: 13px;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 16px;
+          }
+          
+          .botrix-widget-input {
+            padding: 10px 14px;
+            font-size: 13px;
+          }
+          
+          .botrix-toggle-button {
+            width: 56px;
+            height: 56px;
+            font-size: 22px;
+          }
+        }
+
+        /* Tablet Landscape (768px to 1023px) */
+        @media (min-width: 768px) and (max-width: 1023px) {
+          .botrix-widget {
+            width: calc(100vw - 40px);
+            height: 500px;
+            max-height: calc(100vh - 40px);
+            bottom: 20px;
+            left: 20px !important;
+            right: 20px !important;
+            border-radius: 16px;
+          }
+          
+          .botrix-widget-header {
+            padding: 12px 16px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 34px;
+            height: 34px;
+            font-size: 13px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 13px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 16px;
+          }
+          
+          .botrix-message-bubble {
+            padding: 10px 14px;
+            font-size: 12px;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 16px;
+          }
+          
+          .botrix-widget-input {
+            padding: 10px 14px;
+            font-size: 12px;
+          }
+          
+          .botrix-toggle-button {
+            width: 52px;
+            height: 52px;
+            font-size: 20px;
+          }
+        }
+
+        /* Tablet Portrait (481px to 767px) */
+        @media (min-width: 481px) and (max-width: 767px) {
+          .botrix-widget {
+            width: calc(100vw - 32px);
+            height: 500px;
+            max-height: calc(100vh - 32px);
+            bottom: 16px;
+            left: 16px !important;
+            right: 16px !important;
+            border-radius: 14px;
+          }
+          
+          .botrix-widget-header {
+            padding: 10px 14px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 12px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 12px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 14px;
+          }
+          
+          .botrix-message-bubble {
+            padding: 9px 13px;
+            font-size: 12px;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 14px;
+          }
+          
+          .botrix-widget-input {
+            padding: 9px 13px;
+            font-size: 12px;
+          }
+          
+          .botrix-toggle-button {
+            width: 48px;
+            height: 48px;
+            font-size: 18px;
+          }
+        }
+
+        /* Mobile (480px and below) - Enhanced */
         @media (max-width: 480px) {
           .botrix-widget {
-            width: calc(100vw - 20px);
-            height: calc(100vh - 20px);
-            bottom: 10px;
-            left: 10px !important;
-            right: 10px !important;
+            width: calc(100vw - 16px);
+            height: calc(100vh - 32px);
+            max-height: 500px;
+            bottom: 16px;
+            left: 8px !important;
+            right: 8px !important;
+            border-radius: 18px;
+            box-shadow: 0 15px 40px rgba(0,0,0,0.15), 0 0 0 1px rgba(255, 255, 255, 0.1);
+          }
+          
+          .botrix-widget-header {
+            padding: 12px 16px;
+            border-radius: 18px 18px 0 0;
+            min-height: 48px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 32px;
+            height: 32px;
+            font-size: 13px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 14px;
+            font-weight: 700;
+          }
+          
+          .botrix-widget-status {
+            font-size: 11px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 16px;
+            flex: 1;
+            min-height: 0;
+          }
+          
+          .botrix-message-bubble {
+            padding: 10px 14px;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 85%;
+            border-radius: 16px;
+          }
+          
+          .botrix-message.user .botrix-message-bubble {
+            max-width: 85%;
+            border-bottom-right-radius: 6px;
+          }
+          
+          .botrix-message.bot .botrix-message-bubble {
+            max-width: 85%;
+            border-bottom-left-radius: 6px;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 16px;
+            border-radius: 0 0 18px 18px;
+            border-top: 1px solid #e5e7eb;
+          }
+          
+          .botrix-widget-input {
+            padding: 10px 14px;
+            font-size: 13px;
+            min-height: 44px;
+          }
+          
+          .botrix-widget-input-row {
+            border-radius: 24px;
+            padding: 4px;
+          }
+          
+          .botrix-toggle-button {
+            width: 52px;
+            height: 52px;
+            font-size: 20px;
+            bottom: 16px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.15), 0 0 0 1px rgba(255, 255, 255, 0.1);
+          }
+          
+          .botrix-quick-reply {
+            padding: 8px 12px;
+            font-size: 11px;
+            min-height: 36px;
+            border-radius: 18px;
+          }
+          
+          .botrix-quick-replies {
+            gap: 8px;
+            margin-top: 12px;
+          }
+          
+          .botrix-action-btn {
+            width: 32px;
+            height: 32px;
+            min-width: 32px;
+            min-height: 32px;
+          }
+          
+          .botrix-widget-send {
+            width: 36px;
+            height: 36px;
+            min-width: 36px;
+            min-height: 36px;
+          }
+        }
+
+        /* Small Mobile (320px and below) - Enhanced */
+        @media (max-width: 320px) {
+          .botrix-widget {
+            width: calc(100vw - 12px);
+            height: calc(100vh - 24px);
+            max-height: 400px;
+            bottom: 12px;
+            left: 6px !important;
+            right: 6px !important;
+            border-radius: 12px;
+            box-shadow: 0 8px 25px rgba(0,0,0,0.25);
+          }
+          
+          .botrix-widget-header {
+            padding: 8px;
+            border-radius: 12px 12px 0 0;
+            min-height: 38px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 26px;
+            height: 26px;
+            font-size: 10px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 11px;
+            font-weight: 600;
+          }
+          
+          .botrix-widget-status {
+            font-size: 9px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 8px;
+            flex: 1;
+            min-height: 0;
+          }
+          
+          .botrix-message-bubble {
+            padding: 6px 10px;
+            font-size: 10px;
+            line-height: 1.4;
+            max-width: 90%;
+          }
+          
+          .botrix-message.user .botrix-message-bubble {
+            max-width: 90%;
+          }
+          
+          .botrix-message.bot .botrix-message-bubble {
+            max-width: 90%;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 8px;
+            border-radius: 0 0 12px 12px;
+            border-top: 1px solid #e5e7eb;
+          }
+          
+          .botrix-widget-input {
+            padding: 6px 10px;
+            font-size: 10px;
+            min-height: 32px;
+          }
+          
+          .botrix-widget-input-row {
+            border-radius: 18px;
+            padding: 2px;
+          }
+          
+          .botrix-toggle-button {
+            width: 40px;
+            height: 40px;
+            font-size: 14px;
+            bottom: 12px;
+            box-shadow: 0 6px 20px rgba(0,0,0,0.25);
+          }
+          
+          .botrix-quick-reply {
+            padding: 4px 6px;
+            font-size: 9px;
+            min-height: 24px;
+            border-radius: 12px;
+          }
+          
+          .botrix-quick-replies {
+            gap: 4px;
+            margin-top: 8px;
+          }
+          
+          .botrix-action-btn {
+            width: 24px;
+            height: 24px;
+            min-width: 24px;
+            min-height: 24px;
+          }
+          
+          .botrix-widget-send {
+            width: 34px;
+            height: 34px;
+            min-width: 34px;
+            min-height: 34px;
+          }
+        }
+
+        /* Landscape orientation adjustments for mobile - Enhanced */
+        @media (max-width: 767px) and (orientation: landscape) {
+          .botrix-widget {
+            height: calc(100vh - 32px);
+            max-height: 400px;
+            width: calc(100vw - 32px);
+            bottom: 16px;
+            left: 16px !important;
+            right: 16px !important;
+          }
+          
+          .botrix-widget-header {
+            padding: 6px 10px;
+            min-height: 36px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 28px;
+            height: 28px;
+            font-size: 11px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 12px;
+          }
+          
+          .botrix-widget-status {
+            font-size: 10px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 8px 12px;
+            flex: 1;
+            min-height: 0;
+          }
+          
+          .botrix-message-bubble {
+            padding: 6px 10px;
+            font-size: 11px;
+            max-width: 80%;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 8px 12px;
+            border-top: 1px solid #e5e7eb;
+          }
+          
+          .botrix-widget-input {
+            padding: 6px 10px;
+            font-size: 11px;
+            min-height: 32px;
+          }
+          
+          .botrix-quick-reply {
+            padding: 4px 8px;
+            font-size: 10px;
+            min-height: 28px;
+          }
+          
+          .botrix-toggle-button {
+            width: 44px;
+            height: 44px;
+            font-size: 16px;
+            bottom: 12px;
+          }
+        }
+
+        /* Touch-friendly improvements for mobile - Enhanced */
+        @media (max-width: 767px) {
+          .botrix-control-btn {
+            min-width: 44px;
+            min-height: 44px;
+            touch-action: manipulation;
+          }
+          
+          .botrix-quick-reply {
+            min-height: 40px;
+            padding: 8px 12px;
+            touch-action: manipulation;
+            user-select: none;
+          }
+          
+          .botrix-widget-input {
+            min-height: 44px;
+            touch-action: manipulation;
+          }
+          
+          .botrix-widget-send {
+            min-width: 44px;
+            min-height: 44px;
+            touch-action: manipulation;
+          }
+          
+          .botrix-action-btn {
+            min-width: 44px;
+            min-height: 44px;
+            touch-action: manipulation;
+          }
+          
+          .botrix-toggle-button {
+            touch-action: manipulation;
+          }
+          
+          /* Improve scrolling on mobile */
+          .botrix-widget-messages {
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+          }
+          
+          /* Better focus states for accessibility */
+          .botrix-widget-input:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(139, 92, 246, 0.3);
+          }
+          
+          .botrix-quick-reply:focus {
+            outline: none;
+            box-shadow: 0 0 0 2px rgba(236, 72, 153, 0.3);
+          }
+        }
+
+        /* Ensure proper spacing on very small screens - Enhanced */
+        @media (max-width: 360px) {
+          .botrix-widget {
+            width: calc(100vw - 8px);
+            height: calc(100vh - 16px);
+            max-height: 480px;
+            bottom: 8px;
+            left: 4px !important;
+            right: 4px !important;
             border-radius: 12px;
           }
           
           .botrix-widget-header {
-            border-radius: 12px 12px 0 0;
+            padding: 8px;
+            min-height: 44px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 12px;
+            flex: 1;
+            min-height: 0;
           }
           
           .botrix-widget-input-container {
-            border-radius: 0 0 12px 12px;
+            padding: 12px;
+            border-top: 1px solid #e5e7eb;
+          }
+          
+          .botrix-widget-title {
+            font-size: 13px;
+            font-weight: 600;
+          }
+          
+          .botrix-widget-status {
+            font-size: 10px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 28px;
+            height: 28px;
+            font-size: 12px;
+          }
+          
+          .botrix-message-bubble {
+            padding: 8px 12px;
+            font-size: 12px;
+            max-width: 92%;
+          }
+          
+          .botrix-widget-input {
+            padding: 8px 12px;
+            font-size: 12px;
+            min-height: 40px;
+          }
+          
+          .botrix-toggle-button {
+            width: 48px;
+            height: 48px;
+            font-size: 18px;
+            bottom: 12px;
+          }
+        }
+        
+        /* Extra small screens (280px and below) */
+        @media (max-width: 280px) {
+          .botrix-widget {
+            width: calc(100vw - 4px);
+            height: calc(100vh - 8px);
+            max-height: 450px;
+            bottom: 4px;
+            left: 2px !important;
+            right: 2px !important;
+            border-radius: 8px;
+          }
+          
+          .botrix-widget-header {
+            padding: 6px;
+            min-height: 40px;
+            border-radius: 8px 8px 0 0;
+          }
+          
+          .botrix-widget-avatar {
+            width: 28px;
+            height: 28px;
+            font-size: 12px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 12px;
+          }
+          
+          .botrix-widget-status {
+            font-size: 9px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 10px;
+          }
+          
+          .botrix-message-bubble {
+            padding: 6px 10px;
+            font-size: 11px;
+            max-width: 95%;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 10px;
+            border-radius: 0 0 8px 8px;
+          }
+          
+          .botrix-widget-input {
+            padding: 6px 10px;
+            font-size: 11px;
+            min-height: 36px;
+          }
+          
+          .botrix-toggle-button {
+            width: 44px;
+            height: 44px;
+            font-size: 16px;
+            bottom: 8px;
+          }
+          
+          .botrix-quick-reply {
+            padding: 4px 8px;
+            font-size: 10px;
+            min-height: 32px;
           }
         }
 
+        /* High DPI displays and better pixel density support */
+        @media (-webkit-min-device-pixel-ratio: 2), (min-resolution: 192dpi) {
+          .botrix-widget {
+            border: 0.5px solid rgba(255,255,255,0.1);
+          }
+          
+          .botrix-widget-header {
+            border-bottom: 0.5px solid rgba(255,255,255,0.1);
+          }
+          
+          .botrix-widget-input-container {
+            border-top: 0.5px solid #e5e7eb;
+          }
+        }
+        
+        /* Ultra high DPI displays (3x and above) */
+        @media (-webkit-min-device-pixel-ratio: 3), (min-resolution: 288dpi) {
+          .botrix-widget {
+            border: 0.33px solid rgba(255,255,255,0.1);
+          }
+          
+          .botrix-widget-header {
+            border-bottom: 0.33px solid rgba(255,255,255,0.1);
+          }
+          
+          .botrix-widget-input-container {
+            border-top: 0.33px solid #e5e7eb;
+          }
+        }
+        
+        /* Ensure proper scaling on all devices */
+        @media screen and (max-width: 480px) {
+          .botrix-widget {
+            transform-origin: bottom right;
+          }
+          
+          .botrix-widget.open {
+            transform: translateY(0) scale(1);
+          }
+        }
+        
+        /* Handle viewport changes and orientation changes */
+        @media screen and (orientation: portrait) and (max-width: 480px) {
+          .botrix-widget {
+            width: calc(100vw - 16px);
+            height: calc(100vh - 32px);
+            max-height: 540px;
+          }
+        }
+        
+        @media screen and (orientation: landscape) and (max-width: 767px) {
+          .botrix-widget {
+            width: calc(100vw - 32px);
+            height: calc(100vh - 32px);
+            max-height: 450px;
+          }
+        }
+        
+        /* Ensure proper positioning for different screen sizes */
+        @media screen and (min-width: 481px) and (max-width: 767px) {
+          .botrix-widget {
+            ${this.options.position === 'bottom-left' ? 'left: 20px; right: auto;' : 'right: 20px; left: auto;'}
+          }
+        }
+        
+        /* Better handling for ultra-wide screens */
+        @media screen and (min-width: 2000px) {
+          .botrix-widget {
+            width: 420px;
+            height: 600px;
+          }
+          
+          .botrix-widget-header {
+            padding: 16px 20px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 42px;
+            height: 42px;
+            font-size: 16px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 16px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 20px;
+          }
+          
+          .botrix-message-bubble {
+            padding: 12px 16px;
+            font-size: 14px;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 20px;
+          }
+          
+          .botrix-widget-input {
+            padding: 12px 16px;
+            font-size: 14px;
+          }
+          
+          .botrix-toggle-button {
+            width: 64px;
+            height: 64px;
+            font-size: 26px;
+          }
+        }
+
+        /* Extra small screens (280px and below) */
+        @media (max-width: 280px) {
+          .botrix-widget {
+            width: calc(100vw - 8px);
+            height: calc(100vh - 16px);
+            max-height: 420px;
+            bottom: 8px;
+            left: 4px !important;
+            right: 4px !important;
+            border-radius: 10px;
+          }
+          
+          .botrix-widget-header {
+            padding: 6px;
+            border-radius: 10px 10px 0 0;
+            min-height: 32px;
+          }
+          
+          .botrix-widget-avatar {
+            width: 22px;
+            height: 22px;
+            font-size: 9px;
+          }
+          
+          .botrix-widget-title {
+            font-size: 10px;
+          }
+          
+          .botrix-widget-status {
+            font-size: 8px;
+          }
+          
+          .botrix-widget-messages {
+            padding: 6px;
+          }
+          
+          .botrix-message-bubble {
+            padding: 4px 8px;
+            font-size: 9px;
+            max-width: 92%;
+          }
+          
+          .botrix-widget-input-container {
+            padding: 6px;
+            border-radius: 0 0 10px 10px;
+          }
+          
+          .botrix-widget-input {
+            padding: 4px 8px;
+            font-size: 9px;
+            min-height: 28px;
+          }
+          
+          .botrix-toggle-button {
+            width: 36px;
+            height: 36px;
+            font-size: 12px;
+            bottom: 8px;
+          }
+          
+          .botrix-quick-reply {
+            padding: 3px 5px;
+            font-size: 8px;
+            min-height: 20px;
+          }
+        }
+        
+        /* Prevent zoom on input focus for iOS */
+        @media screen and (max-width: 480px) {
+          .botrix-widget-input {
+            font-size: 16px !important;
+          }
+        }
+        
+        /* Additional responsive improvements */
+        
+        /* Ensure proper viewport handling */
+        @supports (height: 100dvh) {
+          .botrix-widget {
+            height: 540px;
+            max-height: calc(100dvh - 40px);
+          }
+          
+          @media (max-width: 480px) {
+            .botrix-widget {
+              height: calc(100dvh - 32px);
+              max-height: 540px;
+            }
+          }
+          
+          @media (max-width: 320px) {
+            .botrix-widget {
+              height: calc(100dvh - 24px);
+              max-height: 460px;
+            }
+          }
+        }
+        
+        /* Better accessibility for screen readers */
+        @media (prefers-reduced-motion: reduce) {
+          .botrix-widget,
+          .botrix-toggle-button,
+          .botrix-quick-reply,
+          .botrix-action-btn,
+          .botrix-widget-send {
+            transition: none !important;
+            animation: none !important;
+          }
+          
+          .botrix-widget.open {
+            transform: translateY(0) scale(1) !important;
+          }
+        }
+        
+        /* Dark mode support */
+        @media (prefers-color-scheme: dark) {
+          .botrix-widget {
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3), 0 0 0 1px rgba(255,255,255,0.1);
+          }
+          
+          .botrix-widget-messages {
+            background: #f9fafb;
+            color: #1f2937;
+          }
+          
+          .botrix-message.bot .botrix-message-bubble {
+            background: #f9fafb;
+            color: #1f2937;
+            border-color: #f9fafbx;
+          }
+          
+          .botrix-widget-input-container {
+            background: #ffffff;
+            border-top-color: #e5e7eb;
+          }
+          
+          .botrix-widget-input {
+            background: #f9fafb;
+            color: #1f2937;
+          }
+          
+          .botrix-widget-input::placeholder {
+            color: #9ca3af;
+          }
+          
+          .botrix-widget-input-row {
+            background: #f9fafb;
+            border-color: #e5e7eb;
+          }
+        }
+        
+        /* Ensure proper contrast ratios */
+        @media (prefers-contrast: high) {
+          .botrix-widget {
+            border: 2px solid #000000;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.4);
+          }
+          
+          .botrix-widget-header {
+            border-bottom: 2px solid #ffffff;
+          }
+          
+          .botrix-widget-input-container {
+            border-top: 2px solid #000000;
+          }
+          
+          .botrix-quick-reply {
+            border: 2px solid #000000;
+            background: #ffffff;
+            color: #000000;
+          }
+        }
+
+        /* Toggle button icon styles */
+        .botrix-toggle-icon-emoji {
+          font-size: 24px;
+          line-height: 1;
+        }
+
+        .botrix-toggle-icon-custom {
+          width: 24px;
+          height: 24px;
+          object-fit: contain;
+        }
+
+        .botrix-toggle-icon-svg {
+          width: 24px;
+          height: 24px;
+        }
+
+        /* Responsive toggle button icons */
+        @media (min-width: 1200px) {
+          .botrix-toggle-icon-emoji {
+            font-size: 28px;
+          }
+          
+          .botrix-toggle-icon-custom {
+            width: 28px;
+            height: 28px;
+          }
+          
+          .botrix-toggle-icon-svg {
+            width: 28px;
+            height: 28px;
+          }
+        }
+
+        @media (max-width: 1199px) and (min-width: 1024px) {
+          .botrix-toggle-icon-emoji {
+            font-size: 26px;
+          }
+          
+          .botrix-toggle-icon-custom {
+            width: 26px;
+            height: 26px;
+          }
+          
+          .botrix-toggle-icon-svg {
+            width: 26px;
+            height: 26px;
+          }
+        }
+
+        @media (max-width: 1023px) and (min-width: 768px) {
+          .botrix-toggle-icon-emoji {
+            font-size: 24px;
+          }
+          
+          .botrix-toggle-icon-custom {
+            width: 24px;
+            height: 24px;
+          }
+          
+          .botrix-toggle-icon-svg {
+            width: 24px;
+            height: 24px;
+          }
+        }
+
+        @media (max-width: 767px) and (min-width: 481px) {
+          .botrix-toggle-icon-emoji {
+            font-size: 22px;
+          }
+          
+          .botrix-toggle-icon-custom {
+            width: 22px;
+            height: 22px;
+          }
+          
+          .botrix-toggle-icon-svg {
+            width: 22px;
+            height: 22px;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .botrix-toggle-icon-emoji {
+            font-size: 20px;
+          }
+          
+          .botrix-toggle-icon-custom {
+            width: 20px;
+            height: 20px;
+          }
+          
+          .botrix-toggle-icon-svg {
+            width: 20px;
+            height: 20px;
+          }
+        }
+
+        @media (max-width: 320px) {
+          .botrix-toggle-icon-emoji {
+            font-size: 18px;
+          }
+          
+          .botrix-toggle-icon-custom {
+            width: 18px;
+            height: 18px;
+          }
+          
+          .botrix-toggle-icon-svg {
+            width: 18px;
+            height: 18px;
+          }
+        }
+
+        /* Popup styles */
+        .botrix-minimized-popup {
+          position: fixed;
+          background: linear-gradient(135deg, ${this.adjustColor(headerColor, -20)} 0%, ${this.adjustColor(headerColor, -50)} 100%);
+          color: white;
+          border-radius: 24px;
+          box-shadow: 
+            0 16px 40px ${headerColor}50,
+            0 0 0 1px rgba(255, 255, 255, 0.25),
+            0 6px 20px rgba(0, 0, 0, 0.15);
+          padding: 14px 22px;
+          font-size: 15px;
+          font-weight: 700;
+          display: flex;
+          align-items: center;
+          gap: 14px;
+          cursor: pointer;
+          z-index: 10002;
+          transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+          opacity: 1;
+          min-width: 160px;
+          max-width: 260px;
+          user-select: none;
+          backdrop-filter: blur(15px);
+          border: 1px solid rgba(255, 255, 255, 0.25);
+          letter-spacing: 0.02em;
+        }
+        
+        .botrix-minimized-popup:hover {
+          transform: translateY(-3px) scale(1.03);
+        }
+        
+        .botrix-minimized-popup .botrix-popup-close {
+          background: rgba(255,255,255,0.2);
+          border: none;
+          color: white;
+          font-size: 18px;
+          border-radius: 50%;
+          width: 28px;
+          height: 28px;
+          cursor: pointer;
+          display: none;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+          border: 1px solid rgba(255,255,255,0.25);
+          backdrop-filter: blur(10px);
+        }
+        
+        .botrix-minimized-popup .botrix-popup-close:hover {
+          background: rgba(255,255,255,0.3);
+          transform: scale(1.1);
+          box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+        }
+        
         .botrix-widget-messages,
         .botrix-widget-header,
         .botrix-widget-input-container,
@@ -1046,10 +2294,8 @@
         <div class="botrix-widget-controls">
           <button class="botrix-control-btn botrix-voice-toggle" title="Toggle Voice">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
-              <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
-              <line x1="12" y1="19" x2="12" y2="23"></line>
-              <line x1="8" y1="23" x2="16" y2="23"></line>
+              <polygon points="11,5 6,9 2,9 2,15 6,15 11,19 11,5"></polygon>
+              <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
             </svg>
           </button>
           <button class="botrix-control-btn botrix-widget-close" title="Close">
@@ -1122,8 +2368,8 @@
       const footer = document.createElement('div');
       footer.className = 'botrix-widget-footer';
       footer.innerHTML = `
-        Powered by 
-        <img src="${this.options.baseUrl}/botrix-logo01.png" alt="Botrix" class="botrix-powered-logo" style="cursor: pointer; width: 54px; height: 19px;"/>
+        <span style="font-weight: 700; font-size: 12px; color: #6b7280; text-transform: lowercase; letter-spacing: 0.8px; opacity: 0.8;">powered by</span>
+        <img src="${this.options.baseUrl}/botrix-logo01.png" alt="BotrixAI" class="botrix-powered-logo" style="cursor: pointer; width: 70px; height: 25px; margin-left: 4px; transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);"/>
       `;
       // Add widget images if available
       if (this.widgetImages && this.widgetImages.length > 0) {
@@ -1148,13 +2394,21 @@
       }
       this.widget.appendChild(footer);
       
-      // Add click event to logo for dashboard redirect
+      // Add click event to logo for BotrixAI website redirect
       const logoElement = footer.querySelector('.botrix-powered-logo');
       if (logoElement) {
         logoElement.addEventListener('click', () => {
-          // Always redirect to main dashboard, not bot-specific
-          const dashboardUrl = `${this.options.baseUrl}/dashboard`;
-          window.open(dashboardUrl, '_blank');
+          // Redirect to BotrixAI website
+          window.open('https://www.botrixai.com/', '_blank');
+        });
+        
+        // Add hover effect
+        logoElement.addEventListener('mouseenter', () => {
+          logoElement.style.transform = 'scale(1.05)';
+        });
+        
+        logoElement.addEventListener('mouseleave', () => {
+          logoElement.style.transform = 'scale(1)';
         });
       }
 
@@ -1261,15 +2515,15 @@
       
       switch (iconType) {
         case 'emoji':
-          iconHtml = `<span style="font-size: 28px; line-height: 1;">${iconEmoji}</span>`;
+          iconHtml = `<span class="botrix-toggle-icon-emoji">${iconEmoji}</span>`;
           break;
         case 'custom':
           if (iconUrl) {
-            iconHtml = `<img src="${iconUrl}" alt="Custom Icon" style="width: 28px; height: 28px; object-fit: contain;" />`;
+            iconHtml = `<img src="${iconUrl}" alt="Custom Icon" class="botrix-toggle-icon-custom" />`;
           } else {
             // Fallback to default
             iconHtml = `
-              <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <svg class="botrix-toggle-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
               </svg>
             `;
@@ -1277,7 +2531,7 @@
           break;
         default:
           iconHtml = `
-            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <svg class="botrix-toggle-icon-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
               <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
             </svg>
           `;
@@ -1367,7 +2621,9 @@
         nameDiv.className = 'botrix-message-username';
         nameDiv.style.fontSize = '12px';
         nameDiv.style.color = '#6b7280';
-        nameDiv.style.marginBottom = '2px';
+        nameDiv.style.marginBottom = '3px';
+        nameDiv.style.fontWeight = '600';
+        nameDiv.style.opacity = '0.9';
         nameDiv.textContent = this.userName || 'You';
         messageContent.appendChild(nameDiv);
       }
@@ -1612,49 +2868,7 @@
     }
   }
 
-  // Add popup styles
-  const popupStyles = `
-    .botrix-minimized-popup {
-      position: fixed;
-      background: linear-gradient(135deg, #8b5cf6, #ec4899);
-      color: white;
-      border-radius: 16px;
-      box-shadow: 0 4px 16px rgba(139, 92, 246, 0.15);
-      padding: 10px 18px;
-      font-size: 15px;
-      font-weight: 500;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      cursor: pointer;
-      z-index: 10002;
-      transition: opacity 0.2s, transform 0.2s;
-      opacity: 0.95;
-      min-width: 120px;
-      max-width: 220px;
-      user-select: none;
-    }
-    .botrix-minimized-popup .botrix-popup-close {
-      background: rgba(255,255,255,0.2);
-      border: none;
-      color: white;
-      font-size: 18px;
-      border-radius: 50%;
-      width: 24px;
-      height: 24px;
-      cursor: pointer;
-      display: none;
-      align-items: center;
-      justify-content: center;
-      transition: background 0.2s;
-    }
-    .botrix-minimized-popup .botrix-popup-close:hover {
-      background: rgba(255,255,255,0.4);
-    }
-  `;
-  const popupStyleElement = document.createElement('style');
-  popupStyleElement.textContent = popupStyles;
-  document.head.appendChild(popupStyleElement);
+
 
   // Global API
   window.BotrixChat = {

@@ -534,8 +534,14 @@ async function getSatisfactionData(
 }
 
 // Export analytics data
-export async function exportAnalyticsData(botId: string, format: 'csv' | 'json' = 'json'): Promise<string> {
-  const analytics = await getBotAnalytics(botId, 'month');
+export async function exportAnalyticsData(
+  botId: string, 
+  format: 'csv' | 'json' = 'json',
+  period: 'day' | 'week' | 'month' | 'custom' = 'month',
+  startDate?: Date,
+  endDate?: Date
+): Promise<string> {
+  const analytics = await getBotAnalytics(botId, period, startDate, endDate);
   
   if (format === 'csv') {
     return convertToCSV(analytics);
@@ -545,14 +551,53 @@ export async function exportAnalyticsData(botId: string, format: 'csv' | 'json' 
 }
 
 function convertToCSV(analytics: AnalyticsData): string {
-  const headers = ['Date', 'Conversations', 'Resolved', 'Handovers', 'Avg Messages'];
-  const rows = analytics.conversations.map(c => [
-    c.date,
-    c.count,
-    c.resolved,
-    c.handovers,
-    c.avgMessages
-  ]);
+  // Create comprehensive CSV with multiple sheets worth of data
+  let csvContent = '';
 
-  return [headers, ...rows].map(row => row.join(',')).join('\n');
+  // Summary Section
+  csvContent += 'ANALYTICS SUMMARY\n';
+  csvContent += `Period,${analytics.period}\n`;
+  csvContent += `Total Conversations,${analytics.performance.totalConversations}\n`;
+  csvContent += `Total Sessions,${analytics.performance.totalSessions}\n`;
+  csvContent += `Unique Users,${analytics.performance.uniqueUsers}\n`;
+  csvContent += `Active Users,${analytics.performance.activeUsers}\n`;
+  csvContent += `Resolution Rate (%),${analytics.performance.resolutionRate.toFixed(2)}\n`;
+  csvContent += `Average Response Time (s),${analytics.performance.averageResponseTime.toFixed(2)}\n`;
+  csvContent += `Handover Rate (%),${analytics.performance.handoverRate.toFixed(2)}\n`;
+  csvContent += `Avg Messages Per Conversation,${analytics.performance.avgMessagesPerConversation.toFixed(2)}\n`;
+  csvContent += `Avg Interactions Per User,${analytics.performance.averageInteractionsPerUser.toFixed(2)}\n`;
+  csvContent += '\n';
+
+  // Daily Conversations
+  csvContent += 'DAILY CONVERSATION DATA\n';
+  csvContent += 'Date,Conversations,Resolved,Handovers,Avg Messages\n';
+  analytics.conversations.forEach(c => {
+    csvContent += `${c.date},${c.count},${c.resolved},${c.handovers},${c.avgMessages}\n`;
+  });
+  csvContent += '\n';
+
+  // User Engagement
+  csvContent += 'USER ENGAGEMENT DATA\n';
+  csvContent += `Total Users,${analytics.userEngagement.totalUsers}\n`;
+  csvContent += `New Users,${analytics.userEngagement.newUsers}\n`;
+  csvContent += `Returning Users,${analytics.userEngagement.returningUsers}\n`;
+  csvContent += `Average Session Duration,${analytics.userEngagement.averageSessionDuration}\n`;
+  csvContent += '\n';
+
+  // Top Questions
+  csvContent += 'TOP QUESTIONS\n';
+  csvContent += 'Question,Count,Percentage,Avg Response Time (s)\n';
+  analytics.topQuestions.forEach(q => {
+    csvContent += `"${q.question.replace(/"/g, '""')}",${q.count},${q.percentage.toFixed(2)},${q.avgResponseTime.toFixed(2)}\n`;
+  });
+  csvContent += '\n';
+
+  // Peak Hours
+  csvContent += 'PEAK HOURS DATA\n';
+  csvContent += 'Hour,Conversations,Users\n';
+  analytics.userEngagement.peakHours.forEach(h => {
+    csvContent += `${h.hour}:00,${h.conversations},${h.users}\n`;
+  });
+
+  return csvContent;
 } 

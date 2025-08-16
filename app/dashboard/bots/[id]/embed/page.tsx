@@ -20,6 +20,7 @@ interface Bot {
     widgetIcon?: string;
     widgetIconType: 'default' | 'custom' | 'emoji';
     widgetIconEmoji: string;
+    theme: 'modern' | 'minimal' | 'gradient';
   };
   status: string;
 }
@@ -70,6 +71,7 @@ export default function EmbedPage() {
         position: 'bottom-right',
         welcomeMessage: '${bot.settings.welcomeMessage}',
         baseUrl: '${domain}', // Your Botrix domain
+        theme: '${bot.settings.theme || 'modern'}', // Apply theme styling
         // Widget icon settings are automatically loaded from bot configuration
       });
     };
@@ -88,6 +90,7 @@ export default function EmbedPage() {
   data-botrix-primary-color="${bot.settings.primaryColor}"
   data-botrix-position="bottom-right"
   data-botrix-welcome-message="${bot.settings.welcomeMessage}"
+  data-botrix-theme="${bot.settings.theme || 'modern'}"
   async>
 </script>`
   }
