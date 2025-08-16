@@ -15,7 +15,7 @@ export default function CreateBotPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
-  const [primaryColor, setPrimaryColor] = useState('#7c3aed')
+  const [primaryColor, setPrimaryColor] = useState('#10b981')
   const [logoUrl, setLogoUrl] = useState<string | null>(null)
   const [logoUploading, setLogoUploading] = useState(false)
   const [logoLoading, setLogoLoading] = useState(false)
@@ -102,20 +102,15 @@ export default function CreateBotPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-blue-50 relative overflow-hidden">
-      {/* Background Elements */}
-      <div className="absolute inset-0 hero-pattern opacity-30"></div>
-      <div className="absolute top-20 left-10 w-72 h-72 bg-purple-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse"></div>
-      <div className="absolute bottom-20 right-10 w-72 h-72 bg-blue-300 rounded-full mix-blend-multiply filter blur-xl opacity-20 animate-pulse delay-1000"></div>
+    <div className="min-h-screen bg-gray-50 relative overflow-hidden">
       
       <div className="relative z-10">
         {/* Header */}
-        <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm">
+        <header className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
           <div className="flex items-center space-x-4">
             <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="hover:bg-purple-50">
+              <Button variant="ghost" size="sm" className="hover:bg-green-50">
                 <ArrowLeft className="h-4 w-4 mr-2" />
-                Back to Dashboard
               </Button>
             </Link>
             <div>
@@ -128,10 +123,10 @@ export default function CreateBotPage() {
         {/* Content */}
         <main className="max-w-4xl mx-auto p-8 space-y-8">
           {/* Main Form Card */}
-          <Card className="border-0 shadow-xl card-glow bg-white/80 backdrop-blur-sm">
+          <Card className="border-0 shadow-xl card-glow bg-white">
             <CardHeader className="pb-6">
               <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-xl bg-teal-600">
+                <div className="p-3 rounded-xl bg-green-600">
                   <Bot className="h-6 w-6 text-white" />
                 </div>
                 <div>
@@ -211,7 +206,7 @@ export default function CreateBotPage() {
 
                     <div className="space-y-3">
                       <Label htmlFor="botName" className="text-sm font-semibold text-gray-700 flex items-center">
-                        <Sparkles className="w-4 h-4 mr-2 text-purple-500" />
+                        <Sparkles className="w-4 h-4 mr-2 text-green-500" />
                         Bot Name *
                       </Label>
                       <Input
@@ -219,7 +214,7 @@ export default function CreateBotPage() {
                         name="botName"
                         type="text"
                         placeholder="e.g., Customer Support Bot"
-                        className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                        className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
                         required
                       />
                       <p className="text-sm text-gray-500">
@@ -236,7 +231,7 @@ export default function CreateBotPage() {
                         name="botDescription"
                         type="text"
                         placeholder="Brief description of what your bot does"
-                        className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                        className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
                       />
                       <p className="text-sm text-gray-500">
                         Help your team understand the bot's purpose
@@ -245,7 +240,7 @@ export default function CreateBotPage() {
 
                     <div className="space-y-3">
                       <Label htmlFor="welcomeMessage" className="text-sm font-semibold text-gray-700 flex items-center">
-                        <Zap className="w-4 h-4 mr-2 text-blue-500" />
+                        <Zap className="w-4 h-4 mr-2 text-green-500" />
                         Welcome Message *
                       </Label>
                       <Input
@@ -254,7 +249,7 @@ export default function CreateBotPage() {
                         type="text"
                         placeholder="Hello! How can I help you today?"
                         defaultValue="Hello! How can I help you today?"
-                        className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                        className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
                         required
                       />
                       <p className="text-sm text-gray-500">
@@ -267,7 +262,7 @@ export default function CreateBotPage() {
                   <div className="space-y-6">
                     <div className="space-y-3">
                       <Label htmlFor="primaryColor" className="text-sm font-semibold text-gray-700 flex items-center">
-                        <Palette className="w-4 h-4 mr-2 text-pink-500" />
+                        <Palette className="w-4 h-4 mr-2 text-green-500" />
                         Primary Color
                       </Label>
                       <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
@@ -284,8 +279,8 @@ export default function CreateBotPage() {
                             type="text"
                             value={primaryColor}
                             onChange={(e) => setPrimaryColor(e.target.value)}
-                            className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
-                            placeholder="#7c3aed"
+                            className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
+                            placeholder="#10b981"
                           />
                         </div>
                       </div>
@@ -304,7 +299,7 @@ export default function CreateBotPage() {
                         name="webhookUrl"
                         type="url"
                         placeholder="https://your-automation.com/webhook/your-webhook-id"
-                        className="h-12 border-gray-200 focus:border-purple-300 focus:ring-purple-200"
+                        className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
                       />
                       <p className="text-sm text-gray-500">
                         Your automation webhook URL for processing bot conversations. You can change this to use a different webhook if needed.
@@ -315,11 +310,11 @@ export default function CreateBotPage() {
 
                 <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
                   <Link href="/dashboard">
-                    <Button variant="outline" type="button" className="px-8 py-3 border-purple-200 text-purple-600 hover:bg-purple-50">
+                    <Button variant="outline" type="button" className="px-8 py-3 border-green-200 text-green-600 hover:bg-green-50">
                       Cancel
                     </Button>
                   </Link>
-                  <Button type="submit" disabled={isLoading} className="bg-teal-600 text-white border-0 px-8 py-3 hover:bg-teal-700 hover:shadow-lg hover:scale-105 transition-all">
+                  <Button type="submit" disabled={isLoading} className="bg-green-600 text-white border-0 px-8 py-3 hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all">
                     {isLoading ? 'Creating Bot...' : 'Create Bot'}
                   </Button>
                 </div>
@@ -328,10 +323,10 @@ export default function CreateBotPage() {
           </Card>
 
           {/* Next Steps Preview */}
-          <Card className="border-0 shadow-lg bg-white/60 backdrop-blur-sm">
+          <Card className="border-0 shadow-lg bg-white">
             <CardHeader>
               <CardTitle className="text-xl flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-purple-500" />
+                <Sparkles className="w-5 h-5 mr-2 text-green-500" />
                 What's Next?
               </CardTitle>
               <CardDescription>
@@ -341,8 +336,8 @@ export default function CreateBotPage() {
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-3">
-                  <div className="flex items-center p-3 bg-blue-50 rounded-lg">
-                    <div className="w-8 h-8 bg-blue-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">1</div>
+                  <div className="flex items-center p-3 bg-green-50 rounded-lg">
+                    <div className="w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">1</div>
                     <div>
                       <div className="font-medium text-gray-900">Configure Responses</div>
                       <div className="text-sm text-gray-600">Set up conversation flows</div>
@@ -357,15 +352,15 @@ export default function CreateBotPage() {
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center p-3 bg-purple-50 rounded-lg">
-                    <div className="w-8 h-8 bg-purple-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">3</div>
+                  <div className="flex items-center p-3 bg-emerald-50 rounded-lg">
+                    <div className="w-8 h-8 bg-emerald-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">3</div>
                     <div>
                       <div className="font-medium text-gray-900">Get Embed Code</div>
                       <div className="text-sm text-gray-600">Add to your website</div>
                     </div>
                   </div>
-                  <div className="flex items-center p-3 bg-orange-50 rounded-lg">
-                    <div className="w-8 h-8 bg-orange-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">4</div>
+                  <div className="flex items-center p-3 bg-teal-50 rounded-lg">
+                    <div className="w-8 h-8 bg-teal-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">4</div>
                     <div>
                       <div className="font-medium text-gray-900">Monitor & Optimize</div>
                       <div className="text-sm text-gray-600">Track performance</div>
