@@ -47,13 +47,15 @@ export async function POST(request: NextRequest) {
     // Check if Cloudinary is configured
     const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
                          process.env.CLOUDINARY_API_KEY && 
-                         process.env.CLOUDINARY_API_SECRET;
+                         process.env.CLOUDINARY_API_SECRET &&
+                         process.env.CLOUDINARY_UPLOAD_PRESET;
     
     if (isVercel && hasCloudinary) {
       // Use Cloudinary for production uploads
       return await uploadToCloudinary(file);
-    } else if (isVercel && !hasCloudinary) {
-      // Fallback to data URL if Cloudinary not configured
+    } else if (isVercel) {
+      // Fallback to data URL if Cloudinary not configured or on Vercel
+      console.log('Using data URL fallback on Vercel environment');
       return await convertToDataUrl(file);
     } else {
       // Use local filesystem for development
@@ -83,7 +85,7 @@ async function uploadToCloudinary(file: File) {
     
     const formData = new FormData();
     formData.append('file', dataURI);
-    formData.append('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET || 'ml_default');
+    formData.append('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET!);
     
     // Add optional parameters for better image handling
     formData.append('folder', 'botrix-logos'); // Organize uploads in a folder
