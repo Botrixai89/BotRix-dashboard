@@ -94,24 +94,33 @@ async function uploadToCloudinary(file: File) {
     const base64 = buffer.toString('base64');
     const dataURI = `data:${file.type};base64,${base64}`;
 
-    // Upload to Cloudinary using server-side upload
+    // Upload to Cloudinary using basic fetch (works with unsigned presets)
     const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`;
     
+    // Try the most minimal approach possible
     const formData = new FormData();
     formData.append('file', dataURI);
-    formData.append('upload_preset', process.env.CLOUDINARY_UPLOAD_PRESET!);
     
-    // Add optional parameters for better image handling
-    formData.append('folder', 'botrix-logos'); // Organize uploads in a folder
-    formData.append('transformation', 'f_auto,q_auto'); // Auto format and quality
+    // First try with ml_default (Cloudinary's built-in unsigned preset)
+    formData.append('upload_preset', 'ml_default');
 
     console.log('Making request to:', cloudinaryUrl);
-    console.log('Using upload preset:', process.env.CLOUDINARY_UPLOAD_PRESET);
+    console.log('Testing with hardcoded preset: ml_default');
+    console.log('Original env preset was:', process.env.CLOUDINARY_UPLOAD_PRESET);
+    console.log('FormData keys:', Array.from(formData.keys()));
+    
+    // Log all form data entries for debugging
+    for (const [key, value] of formData.entries()) {
+      console.log(`FormData ${key}:`, typeof value === 'string' ? value.substring(0, 100) + '...' : value);
+    }
 
     const response = await fetch(cloudinaryUrl, {
       method: 'POST',
       body: formData,
     });
+
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
