@@ -110,9 +110,10 @@ async function uploadToCloudinary(file: File) {
     console.log('FormData keys:', Array.from(formData.keys()));
     
     // Log all form data entries for debugging
-    for (const [key, value] of formData.entries()) {
+    const entries = Array.from(formData.entries());
+    entries.forEach(([key, value]) => {
       console.log(`FormData ${key}:`, typeof value === 'string' ? value.substring(0, 100) + '...' : value);
-    }
+    });
 
     const response = await fetch(cloudinaryUrl, {
       method: 'POST',
