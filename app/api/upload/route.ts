@@ -63,6 +63,14 @@ export async function POST(request: NextRequest) {
     }
   } catch (error) {
     console.error('Upload error:', error);
+    console.error('Environment check:', {
+      isVercel: process.env.VERCEL === '1',
+      hasCloudName: !!process.env.CLOUDINARY_CLOUD_NAME,
+      hasApiKey: !!process.env.CLOUDINARY_API_KEY,
+      hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
+      hasUploadPreset: !!process.env.CLOUDINARY_UPLOAD_PRESET,
+      presetValue: process.env.CLOUDINARY_UPLOAD_PRESET
+    });
     return NextResponse.json({ 
       error: 'Upload failed', 
       details: error instanceof Error ? error.message : 'Unknown error'
@@ -73,6 +81,12 @@ export async function POST(request: NextRequest) {
 async function uploadToCloudinary(file: File) {
   try {
     console.log('Uploading to Cloudinary...');
+    console.log('Cloudinary config:', {
+      cloudName: process.env.CLOUDINARY_CLOUD_NAME,
+      hasApiKey: !!process.env.CLOUDINARY_API_KEY,
+      hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
+      uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET
+    });
     
     // Convert file to base64
     const bytes = await file.arrayBuffer();
@@ -91,6 +105,9 @@ async function uploadToCloudinary(file: File) {
     formData.append('folder', 'botrix-logos'); // Organize uploads in a folder
     formData.append('transformation', 'f_auto,q_auto'); // Auto format and quality
 
+    console.log('Making request to:', cloudinaryUrl);
+    console.log('Using upload preset:', process.env.CLOUDINARY_UPLOAD_PRESET);
+
     const response = await fetch(cloudinaryUrl, {
       method: 'POST',
       body: formData,
@@ -98,8 +115,12 @@ async function uploadToCloudinary(file: File) {
 
     if (!response.ok) {
       const errorText = await response.text();
-      console.error('Cloudinary upload failed:', errorText);
-      throw new Error(`Cloudinary upload failed: ${response.status} ${response.statusText}`);
+      console.error('Cloudinary upload failed:', {
+        status: response.status,
+        statusText: response.statusText,
+        errorBody: errorText
+      });
+      throw new Error(`Cloudinary upload failed: ${response.status} ${response.statusText} - ${errorText}`);
     }
 
     const result = await response.json();
