@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { writeFile, mkdir } from 'fs/promises';
 import { join } from 'path';
 import { existsSync } from 'fs';
+import crypto from 'crypto';
 
 export async function POST(request: NextRequest) {
   try {
@@ -44,11 +45,10 @@ export async function POST(request: NextRequest) {
     // Check if we're in a Vercel environment (read-only filesystem)
     const isVercel = process.env.VERCEL === '1';
     
-    // Check if Cloudinary is configured
+    // Check if Cloudinary is configured for signed uploads
     const hasCloudinary = process.env.CLOUDINARY_CLOUD_NAME && 
                          process.env.CLOUDINARY_API_KEY && 
-                         process.env.CLOUDINARY_API_SECRET &&
-                         process.env.CLOUDINARY_UPLOAD_PRESET;
+                         process.env.CLOUDINARY_API_SECRET;
     
     if (isVercel && hasCloudinary) {
       // Use Cloudinary for production uploads
@@ -78,14 +78,30 @@ export async function POST(request: NextRequest) {
   }
 }
 
+function generateSignature(params: Record<string, any>, apiSecret: string): string {
+  // Sort parameters
+  const sortedParams = Object.keys(params)
+    .filter(key => params[key] !== undefined && params[key] !== '')
+    .sort()
+    .map(key => `${key}=${params[key]}`)
+    .join('&');
+  
+  // Create signature
+  const signature = crypto
+    .createHash('sha1')
+    .update(sortedParams + apiSecret)
+    .digest('hex');
+  
+  return signature;
+}
+
 async function uploadToCloudinary(file: File) {
   try {
-    console.log('Uploading to Cloudinary...');
+    console.log('Uploading to Cloudinary with signed upload...');
     console.log('Cloudinary config:', {
       cloudName: process.env.CLOUDINARY_CLOUD_NAME,
       hasApiKey: !!process.env.CLOUDINARY_API_KEY,
       hasApiSecret: !!process.env.CLOUDINARY_API_SECRET,
-      uploadPreset: process.env.CLOUDINARY_UPLOAD_PRESET
     });
     
     // Convert file to base64
@@ -94,34 +110,38 @@ async function uploadToCloudinary(file: File) {
     const base64 = buffer.toString('base64');
     const dataURI = `data:${file.type};base64,${base64}`;
 
-    // Upload to Cloudinary using basic fetch (works with unsigned presets)
+    // Create timestamp for signature
+    const timestamp = Math.round(new Date().getTime() / 1000);
+    
+    // Prepare parameters for signature
+    const params = {
+      timestamp: timestamp,
+      folder: 'botrix-logos'
+    };
+    
+    // Generate signature
+    const signature = generateSignature(params, process.env.CLOUDINARY_API_SECRET!);
+    
+    // Upload to Cloudinary using signed upload
     const cloudinaryUrl = `https://api.cloudinary.com/v1_1/${process.env.CLOUDINARY_CLOUD_NAME}/image/upload`;
     
-    // Try the most minimal approach possible
     const formData = new FormData();
     formData.append('file', dataURI);
-    
-    // First try with ml_default (Cloudinary's built-in unsigned preset)
-    formData.append('upload_preset', 'ml_default');
+    formData.append('api_key', process.env.CLOUDINARY_API_KEY!);
+    formData.append('timestamp', timestamp.toString());
+    formData.append('signature', signature);
+    formData.append('folder', 'botrix-logos');
 
-    console.log('Making request to:', cloudinaryUrl);
-    console.log('Testing with hardcoded preset: ml_default');
-    console.log('Original env preset was:', process.env.CLOUDINARY_UPLOAD_PRESET);
-    console.log('FormData keys:', Array.from(formData.keys()));
+    console.log('Making signed request to:', cloudinaryUrl);
+    console.log('Using timestamp:', timestamp);
+    console.log('Signature generated');
     
-    // Log all form data entries for debugging
-    const entries = Array.from(formData.entries());
-    entries.forEach(([key, value]) => {
-      console.log(`FormData ${key}:`, typeof value === 'string' ? value.substring(0, 100) + '...' : value);
-    });
-
     const response = await fetch(cloudinaryUrl, {
       method: 'POST',
       body: formData,
     });
 
     console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       const errorText = await response.text();
