@@ -106,54 +106,55 @@ export default function CreateBotPage() {
       
       <div className="relative z-10">
         {/* Header */}
-        <header className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm">
-          <div className="flex items-center space-x-4">
+        <header className="bg-white border-b border-gray-200 px-4 sm:px-8 py-4 sm:py-6 shadow-sm">
+          <div className="flex items-center space-x-3 sm:space-x-4">
             <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="hover:bg-green-50">
-                <ArrowLeft className="h-4 w-4 mr-2" />
+              <Button variant="ghost" size="sm" className="hover:bg-green-50 p-2 sm:p-2 min-w-[40px] min-h-[40px] rounded-lg">
+                <ArrowLeft className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Back</span>
               </Button>
             </Link>
-            <div>
-              <h1 className="text-3xl font-bold text-gray-900">Create New Bot</h1>
-              <p className="text-gray-600 mt-1">Set up your intelligent chatbot in minutes</p>
+            <div className="min-w-0 flex-1">
+              <h1 className="text-xl sm:text-3xl font-bold text-gray-900 truncate">Create New Bot</h1>
+              <p className="text-sm sm:text-base text-gray-600 mt-1">Set up your intelligent chatbot in minutes</p>
             </div>
           </div>
         </header>
 
         {/* Content */}
-        <main className="max-w-4xl mx-auto p-8 space-y-8">
+        <main className="max-w-4xl mx-auto p-4 sm:p-8 space-y-6 sm:space-y-8">
           {/* Main Form Card */}
-          <Card className="border-0 shadow-xl card-glow bg-white">
-            <CardHeader className="pb-6">
-              <div className="flex items-center space-x-3">
-                <div className="p-3 rounded-xl bg-green-600">
-                  <Bot className="h-6 w-6 text-white" />
+          <Card className="border-0 shadow-xl card-glow bg-white rounded-xl">
+            <CardHeader className="pb-4 sm:pb-6 px-4 sm:px-6 pt-6">
+              <div className="flex items-start sm:items-center space-x-3 sm:space-x-4">
+                <div className="p-2 sm:p-3 rounded-xl bg-green-600 flex-shrink-0">
+                  <Bot className="h-5 w-5 sm:h-6 sm:w-6 text-white" />
                 </div>
-                <div>
-                  <CardTitle className="text-2xl">Bot Configuration</CardTitle>
-                  <CardDescription className="text-gray-600">
+                <div className="min-w-0 flex-1">
+                  <CardTitle className="text-lg sm:text-2xl font-bold">Bot Configuration</CardTitle>
+                  <CardDescription className="text-gray-600 text-sm sm:text-base mt-1">
                     Configure your bot's basic settings and personality
                   </CardDescription>
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
+            <CardContent className="px-4 sm:px-6 pb-6">
               {error && (
-                <div className="mb-6 p-4 bg-red-50 border border-red-200 rounded-xl">
+                <div className="mb-4 sm:mb-6 p-3 sm:p-4 bg-red-50 border border-red-200 rounded-xl">
                   <p className="text-red-800 text-sm font-medium">{error}</p>
                 </div>
               )}
 
-              <form className="space-y-8" onSubmit={handleSubmit}>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <form className="space-y-6 sm:space-y-8" onSubmit={handleSubmit}>
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 sm:gap-8">
                   {/* Left Column */}
-                  <div className="space-y-6">
+                  <div className="space-y-5 sm:space-y-6">
                     {/* Logo Upload */}
                     <div className="space-y-3">
                       <Label className="text-sm font-semibold text-gray-700 flex items-center">
                         Company Logo
                       </Label>
-                                             <div className="flex items-center space-x-4">
+                      <div className="flex items-center space-x-3 sm:space-x-4">
                          <input
                            ref={logoInputRef}
                            type="file"
@@ -161,11 +162,17 @@ export default function CreateBotPage() {
                            className="hidden"
                            onChange={handleLogoChange}
                          />
-                                                   <Button type="button" variant="outline" onClick={() => logoInputRef.current?.click()} disabled={logoUploading}>
+                         <Button 
+                           type="button" 
+                           variant="outline" 
+                           onClick={() => logoInputRef.current?.click()} 
+                           disabled={logoUploading}
+                           className="py-2.5 px-4 h-auto text-sm font-medium rounded-lg min-h-[44px]"
+                         >
                             {logoUploading ? 'Uploading...' : 'Upload Logo'}
                           </Button>
 
-                         <div className="w-12 h-12 rounded-lg border border-gray-200 overflow-hidden relative bg-white">
+                         <div className="w-12 h-12 sm:w-14 sm:h-14 rounded-lg border border-gray-200 overflow-hidden relative bg-white flex-shrink-0">
                            {logoUrl ? (
                              <>
                                {logoLoading && (
@@ -214,7 +221,7 @@ export default function CreateBotPage() {
                         name="botName"
                         type="text"
                         placeholder="e.g., Customer Support Bot"
-                        className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
+                        className="h-12 sm:h-12 border-gray-200 focus:border-green-300 focus:ring-green-200 text-base rounded-lg px-4"
                         required
                       />
                       <p className="text-sm text-gray-500">
@@ -231,7 +238,7 @@ export default function CreateBotPage() {
                         name="botDescription"
                         type="text"
                         placeholder="Brief description of what your bot does"
-                        className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
+                        className="h-12 sm:h-12 border-gray-200 focus:border-green-300 focus:ring-green-200 text-base rounded-lg px-4"
                       />
                       <p className="text-sm text-gray-500">
                         Help your team understand the bot's purpose
@@ -249,7 +256,7 @@ export default function CreateBotPage() {
                         type="text"
                         placeholder="Hello! How can I help you today?"
                         defaultValue="Hello! How can I help you today?"
-                        className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
+                        className="h-12 sm:h-12 border-gray-200 focus:border-green-300 focus:ring-green-200 text-base rounded-lg px-4"
                         required
                       />
                       <p className="text-sm text-gray-500">
@@ -259,27 +266,27 @@ export default function CreateBotPage() {
                   </div>
 
                   {/* Right Column */}
-                  <div className="space-y-6">
+                  <div className="space-y-5 sm:space-y-6">
                     <div className="space-y-3">
                       <Label htmlFor="primaryColor" className="text-sm font-semibold text-gray-700 flex items-center">
                         <Palette className="w-4 h-4 mr-2 text-green-500" />
                         Primary Color
                       </Label>
-                      <div className="flex items-center space-x-3 p-4 bg-gray-50 rounded-xl">
+                      <div className="flex items-center space-x-3 p-3 sm:p-4 bg-gray-50 rounded-xl">
                         <input
                           id="primaryColor"
                           name="primaryColor"
                           type="color"
                           value={primaryColor}
                           onChange={(e) => setPrimaryColor(e.target.value)}
-                          className="w-16 h-12 rounded-lg border-2 border-white shadow-lg cursor-pointer"
+                          className="w-12 h-12 sm:w-16 sm:h-12 rounded-lg border-2 border-white shadow-lg cursor-pointer flex-shrink-0"
                         />
-                        <div className="flex-1">
+                        <div className="flex-1 min-w-0">
                           <Input
                             type="text"
                             value={primaryColor}
                             onChange={(e) => setPrimaryColor(e.target.value)}
-                            className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
+                            className="h-12 sm:h-12 border-gray-200 focus:border-green-300 focus:ring-green-200 text-base rounded-lg px-4"
                             placeholder="#10b981"
                           />
                         </div>
@@ -299,7 +306,7 @@ export default function CreateBotPage() {
                         name="webhookUrl"
                         type="url"
                         placeholder="https://your-automation.com/webhook/your-webhook-id"
-                        className="h-12 border-gray-200 focus:border-green-300 focus:ring-green-200"
+                        className="h-12 sm:h-12 border-gray-200 focus:border-green-300 focus:ring-green-200 text-base rounded-lg px-4"
                       />
                       <p className="text-sm text-gray-500">
                         Your automation webhook URL for processing bot conversations. You can change this to use a different webhook if needed.
@@ -308,13 +315,21 @@ export default function CreateBotPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end space-x-4 pt-6 border-t border-gray-200">
-                  <Link href="/dashboard">
-                    <Button variant="outline" type="button" className="px-8 py-3 border-green-200 text-green-600 hover:bg-green-50">
+                <div className="flex flex-col sm:flex-row sm:justify-end space-y-3 sm:space-y-0 sm:space-x-4 pt-6 border-t border-gray-200">
+                  <Link href="/dashboard" className="order-2 sm:order-1">
+                    <Button 
+                      variant="outline" 
+                      type="button" 
+                      className="w-full sm:w-auto px-6 sm:px-8 py-3 border-green-200 text-green-600 hover:bg-green-50 rounded-lg font-medium min-h-[48px]"
+                    >
                       Cancel
                     </Button>
                   </Link>
-                  <Button type="submit" disabled={isLoading} className="bg-green-600 text-white border-0 px-8 py-3 hover:bg-green-700 hover:shadow-lg hover:scale-105 transition-all">
+                  <Button 
+                    type="submit" 
+                    disabled={isLoading} 
+                    className="order-1 sm:order-2 w-full sm:w-auto bg-green-600 text-white border-0 px-6 sm:px-8 py-3 hover:bg-green-700 hover:shadow-lg transition-all rounded-lg font-medium min-h-[48px]"
+                  >
                     {isLoading ? 'Creating Bot...' : 'Create Bot'}
                   </Button>
                 </div>
@@ -323,47 +338,47 @@ export default function CreateBotPage() {
           </Card>
 
           {/* Next Steps Preview */}
-          <Card className="border-0 shadow-lg bg-white">
-            <CardHeader>
-              <CardTitle className="text-xl flex items-center">
-                <Sparkles className="w-5 h-5 mr-2 text-green-500" />
+          <Card className="border-0 shadow-lg bg-white rounded-xl">
+            <CardHeader className="px-4 sm:px-6 pb-4">
+              <CardTitle className="text-lg sm:text-xl flex items-center">
+                <Sparkles className="w-5 h-5 mr-2 text-green-500 flex-shrink-0" />
                 What's Next?
               </CardTitle>
-              <CardDescription>
+              <CardDescription className="text-sm sm:text-base">
                 After creating your bot, you'll be able to:
               </CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <CardContent className="px-4 sm:px-6 pb-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-3">
-                  <div className="flex items-center p-3 bg-green-50 rounded-lg">
-                    <div className="w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">1</div>
-                    <div>
-                      <div className="font-medium text-gray-900">Configure Responses</div>
-                      <div className="text-sm text-gray-600">Set up conversation flows</div>
+                  <div className="flex items-start sm:items-center p-3 sm:p-4 bg-green-50 rounded-lg">
+                    <div className="w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold flex-shrink-0">1</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-gray-900 text-sm sm:text-base">Configure Responses</div>
+                      <div className="text-xs sm:text-sm text-gray-600 mt-1">Set up conversation flows</div>
                     </div>
                   </div>
-                  <div className="flex items-center p-3 bg-green-50 rounded-lg">
-                    <div className="w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">2</div>
-                    <div>
-                      <div className="font-medium text-gray-900">Customize Widget</div>
-                      <div className="text-sm text-gray-600">Match your brand style</div>
+                  <div className="flex items-start sm:items-center p-3 sm:p-4 bg-green-50 rounded-lg">
+                    <div className="w-8 h-8 bg-green-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold flex-shrink-0">2</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-gray-900 text-sm sm:text-base">Customize Widget</div>
+                      <div className="text-xs sm:text-sm text-gray-600 mt-1">Match your brand style</div>
                     </div>
                   </div>
                 </div>
                 <div className="space-y-3">
-                  <div className="flex items-center p-3 bg-emerald-50 rounded-lg">
-                    <div className="w-8 h-8 bg-emerald-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">3</div>
-                    <div>
-                      <div className="font-medium text-gray-900">Get Embed Code</div>
-                      <div className="text-sm text-gray-600">Add to your website</div>
+                  <div className="flex items-start sm:items-center p-3 sm:p-4 bg-emerald-50 rounded-lg">
+                    <div className="w-8 h-8 bg-emerald-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold flex-shrink-0">3</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-gray-900 text-sm sm:text-base">Get Embed Code</div>
+                      <div className="text-xs sm:text-sm text-gray-600 mt-1">Add to your website</div>
                     </div>
                   </div>
-                  <div className="flex items-center p-3 bg-teal-50 rounded-lg">
-                    <div className="w-8 h-8 bg-teal-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold">4</div>
-                    <div>
-                      <div className="font-medium text-gray-900">Monitor & Optimize</div>
-                      <div className="text-sm text-gray-600">Track performance</div>
+                  <div className="flex items-start sm:items-center p-3 sm:p-4 bg-teal-50 rounded-lg">
+                    <div className="w-8 h-8 bg-teal-500 text-white rounded-lg flex items-center justify-center mr-3 text-sm font-bold flex-shrink-0">4</div>
+                    <div className="min-w-0 flex-1">
+                      <div className="font-medium text-gray-900 text-sm sm:text-base">Monitor & Optimize</div>
+                      <div className="text-xs sm:text-sm text-gray-600 mt-1">Track performance</div>
                     </div>
                   </div>
                 </div>
