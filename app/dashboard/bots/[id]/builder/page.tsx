@@ -9,7 +9,7 @@ import {
   Plus, Edit, Trash2, MessageSquare, Save, Settings, Zap, Globe, Palette, TestTube, 
   AlertTriangle, CheckCircle, XCircle, Volume2, VolumeX, Play, Pause, Search, 
   ArrowRight, Copy, MoreVertical, Image, Clock, User, Home, FileText, Share2,
-  ChevronDown, ChevronRight, RotateCcw
+  ChevronDown, ChevronRight, RotateCcw, X
 } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
@@ -76,7 +76,7 @@ export default function BuilderPage() {
   const [isTestingWebhook, setIsTestingWebhook] = useState(false)
   
   // New state for the flow builder
-  const [activeSection, setActiveSection] = useState('paths')
+  const [activeSection, setActiveSection] = useState('canvas')
   const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null)
   const [paths, setPaths] = useState<Path[]>([
     {
@@ -555,17 +555,17 @@ export default function BuilderPage() {
 
   const renderNode = (node: FlowNode, index: number) => {
     const isSelected = selectedNode?.id === node.id
-  return (
-      <div key={node.id} className="flex items-center mb-2">
+    return (
+      <div key={node.id} className="flex flex-col sm:flex-row items-stretch sm:items-center mb-3 sm:mb-2">
         <div 
-          className={`flex-1 flex items-center p-3 rounded-lg border cursor-pointer transition-all ${
+          className={`flex-1 flex items-center p-4 sm:p-3 rounded-lg border cursor-pointer transition-all min-h-[60px] ${
             isSelected 
               ? 'border-orange-400 bg-orange-50' 
-              : 'border-gray-200 bg-white hover:border-gray-300'
+              : 'border-gray-200 bg-white hover:border-gray-300 active:bg-gray-50'
           }`}
           onClick={() => setSelectedNode(node)}
         >
-          <div className={`p-2 rounded-lg mr-3 ${
+          <div className={`p-2 sm:p-2 rounded-lg mr-3 flex-shrink-0 ${
             node.type === 'welcome' ? 'bg-orange-100 text-orange-600' :
             node.type === 'message' ? 'bg-orange-100 text-orange-600' :
             node.type === 'image' ? 'bg-blue-100 text-blue-600' :
@@ -574,19 +574,19 @@ export default function BuilderPage() {
           }`}>
             {renderNodeIcon(node.type)}
           </div>
-          <div className="flex-1">
-            <div className="font-medium text-gray-900">{node.title}</div>
+          <div className="flex-1 min-w-0">
+            <div className="font-medium text-gray-900 text-sm sm:text-base">{node.title}</div>
             {node.content && (
-              <div className="text-sm text-gray-500 truncate">
-                {node.content.length > 30 ? `${node.content.substring(0, 30)}...` : node.content}
+              <div className="text-sm text-gray-500 truncate mt-1">
+                {node.content.length > 40 ? `${node.content.substring(0, 40)}...` : node.content}
               </div>
             )}
           </div>
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 ml-2">
             <Button 
               size="sm" 
               variant="ghost" 
-              className="h-8 w-8 p-0"
+              className="h-9 w-9 sm:h-8 sm:w-8 p-0 hover:bg-gray-100 active:bg-gray-200 rounded-lg"
               onClick={(e) => {
                 e.stopPropagation()
                 setSelectedNode(node)
@@ -594,10 +594,10 @@ export default function BuilderPage() {
             >
               <Edit className="h-4 w-4" />
             </Button>
-                          <Button 
+            <Button 
               size="sm" 
               variant="ghost" 
-              className="h-8 w-8 p-0 text-red-500 hover:text-red-700"
+              className="h-9 w-9 sm:h-8 sm:w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 active:bg-red-100 rounded-lg"
               onClick={(e) => {
                 e.stopPropagation()
                 deleteNode(node.id)
@@ -608,36 +608,59 @@ export default function BuilderPage() {
           </div>
         </div>
         {index < selectedPath.nodes.length - 1 && (
-          <ArrowRight className="h-4 w-4 text-gray-400 mx-2" />
+          <div className="flex justify-center sm:justify-start py-2 sm:py-0 sm:mx-2">
+            <ArrowRight className="h-4 w-4 text-gray-400 rotate-90 sm:rotate-0" />
+          </div>
         )}
       </div>
     )
   }
 
   return (
-    <div className="flex h-screen bg-gray-50">
+    <div className="flex flex-col lg:flex-row h-screen bg-gray-50">
+      {/* Mobile Header */}
+      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
+        <div className="flex items-center space-x-2">
+          <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
+            <MessageSquare className="h-4 w-4 text-orange-600" />
+          </div>
+          <div>
+            <h1 className="font-semibold text-gray-900 text-sm">{bot?.name || 'Bot Builder'}</h1>
+            <p className="text-xs text-gray-500">{selectedPath.name}</p>
+          </div>
+        </div>
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={() => setActiveSection(activeSection === 'canvas' ? 'paths' : 'canvas')}
+          className="p-2 rounded-lg"
+        >
+          {activeSection === 'canvas' ? <MessageSquare className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
+        </Button>
+      </div>
+
       {/* Left Sidebar */}
-      <div className="w-80 bg-white border-r border-gray-200 flex flex-col">
+      <div className={`${activeSection === 'paths' ? 'block' : 'hidden'} lg:block w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col`}>
         {/* Sidebar Header */}
-        <div className="p-4 border-b border-gray-200">
-          <div className="flex items-center space-x-2 mb-4">
+        <div className="p-3 sm:p-4 border-b border-gray-200">
+          <div className="hidden lg:flex items-center space-x-2 mb-4">
             <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
               <MessageSquare className="h-4 w-4 text-orange-600" />
-                </div>
-                <div>
+            </div>
+            <div>
               <h1 className="font-semibold text-gray-900">{bot?.name || '#LittUpLocal'}</h1>
               <p className="text-sm text-gray-500">Welcome new user</p>
-                </div>
-              </div>
+            </div>
+          </div>
           
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-              <Input
+            <Input
               placeholder="Search path..."
-              className="pl-10 h-9 bg-gray-50 border-gray-200"
+              className="pl-10 h-10 sm:h-9 bg-gray-50 border-gray-200 text-base sm:text-sm"
             />
-                </div>
-            </div>
+          </div>
+        </div>
 
         {/* Paths Section */}
         <div className="flex-1 overflow-y-auto">
@@ -788,31 +811,32 @@ export default function BuilderPage() {
       </div>
 
       {/* Main Content Area */}
-      <div className="flex-1 flex flex-col">
+      <div className={`${activeSection === 'canvas' || activeSection === 'config' ? 'block' : 'hidden'} lg:block flex-1 flex flex-col`}>
         {/* Top Navigation Bar */}
-        <div className="bg-white border-b border-gray-200 px-6 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center space-x-4">
-              <h2 className="text-lg font-semibold text-gray-900">Builder</h2>
+        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
+            <div className="flex items-center space-x-3 sm:space-x-4">
+              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Builder</h2>
               <Button 
                 variant="outline" 
                 size="sm"
-                className="border-gray-300"
+                className="border-gray-300 px-3 py-2 text-sm"
               >
                 <Play className="h-4 w-4 mr-2" />
                 Start
               </Button>
-                  </div>
+            </div>
 
-                  <div className="flex items-center space-x-3">
+            <div className="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto overflow-x-auto">
               <Button 
                 variant="outline" 
                 size="sm"
                 onClick={testWebhook}
                 disabled={isTestingWebhook || !formData.webhookUrl}
+                className="px-3 py-2 text-sm min-h-[36px] flex-shrink-0"
               >
-                <TestTube className="h-4 w-4 mr-2" />
-                {isTestingWebhook ? 'Testing...' : 'Test'}
+                <TestTube className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">{isTestingWebhook ? 'Testing...' : 'Test'}</span>
               </Button>
               <Button 
                 variant="outline" 
@@ -832,31 +856,36 @@ export default function BuilderPage() {
                     setSelectedNode(null)
                   }
                 }}
+                className="px-3 py-2 text-sm min-h-[36px] flex-shrink-0"
               >
-                <RotateCcw className="h-4 w-4 mr-2" />
-                Reset
+                <RotateCcw className="h-4 w-4 sm:mr-2" />
+                <span className="hidden sm:inline">Reset</span>
               </Button>
               <Button 
                 size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm min-h-[36px] flex-shrink-0"
                 onClick={handleSave}
                 disabled={isSaving}
               >
                 {isSaving ? (
                   <>
                     <ButtonLoading size="sm" />
-                    <span className="ml-2">Saving...</span>
+                    <span className="ml-2 hidden sm:inline">Saving...</span>
                   </>
                 ) : (
                   <>
-                    <Save className="h-4 w-4 mr-2" />
-                    Save
+                    <Save className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline">Save</span>
                   </>
                 )}
               </Button>
-              <Button variant="outline" size="sm">
-                <Share2 className="h-4 w-4 mr-2" />
-                Share
+              <Button 
+                variant="outline" 
+                size="sm"
+                className="px-3 py-2 text-sm min-h-[36px] flex-shrink-0 lg:hidden"
+                onClick={() => setActiveSection('config')}
+              >
+                <Settings className="h-4 w-4" />
               </Button>
                     </div>
                     </div>
@@ -864,14 +893,14 @@ export default function BuilderPage() {
 
         {/* Flow Builder Canvas */}
         <div className="flex-1 flex">
-          <div className="flex-1 p-6 overflow-auto">
+          <div className="flex-1 p-3 sm:p-6 overflow-auto">
             <div className="max-w-4xl">
-              <div className="bg-white rounded-lg border border-gray-200 p-6">
-                <div className="flex items-center justify-between mb-6">
+              <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900">{selectedPath.name}</h3>
+                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">{selectedPath.name}</h3>
                     <p className="text-sm text-gray-500">Configure your conversation flow</p>
-                </div>
+                  </div>
                   <div className="flex items-center space-x-2">
                     <select 
                       onChange={(e) => {
@@ -880,7 +909,7 @@ export default function BuilderPage() {
                           e.target.value = ''
                         }
                       }}
-                      className="px-3 py-1 border border-gray-300 rounded-md text-sm"
+                      className="px-3 py-2 border border-gray-300 rounded-md text-sm min-h-[40px] flex-1 sm:flex-none"
                       defaultValue=""
                     >
                       <option value="" disabled>Add Node</option>
@@ -890,16 +919,16 @@ export default function BuilderPage() {
                       <option value="condition">Condition</option>
                       <option value="webhook">Webhook</option>
                     </select>
-                    </div>
-                    </div>
+                  </div>
+                </div>
                 
                                 {/* Flow visualization */}
                 <div className="space-y-4">
                   {selectedPath.nodes.length === 0 ? (
-                    <div className="text-center py-12 border-2 border-dashed border-gray-300 rounded-lg">
-                      <MessageSquare className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                      <h3 className="text-lg font-medium text-gray-900 mb-2">No nodes in this path</h3>
-                      <p className="text-gray-500 mb-4">Add your first node to start building the conversation flow</p>
+                    <div className="text-center py-8 sm:py-12 border-2 border-dashed border-gray-300 rounded-lg">
+                      <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
+                      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No nodes in this path</h3>
+                      <p className="text-sm sm:text-base text-gray-500 mb-4 px-4">Add your first node to start building the conversation flow</p>
                       <select 
                         onChange={(e) => {
                           if (e.target.value) {
@@ -907,7 +936,7 @@ export default function BuilderPage() {
                             e.target.value = ''
                           }
                         }}
-                        className="px-4 py-2 border border-gray-300 rounded-md text-sm bg-white"
+                        className="px-4 py-3 border border-gray-300 rounded-md text-sm bg-white min-h-[44px] w-full max-w-xs"
                         defaultValue=""
                       >
                         <option value="" disabled>Add First Node</option>
@@ -917,7 +946,7 @@ export default function BuilderPage() {
                         <option value="pause">Pause</option>
                         <option value="webhook">Webhook</option>
                       </select>
-                  </div>
+                    </div>
                   ) : (
                     <div className="space-y-4">
                       {selectedPath.nodes.map((node, index) => renderNode(node, index))}
@@ -929,10 +958,23 @@ export default function BuilderPage() {
             </div>
 
           {/* Right Configuration Panel */}
-          <div className="w-80 bg-white border-l border-gray-200 p-6">
+          <div className={`${activeSection === 'config' ? 'block' : 'hidden'} lg:block w-full lg:w-80 bg-white border-l border-gray-200 p-4 sm:p-6 absolute lg:relative top-0 left-0 right-0 bottom-0 lg:top-auto lg:left-auto lg:right-auto lg:bottom-auto z-10 lg:z-auto overflow-y-auto`}>
+            {/* Mobile Configuration Header */}
+            <div className="lg:hidden flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900">Configuration</h3>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setActiveSection('canvas')}
+                className="p-2 rounded-lg"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+
             {selectedNode ? (
               <div>
-                <div className="flex items-center space-x-3 mb-6">
+                <div className="flex items-center space-x-3 mb-4 sm:mb-6">
                   <div className={`p-2 rounded-lg ${
                     selectedNode.type === 'welcome' ? 'bg-orange-100 text-orange-600' :
                     selectedNode.type === 'message' ? 'bg-orange-100 text-orange-600' :
@@ -941,12 +983,12 @@ export default function BuilderPage() {
                     'bg-gray-100 text-gray-600'
                   }`}>
                     {renderNodeIcon(selectedNode.type)}
-              </div>
+                  </div>
                   <div>
-                    <h3 className="font-semibold text-gray-900">{selectedNode.title}</h3>
+                    <h3 className="font-semibold text-gray-900 text-base sm:text-lg">{selectedNode.title}</h3>
                     <p className="text-sm text-gray-500 capitalize">{selectedNode.type} node</p>
-            </div>
-            </div>
+                  </div>
+                </div>
 
                 {selectedNode.type === 'welcome' && (
                   <div className="space-y-4">
@@ -959,7 +1001,7 @@ export default function BuilderPage() {
                         value={selectedNode.content}
                         onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
                         placeholder="Hello! Welcome"
-                        className="mt-1"
+                        className="mt-1 h-12 text-base px-4 rounded-lg"
                 />
               </div>
             </div>
@@ -977,7 +1019,7 @@ export default function BuilderPage() {
                         onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
                         placeholder="Enter your message..."
                         rows={4}
-                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                       />
                   </div>
               </div>
@@ -994,7 +1036,7 @@ export default function BuilderPage() {
                         value={selectedNode.content}
                         onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
                         placeholder="https://example.com/image.jpg"
-                        className="mt-1"
+                        className="mt-1 h-12 text-base px-4 rounded-lg"
                       />
                 </div>
                     {selectedNode.content && (
@@ -1026,7 +1068,7 @@ export default function BuilderPage() {
                         id="pauseDuration"
                         value={selectedNode.content}
                         onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
-                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base min-h-[48px]"
                       >
                         <option value="1">1 second</option>
                         <option value="2">2 seconds</option>
@@ -1049,7 +1091,7 @@ export default function BuilderPage() {
                         value={selectedNode.content}
                         onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
                         placeholder="/api/webhook"
-                        className="mt-1"
+                        className="mt-1 h-12 text-base px-4 rounded-lg"
                       />
                     </div>
                   </div>
@@ -1067,7 +1109,7 @@ export default function BuilderPage() {
                         onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
                         placeholder="if user.message contains 'help'"
                         rows={3}
-                        className="w-full mt-1 px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
                       />
                     </div>
                   </div>
@@ -1077,7 +1119,7 @@ export default function BuilderPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50 py-3 px-4 text-base min-h-[48px] rounded-lg"
                     onClick={() => deleteNode(selectedNode.id)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
