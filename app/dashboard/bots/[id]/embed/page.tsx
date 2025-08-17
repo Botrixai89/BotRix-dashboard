@@ -179,18 +179,18 @@ export default function EmbedPage() {
   }
 
   return (
-    <div className="flex flex-col h-full bg-gray-50">
+    <div className="flex flex-col min-h-screen bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 sm:px-8 py-4 sm:py-6 shadow-sm flex-shrink-0">
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
-          <div>
-            <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Embed Code</h1>
-            <p className="text-sm sm:text-base text-gray-600 mt-1">Integrate your chatbot with your website</p>
-          </div>
-          <div className="flex items-center space-x-2 sm:space-x-3">
+      <header className="bg-white border-b border-gray-200 px-4 py-4 shadow-sm">
+        <div className="flex flex-col space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="min-w-0 flex-1">
+              <h1 className="text-lg font-bold text-gray-900 truncate">Embed Code</h1>
+              <p className="text-sm text-gray-600">Integrate your chatbot with your website</p>
+            </div>
             <Badge 
               variant={bot.status === 'active' ? 'default' : 'secondary'}
-              className={`${
+              className={`flex-shrink-0 ${
                 bot.status === 'active' 
                   ? 'bg-green-100 text-green-800' 
                   : 'bg-yellow-100 text-yellow-800'
@@ -198,254 +198,115 @@ export default function EmbedPage() {
             >
               {bot.status}
             </Badge>
-            <Button variant="outline" size="sm" className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2 px-3 text-sm">
-              <Eye className="h-4 w-4 sm:mr-2" />
-              <span className="hidden sm:inline">Preview</span>
-            </Button>
           </div>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2.5 px-4 text-sm w-full min-h-[44px]"
+            onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
+          >
+            <Eye className="h-4 w-4 mr-2" />
+            Preview Widget
+          </Button>
         </div>
       </header>
 
       {/* Content */}
-      <main className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 sm:space-y-8 min-h-0">
+      <main className="flex-1 p-4 space-y-4">
         {/* Widget Test URL */}
-        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
-          <CardHeader className="px-4 sm:px-6">
-            <div className="flex items-start sm:items-center space-x-3">
-              <div className="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center flex-shrink-0">
-                <Eye className="h-5 w-5" />
+        <Card className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <CardHeader className="px-4 py-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-teal-600 text-white rounded-xl flex items-center justify-center">
+                <Eye className="h-6 w-6" />
               </div>
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-xl">Test Your Widget</CardTitle>
-                <CardDescription className="text-sm sm:text-base">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base font-semibold text-gray-900">Test Your Widget</CardTitle>
+                <CardDescription className="text-sm text-gray-600">
                   Direct URL to test your chat widget in action
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="px-4 sm:px-6">
-            <div className="space-y-4">
-              <div className="bg-teal-50 p-4 sm:p-6 rounded-xl border border-teal-200">
-                <h4 className="font-semibold text-teal-900 mb-3 flex items-center text-sm sm:text-base">
-                  <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
-                  Widget Test URL:
-                </h4>
-                <div className="space-y-3">
-                  <div className="bg-white border border-teal-300 rounded-lg p-3 overflow-x-auto">
-                    <code className="text-xs sm:text-sm font-mono text-teal-800 whitespace-nowrap block">
-                      {`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`}
-                    </code>
-                  </div>
-                  <Button
-                    size="sm"
-                    className="w-full sm:w-auto bg-teal-600 text-white border-0 hover:bg-teal-700 py-2.5 px-4 min-h-[44px] rounded-lg"
-                    onClick={() => copyToClipboard(`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`, 'testUrl')}
-                  >
-                    <Copy className="h-4 w-4 mr-2" />
-                    {copiedTestUrl ? 'Copied!' : 'Copy URL'}
-                  </Button>
+          <CardContent className="px-4 pb-4">
+            <div className="bg-teal-50 p-4 rounded-xl border border-teal-200">
+              <div className="flex items-center mb-3">
+                <Globe className="w-4 h-4 mr-2 text-teal-600" />
+                <span className="font-medium text-teal-900 text-sm">Widget Test URL:</span>
+              </div>
+              
+              <div className="bg-white rounded-lg border border-teal-300 p-3 mb-3 overflow-hidden">
+                <div className="text-xs font-mono text-teal-800 break-all leading-relaxed">
+                  {`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`}
                 </div>
-                <div className="mt-3 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2 px-4 min-h-[40px] w-full sm:w-auto"
-                    onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Open in New Tab
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2 px-4 min-h-[40px] w-full sm:w-auto"
-                    onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
-                  >
-                    <TestTube className="h-4 w-4 mr-2" />
-                    Test Widget
-                  </Button>
-                </div>
+              </div>
+              
+              <div className="space-y-2">
+                <Button
+                  className="w-full bg-teal-600 text-white hover:bg-teal-700 py-3 px-4 rounded-lg font-medium"
+                  onClick={() => copyToClipboard(`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`, 'testUrl')}
+                >
+                  <Copy className="h-4 w-4 mr-2" />
+                  {copiedTestUrl ? 'Copied!' : 'Copy URL'}
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="w-full border-teal-200 text-teal-600 hover:bg-teal-50 py-3 px-4 rounded-lg font-medium"
+                  onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Open in New Tab
+                </Button>
+                
+                <Button
+                  variant="outline"
+                  className="w-full border-teal-200 text-teal-600 hover:bg-teal-50 py-3 px-4 rounded-lg font-medium"
+                  onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
+                >
+                  <TestTube className="h-4 w-4 mr-2" />
+                  Test Widget
+                </Button>
               </div>
             </div>
           </CardContent>
         </Card>
 
         {/* Widget Integration */}
-        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
-          <CardHeader className="px-4 sm:px-6">
-            <div className="flex items-start sm:items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center flex-shrink-0">
-                <Code className="h-5 w-5" />
+        <Card className="bg-white rounded-xl shadow-sm border border-gray-200">
+          <CardHeader className="px-4 py-4">
+            <div className="flex items-center space-x-3">
+              <div className="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center">
+                <Code className="h-6 w-6" />
               </div>
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-xl">Widget Integration (Advanced)</CardTitle>
-                <CardDescription className="text-sm sm:text-base">
+              <div className="flex-1 min-w-0">
+                <CardTitle className="text-base font-semibold text-gray-900">Widget Integration (Advanced)</CardTitle>
+                <CardDescription className="text-sm text-gray-600">
                   Full control over widget initialization with custom settings
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent className="px-4 sm:px-6">
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 overflow-x-auto max-h-80 sm:max-h-96">
-                  <pre className="text-xs sm:text-sm font-mono text-gray-800 whitespace-pre-wrap sm:whitespace-pre">
-                    <code>{generateEmbedCode(bot)}</code>
-                  </pre>
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full sm:w-auto bg-teal-600 text-white border-0 hover:bg-teal-700 py-2.5 px-4 min-h-[44px] rounded-lg"
-                  onClick={() => copyToClipboard(generateEmbedCode(bot), 'code')}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  {copiedCode ? 'Copied!' : 'Copy Code'}
-                </Button>
+          <CardContent className="px-4 pb-4">
+            <div className="bg-gray-50 rounded-xl border border-gray-200 p-3 mb-3">
+              <div className="max-h-60 overflow-y-auto">
+                <pre className="text-xs font-mono text-gray-800 whitespace-pre-wrap leading-relaxed">
+                  <code>{generateEmbedCode(bot)}</code>
+                </pre>
               </div>
             </div>
+            
+            <Button
+              className="w-full bg-blue-600 text-white hover:bg-blue-700 py-3 px-4 rounded-lg font-medium"
+              onClick={() => copyToClipboard(generateEmbedCode(bot), 'code')}
+            >
+              <Copy className="h-4 w-4 mr-2" />
+              {copiedCode ? 'Copied!' : 'Copy Integration Code'}
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Simple Widget Integration */}
-        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
-          <CardHeader className="px-4 sm:px-6">
-            <div className="flex items-start sm:items-center space-x-3">
-              <div className="w-10 h-10 bg-green-500 text-white rounded-lg flex items-center justify-center flex-shrink-0">
-                <Zap className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-xl">Simple Widget Integration</CardTitle>
-                <CardDescription className="text-sm sm:text-base">
-                  One-line embed using data attributes (easiest method)
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6">
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 overflow-x-auto max-h-80 sm:max-h-96">
-                  <pre className="text-xs sm:text-sm font-mono text-gray-800 whitespace-pre-wrap sm:whitespace-pre">
-                    <code>{generateSimpleEmbedCode(bot)}</code>
-                  </pre>
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full sm:w-auto bg-teal-600 text-white border-0 hover:bg-teal-700 py-2.5 px-4 min-h-[44px] rounded-lg"
-                  onClick={() => copyToClipboard(generateSimpleEmbedCode(bot), 'simple')}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  {copiedSimple ? 'Copied!' : 'Copy Code'}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
-        {/* API Integration */}
-        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
-          <CardHeader className="px-4 sm:px-6">
-            <div className="flex items-start sm:items-center space-x-3">
-              <div className="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center flex-shrink-0">
-                <Settings className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-xl">Direct API Integration</CardTitle>
-                <CardDescription className="text-sm sm:text-base">
-                  For custom implementations using the API directly
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6">
-            <div className="space-y-4">
-              <div className="space-y-3">
-                <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 overflow-x-auto max-h-80 sm:max-h-96">
-                  <pre className="text-xs sm:text-sm font-mono text-gray-800 whitespace-pre-wrap sm:whitespace-pre">
-                    <code>{generateAPICode(bot)}</code>
-                  </pre>
-                </div>
-                <Button
-                  size="sm"
-                  className="w-full sm:w-auto bg-teal-600 text-white border-0 hover:bg-teal-700 py-2.5 px-4 min-h-[44px] rounded-lg"
-                  onClick={() => copyToClipboard(generateAPICode(bot), 'api')}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  {copiedAPI ? 'Copied!' : 'Copy Code'}
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Webhook Integration */}
-        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
-          <CardHeader className="px-4 sm:px-6">
-            <div className="flex items-start sm:items-center space-x-3">
-              <div className="w-10 h-10 bg-orange-500 text-white rounded-lg flex items-center justify-center flex-shrink-0">
-                <Globe className="h-5 w-5" />
-              </div>
-              <div className="min-w-0 flex-1">
-                <CardTitle className="text-lg sm:text-xl">Webhook Integration</CardTitle>
-                <CardDescription className="text-sm sm:text-base">
-                  How your bot communicates with automation
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6">
-            <div className="space-y-4 sm:space-y-6">
-              <div className="bg-blue-50 p-4 sm:p-6 rounded-xl border border-blue-200">
-                <h4 className="font-semibold text-blue-900 mb-3 flex items-center text-sm sm:text-base">
-                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" />
-                  Current Webhook URL:
-                </h4>
-                <code className="text-xs sm:text-sm text-blue-800 break-all bg-white/70 px-3 py-2 rounded-lg block">
-                  {bot.settings.webhookUrl}
-                </code>
-              </div>
-
-              <div className="bg-green-50 p-4 sm:p-6 rounded-xl border border-green-200">
-                <h4 className="font-semibold text-green-900 mb-3 text-sm sm:text-base">
-                  Webhook Payload:
-                </h4>
-                <div className="bg-white/70 p-3 sm:p-4 rounded-lg overflow-x-auto">
-                  <pre className="text-xs text-green-800 whitespace-pre-wrap sm:whitespace-pre">
-{`{
-  "botId": "${bot._id}",
-  "conversationId": "conversation-id",
-  "message": "user message",
-  "userInfo": {
-    "ip": "user-ip",
-    "userAgent": "user-agent"
-  },
-  "botSettings": {
-    "welcomeMessage": "${bot.settings.welcomeMessage}",
-    "fallbackMessage": "Sorry, I didn't understand"
-  },
-  "conversationHistory": [...previous messages]
-}`}
-                  </pre>
-                </div>
-              </div>
-
-              <div className="bg-yellow-50 p-4 sm:p-6 rounded-xl border border-yellow-200">
-                <h4 className="font-semibold text-yellow-900 mb-3 text-sm sm:text-base">
-                  Expected Webhook Response:
-                </h4>
-                <div className="bg-white/70 p-3 sm:p-4 rounded-lg overflow-x-auto">
-                  <pre className="text-xs text-yellow-800 whitespace-pre-wrap sm:whitespace-pre">
-{`{
-  "message": "Bot response text",
-  // or alternatively:
-  "response": "Bot response text"
-}`}
-                  </pre>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
       </main>
     </div>
   )
