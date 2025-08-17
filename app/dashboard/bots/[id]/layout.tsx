@@ -69,16 +69,16 @@ export default function BotLayout({
   return (
     <div className="flex h-screen bg-gray-50">
       {/* Mobile Header */}
-      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3">
+      <div className="lg:hidden fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 px-4 py-3 shadow-sm">
         <div className="flex items-center justify-between">
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-3 min-w-0 flex-1">
             <Link href="/dashboard">
-              <Button variant="ghost" size="sm" className="hover:bg-gray-100 text-gray-500 p-1.5 rounded-md">
+              <Button variant="ghost" size="sm" className="hover:bg-gray-100 text-gray-500 p-2 rounded-lg min-w-[40px] min-h-[40px] flex-shrink-0">
                 <ArrowLeft className="h-4 w-4" />
               </Button>
             </Link>
             {bot && (
-              <div className="flex items-center space-x-2">
+              <div className="flex items-center space-x-2 min-w-0 flex-1">
                 <div className="relative flex-shrink-0">
                   {bot.companyLogo ? (
                     <img 
@@ -91,9 +91,9 @@ export default function BotLayout({
                       <Bot className="h-4 w-4 text-white" />
                     </div>
                   )}
-                  <div className="absolute -bottom-0.5 -right-0.5 w-2 h-2 bg-green-500 rounded-full border border-white"></div>
+                  <div className="absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 bg-green-500 rounded-full border border-white"></div>
                 </div>
-                <div className="min-w-0">
+                <div className="min-w-0 flex-1">
                   <h2 className="font-medium text-gray-900 text-sm truncate">{bot.name}</h2>
                 </div>
               </div>
@@ -103,7 +103,7 @@ export default function BotLayout({
             variant="ghost"
             size="sm"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className="p-2"
+            className="p-2 rounded-lg min-w-[40px] min-h-[40px] flex-shrink-0 hover:bg-gray-100 active:bg-gray-200 transition-colors"
           >
             <Menu className="h-5 w-5" />
           </Button>
@@ -114,17 +114,17 @@ export default function BotLayout({
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 flex">
           <div 
-            className="fixed inset-0 bg-black bg-opacity-50" 
+            className="fixed inset-0 bg-black bg-opacity-50 transition-opacity" 
             onClick={() => setIsMobileMenuOpen(false)}
           />
-          <div className="relative bg-white w-80 max-w-[80vw] flex flex-col">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-200">
-              <h3 className="font-medium text-gray-900">Navigation</h3>
+          <div className="relative bg-white w-80 max-w-[85vw] flex flex-col shadow-xl rounded-r-xl">
+            <div className="flex items-center justify-between px-4 py-4 border-b border-gray-200">
+              <h3 className="font-semibold text-gray-900 text-base">Navigation</h3>
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-2"
+                className="p-2 rounded-lg hover:bg-gray-100 active:bg-gray-200 transition-colors min-w-[40px] min-h-[40px]"
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -140,13 +140,13 @@ export default function BotLayout({
                       href={item.href}
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
-                      <div className={`flex items-center space-x-3 px-3 py-3 rounded-lg transition-colors touch-friendly ${
+                      <div className={`flex items-center space-x-3 px-4 py-3.5 rounded-xl transition-colors min-h-[48px] ${
                         isActive
-                          ? 'bg-teal-50 text-teal-700 border border-teal-200'
-                          : 'text-gray-600 hover:bg-gray-50'
+                          ? 'bg-teal-50 text-teal-700 border border-teal-200 shadow-sm'
+                          : 'text-gray-600 hover:bg-gray-50 active:bg-gray-100'
                       }`}>
-                        <Icon className="h-5 w-5" />
-                        <span className={`text-sm ${isActive ? 'font-medium' : ''}`}>{item.name}</span>
+                        <Icon className="h-5 w-5 flex-shrink-0" />
+                        <span className={`text-base ${isActive ? 'font-semibold' : 'font-medium'}`}>{item.name}</span>
                       </div>
                     </Link>
                   )
