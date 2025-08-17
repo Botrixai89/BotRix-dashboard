@@ -323,7 +323,7 @@ export default function DashboardPage() {
           {/* Left side - Logo and Search */}
           <div className="flex items-center space-x-3 sm:space-x-6 flex-1 min-w-0">
             <div className="flex items-center space-x-2">
-              <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-8 sm:h-[2.8rem] w-auto flex-shrink-0" />
+              <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-10 sm:h-[2.8rem] w-auto flex-shrink-0" />
               {isAdminMode && (
                 <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full">
                   Admin Mode
@@ -339,7 +339,7 @@ export default function DashboardPage() {
                 placeholder="Search bots..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-full rounded-[50vw] text-sm sm:text-base bg-[#f4f4f6]"
+                className="pl-10 pr-4 py-2.5 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-full rounded-[50vw] text-sm sm:text-base bg-[#f4f4f6]"
               />
             </div>
           </div>
@@ -349,7 +349,7 @@ export default function DashboardPage() {
             {/* Mobile menu button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="sm:hidden p-2 rounded-md text-gray-600 hover:text-gray-900 hover:bg-gray-100"
+              className="sm:hidden p-3 rounded-lg text-gray-600 hover:text-gray-900 hover:bg-gray-100 active:bg-gray-200 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"
             >
               <Menu className="h-5 w-5" />
             </button>
@@ -415,7 +415,7 @@ export default function DashboardPage() {
               placeholder="Search bots..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-full"
+              className="pl-10 pr-4 py-3 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-full text-base"
             />
           </div>
         </div>
@@ -460,7 +460,7 @@ export default function DashboardPage() {
                 </div>
                 <div className="flex items-center space-x-2 sm:space-x-3">
                   <Link href="/dashboard/create-bot" className="flex-1 sm:flex-none">
-                    <Button className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white border-0 text-sm sm:text-base">
+                    <Button className="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white border-0 text-sm sm:text-base py-2.5 px-4 rounded-lg font-medium">
                       <Plus className="mr-2 h-4 w-4" />
                       <span className="hidden xs:inline">Create a bot</span>
                       <span className="xs:hidden">Create</span>
@@ -468,11 +468,11 @@ export default function DashboardPage() {
                   </Link>
                   <Button 
                     variant="outline" 
-                    className="w-full sm:w-auto border-gray-200 text-gray-600 hover:bg-gray-50 text-sm sm:text-base "
+                    className="px-3 sm:px-4 py-2.5 border-gray-200 text-gray-600 hover:bg-gray-50 text-sm sm:text-base rounded-lg font-medium min-w-[44px] sm:min-w-auto"
                     onClick={() => setViewMode(viewMode === 'grid' ? 'list' : 'grid')}
                   >
-                    <List className="mr-2 h-4 w-4" />
-                    <span className="hidden sm:inline text-sm">List</span>
+                    <List className="h-4 w-4 sm:mr-2" />
+                    <span className="hidden sm:inline text-sm ml-1">List</span>
                   </Button>
                 </div>
               </div>
@@ -506,14 +506,14 @@ export default function DashboardPage() {
             </div>
           ) : filteredBots.length === 0 ? (
             /* Empty State */
-            <div className="flex flex-col items-center justify-center h-48 sm:h-64 text-center">
-              <div className="p-4 rounded-full bg-teal-100 text-teal-600 mb-4 sm:mb-6">
-                <Bot className="h-8 w-8 sm:h-12 sm:w-12" />
+            <div className="flex flex-col items-center justify-center min-h-[60vh] sm:min-h-[50vh] text-center px-4">
+              <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-teal-100 text-teal-600 mb-6 sm:mb-8 flex items-center justify-center mx-auto">
+                <Bot className="h-10 w-10 sm:h-12 sm:w-12" />
               </div>
-              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-2">
+              <h2 className="text-xl sm:text-2xl font-semibold text-gray-900 mb-3 sm:mb-4">
                 {searchQuery ? 'No bots found' : 'No bots yet'}
               </h2>
-              <p className="text-sm sm:text-base text-gray-600 mb-6 sm:mb-8 max-w-md px-4">
+              <p className="text-sm sm:text-base text-gray-600 mb-8 sm:mb-10 max-w-md leading-relaxed">
                 {searchQuery 
                   ? 'Try adjusting your search terms'
                   : 'Create intelligent chatbots to automate customer support, lead generation, and enhance user engagement on your website.'
@@ -521,8 +521,8 @@ export default function DashboardPage() {
               </p>
               {!searchQuery && (
                 <Link href="/dashboard/create-bot">
-                  <Button size="lg" className="bg-teal-600 text-white border-0 px-6 sm:px-8 py-3 sm:py-4 hover:bg-teal-700 hover:shadow-xl transition-all text-sm sm:text-base">
-                    <Plus className="mr-2 h-5 w-5 sm:h-6 sm:w-6" />
+                  <Button size="lg" className="bg-teal-600 text-white border-0 px-8 sm:px-10 py-4 sm:py-5 hover:bg-teal-700 hover:shadow-xl transition-all text-base sm:text-lg font-medium rounded-xl">
+                    <Plus className="mr-3 h-5 w-5 sm:h-6 sm:w-6" />
                     Create Your First Bot
                   </Button>
                 </Link>
@@ -534,21 +534,21 @@ export default function DashboardPage() {
               {viewMode === 'grid' ? (
                 <div className="grid grid-cols-1 xs:grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 2xl:grid-cols-6 gap-3 sm:gap-4 lg:gap-6">
                   {filteredBots.map((bot) => (
-                    <Card key={bot._id} className="border border-gray-200 shadow-sm hover:shadow-md transition-all bg-white relative group">
-                      <div className="absolute top-2 sm:top-3 right-2 sm:right-3 z-10">
+                    <Card key={bot._id} className="border border-gray-200 shadow-sm hover:shadow-lg transition-all bg-white relative group rounded-xl">
+                      <div className="absolute top-3 sm:top-3 right-3 sm:right-3 z-10">
                         <Button
                           variant="ghost"
                           size="sm"
-                          className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-gray-100"
+                          className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-gray-100 active:bg-gray-200 transition-colors rounded-lg min-w-[32px] min-h-[32px]"
                           onClick={(e) => handleContextMenuClick(bot, e)}
                         >
-                          <MoreVertical className="h-3 w-3 sm:h-4 sm:w-4" />
+                          <MoreVertical className="h-4 w-4 sm:h-4 sm:w-4" />
                         </Button>
                       </div>
                       
-                      <Link href={`/dashboard/bots/${bot._id}`}>
-                        <CardContent className="p-4 sm:p-6">
-                          <div className="flex flex-col items-center text-center space-y-3 sm:space-y-4">
+                      <Link href={`/dashboard/bots/${bot._id}`} className="block hover:bg-gray-50/50 transition-colors rounded-xl">
+                        <CardContent className="p-5 sm:p-6">
+                          <div className="flex flex-col items-center text-center space-y-4 sm:space-y-4">
                             {/* Bot Icon */}
                             {bot.companyLogo ? (
                               <img src={bot.companyLogo} alt="Company Logo" className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover border" />
@@ -578,11 +578,11 @@ export default function DashboardPage() {
                   ))}
                 </div>
               ) : (
-                <div className="space-y-2 sm:space-y-3">
+                <div className="space-y-3 sm:space-y-3">
                   {filteredBots.map((bot) => (
-                    <Card key={bot._id} className="border border-gray-200 shadow-sm hover:shadow-md transition-shadow bg-white">
-                      <Link href={`/dashboard/bots/${bot._id}`}>
-                        <CardContent className="p-3 sm:p-4">
+                    <Card key={bot._id} className="border border-gray-200 shadow-sm hover:shadow-lg transition-all bg-white rounded-xl">
+                      <Link href={`/dashboard/bots/${bot._id}`} className="block hover:bg-gray-50/50 transition-colors rounded-xl">
+                        <CardContent className="p-4 sm:p-4">
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
                               {bot.companyLogo ? (
@@ -606,10 +606,10 @@ export default function DashboardPage() {
                               <Button
                                 variant="ghost"
                                 size="sm"
-                                className="h-7 w-7 sm:h-8 sm:w-8 p-0 hover:bg-gray-100"
+                                className="h-8 w-8 sm:h-9 sm:w-9 p-0 hover:bg-gray-100 active:bg-gray-200 transition-colors rounded-lg min-w-[32px] min-h-[32px]"
                                 onClick={(e) => handleContextMenuClick(bot, e)}
                               >
-                                <MoreVertical className="h-3 w-3 sm:h-4 sm:w-4" />
+                                <MoreVertical className="h-4 w-4 sm:h-4 sm:w-4" />
                               </Button>
                             </div>
                           </div>
