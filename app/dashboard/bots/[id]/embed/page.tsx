@@ -230,20 +230,19 @@ export default function EmbedPage() {
                   <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
                   Widget Test URL:
                 </h4>
-                <div className="relative">
-                  <input
-                    type="text"
-                    readOnly
-                    value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`}
-                    className="w-full p-3 pr-16 sm:pr-20 bg-white border border-teal-300 rounded-lg text-xs sm:text-sm font-mono text-teal-800 min-h-[44px]"
-                  />
+                <div className="space-y-3">
+                  <div className="bg-white border border-teal-300 rounded-lg p-3 overflow-x-auto">
+                    <code className="text-xs sm:text-sm font-mono text-teal-800 whitespace-nowrap block">
+                      {`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`}
+                    </code>
+                  </div>
                   <Button
                     size="sm"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-teal-600 text-white border-0 hover:bg-teal-700 px-2 sm:px-3"
+                    className="w-full sm:w-auto bg-teal-600 text-white border-0 hover:bg-teal-700 py-2.5 px-4 min-h-[44px] rounded-lg"
                     onClick={() => copyToClipboard(`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`, 'testUrl')}
                   >
-                    <Copy className="h-4 w-4 sm:mr-1" />
-                    <span className="hidden sm:inline">{copiedTestUrl ? 'Copied!' : 'Copy'}</span>
+                    <Copy className="h-4 w-4 mr-2" />
+                    {copiedTestUrl ? 'Copied!' : 'Copy URL'}
                   </Button>
                 </div>
                 <div className="mt-3 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
@@ -288,17 +287,19 @@ export default function EmbedPage() {
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             <div className="space-y-4">
-              <div className="relative">
-                <pre className="bg-gray-50 p-4 sm:p-6 rounded-xl overflow-x-auto text-xs sm:text-sm font-mono border border-gray-200 max-h-80 sm:max-h-96">
-                  <code className="text-gray-800">{generateEmbedCode(bot)}</code>
-                </pre>
+              <div className="space-y-3">
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 overflow-x-auto max-h-80 sm:max-h-96">
+                  <pre className="text-xs sm:text-sm font-mono text-gray-800 whitespace-pre-wrap sm:whitespace-pre">
+                    <code>{generateEmbedCode(bot)}</code>
+                  </pre>
+                </div>
                 <Button
                   size="sm"
-                  className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-teal-600 text-white border-0 hover:bg-teal-700 px-2 sm:px-3"
+                  className="w-full sm:w-auto bg-teal-600 text-white border-0 hover:bg-teal-700 py-2.5 px-4 min-h-[44px] rounded-lg"
                   onClick={() => copyToClipboard(generateEmbedCode(bot), 'code')}
                 >
-                  <Copy className="h-4 w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">{copiedCode ? 'Copied!' : 'Copy'}</span>
+                  <Copy className="h-4 w-4 mr-2" />
+                  {copiedCode ? 'Copied!' : 'Copy Code'}
                 </Button>
               </div>
             </div>
@@ -322,17 +323,19 @@ export default function EmbedPage() {
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             <div className="space-y-4">
-              <div className="relative">
-                <pre className="bg-gray-50 p-4 sm:p-6 rounded-xl overflow-x-auto text-xs sm:text-sm font-mono border border-gray-200 max-h-80 sm:max-h-96">
-                  <code className="text-gray-800">{generateSimpleEmbedCode(bot)}</code>
-                </pre>
+              <div className="space-y-3">
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 overflow-x-auto max-h-80 sm:max-h-96">
+                  <pre className="text-xs sm:text-sm font-mono text-gray-800 whitespace-pre-wrap sm:whitespace-pre">
+                    <code>{generateSimpleEmbedCode(bot)}</code>
+                  </pre>
+                </div>
                 <Button
                   size="sm"
-                  className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-teal-600 text-white border-0 hover:bg-teal-700 px-2 sm:px-3"
+                  className="w-full sm:w-auto bg-teal-600 text-white border-0 hover:bg-teal-700 py-2.5 px-4 min-h-[44px] rounded-lg"
                   onClick={() => copyToClipboard(generateSimpleEmbedCode(bot), 'simple')}
                 >
-                  <Copy className="h-4 w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">{copiedSimple ? 'Copied!' : 'Copy'}</span>
+                  <Copy className="h-4 w-4 mr-2" />
+                  {copiedSimple ? 'Copied!' : 'Copy Code'}
                 </Button>
               </div>
             </div>
@@ -356,17 +359,19 @@ export default function EmbedPage() {
           </CardHeader>
           <CardContent className="px-4 sm:px-6">
             <div className="space-y-4">
-              <div className="relative">
-                <pre className="bg-gray-50 p-4 sm:p-6 rounded-xl overflow-x-auto text-xs sm:text-sm font-mono border border-gray-200 max-h-80 sm:max-h-96">
-                  <code className="text-gray-800">{generateAPICode(bot)}</code>
-                </pre>
+              <div className="space-y-3">
+                <div className="bg-gray-50 p-3 sm:p-4 rounded-xl border border-gray-200 overflow-x-auto max-h-80 sm:max-h-96">
+                  <pre className="text-xs sm:text-sm font-mono text-gray-800 whitespace-pre-wrap sm:whitespace-pre">
+                    <code>{generateAPICode(bot)}</code>
+                  </pre>
+                </div>
                 <Button
                   size="sm"
-                  className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-teal-600 text-white border-0 hover:bg-teal-700 px-2 sm:px-3"
+                  className="w-full sm:w-auto bg-teal-600 text-white border-0 hover:bg-teal-700 py-2.5 px-4 min-h-[44px] rounded-lg"
                   onClick={() => copyToClipboard(generateAPICode(bot), 'api')}
                 >
-                  <Copy className="h-4 w-4 sm:mr-1" />
-                  <span className="hidden sm:inline">{copiedAPI ? 'Copied!' : 'Copy'}</span>
+                  <Copy className="h-4 w-4 mr-2" />
+                  {copiedAPI ? 'Copied!' : 'Copy Code'}
                 </Button>
               </div>
             </div>
@@ -400,11 +405,12 @@ export default function EmbedPage() {
                 </code>
               </div>
 
-              <div className="bg-green-50 p-6 rounded-xl border border-green-200">
-                <h4 className="font-semibold text-green-900 mb-3">
+              <div className="bg-green-50 p-4 sm:p-6 rounded-xl border border-green-200">
+                <h4 className="font-semibold text-green-900 mb-3 text-sm sm:text-base">
                   Webhook Payload:
                 </h4>
-                <pre className="text-xs text-green-800 overflow-x-auto bg-white/70 p-4 rounded-lg">
+                <div className="bg-white/70 p-3 sm:p-4 rounded-lg overflow-x-auto">
+                  <pre className="text-xs text-green-800 whitespace-pre-wrap sm:whitespace-pre">
 {`{
   "botId": "${bot._id}",
   "conversationId": "conversation-id",
@@ -419,20 +425,23 @@ export default function EmbedPage() {
   },
   "conversationHistory": [...previous messages]
 }`}
-                </pre>
+                  </pre>
+                </div>
               </div>
 
-              <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-200">
-                <h4 className="font-semibold text-yellow-900 mb-3">
+              <div className="bg-yellow-50 p-4 sm:p-6 rounded-xl border border-yellow-200">
+                <h4 className="font-semibold text-yellow-900 mb-3 text-sm sm:text-base">
                   Expected Webhook Response:
                 </h4>
-                <pre className="text-xs text-yellow-800 overflow-x-auto bg-white/70 p-4 rounded-lg">
+                <div className="bg-white/70 p-3 sm:p-4 rounded-lg overflow-x-auto">
+                  <pre className="text-xs text-yellow-800 whitespace-pre-wrap sm:whitespace-pre">
 {`{
   "message": "Bot response text",
   // or alternatively:
   "response": "Bot response text"
 }`}
-                </pre>
+                  </pre>
+                </div>
               </div>
             </div>
           </CardContent>
