@@ -16,16 +16,20 @@ export class SocketServer {
   private userSockets: Map<string, string[]> = new Map(); // userId -> socketIds[]
   private botSockets: Map<string, string[]> = new Map(); // botId -> socketIds[]
 
-  constructor(server: HTTPServer) {
-    this.io = new SocketIOServer(server, {
-      cors: {
-        origin: process.env.NODE_ENV === 'production' 
-          ? ['https://yourdomain.com'] 
-          : ['http://localhost:3000'],
-        methods: ['GET', 'POST'],
-        credentials: true
-      }
-    });
+  constructor(server: HTTPServer, io?: SocketIOServer) {
+    if (io) {
+      this.io = io;
+    } else {
+      this.io = new SocketIOServer(server, {
+        cors: {
+          origin: process.env.NODE_ENV === 'production' 
+            ? ['https://yourdomain.com'] 
+            : ['http://localhost:3000'],
+          methods: ['GET', 'POST'],
+          credentials: true
+        }
+      });
+    }
 
     this.setupMiddleware();
     this.setupEventHandlers();

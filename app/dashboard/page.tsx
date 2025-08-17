@@ -11,6 +11,9 @@ import { UserProfileDropdown } from '@/components/UserProfileDropdown'
 import { NotificationDropdown } from '@/components/NotificationDropdown'
 import { HelpDropdown } from '@/components/HelpDropdown'
 import { Loading, ButtonLoading } from '@/components/ui/loading'
+import { FeedbackModal } from '@/components/FeedbackModal'
+import { NotificationSettingsModal } from '@/components/NotificationSettingsModal'
+import { useRouter } from 'next/navigation'
 
 interface BotData {
   _id: string;
@@ -29,6 +32,7 @@ interface BotData {
 export default function DashboardPage() {
   const { user, logout } = useAuth()
   const { loading } = useRequireAuth() // This will redirect to login if not authenticated
+  const router = useRouter()
   const [bots, setBots] = useState<BotData[]>([])
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
@@ -42,6 +46,9 @@ export default function DashboardPage() {
   const [showAccountModal, setShowAccountModal] = useState(false)
   const [isLoggingOut, setIsLoggingOut] = useState(false)
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false)
+  const [showFeedbackModal, setShowFeedbackModal] = useState(false)
+  const [showNotificationSettings, setShowNotificationSettings] = useState(false)
+  const [isAdminMode, setIsAdminMode] = useState(false)
 
 
 
@@ -229,6 +236,73 @@ export default function DashboardPage() {
     // You can implement actual expert assistance here
   }
 
+  // User profile dropdown handlers
+  const handleUserFeedback = () => {
+    setShowFeedbackModal(true)
+  }
+
+  const handleAccountSettings = () => {
+    router.push('/dashboard/account-settings')
+  }
+
+  const handleAdminMode = () => {
+    setIsAdminMode(!isAdminMode)
+    showSuccess(isAdminMode ? 'Admin mode disabled' : 'Admin mode enabled')
+  }
+
+  const handleIntegrations = () => {
+    router.push('/dashboard/integrations')
+  }
+
+  const handlePrivacy = () => {
+    window.open('https://botrixai.com/privacy', '_blank')
+  }
+
+  const handleTerms = () => {
+    window.open('https://botrixai.com/terms', '_blank')
+  }
+
+  // Notification dropdown handlers
+  const handleNotificationSettings = () => {
+    setShowNotificationSettings(true)
+  }
+
+  const handleClearAllNotifications = () => {
+    showSuccess('All notifications cleared')
+    // You can implement actual clear notifications here
+  }
+
+  // Account modal handlers
+  const handleModalAccountSettings = () => {
+    closeAccountModal()
+    router.push('/dashboard/account-settings')
+  }
+
+  const handleManageAccounts = () => {
+    showSuccess('Opening manage accounts')
+    closeAccountModal()
+    // You can implement actual manage accounts here
+  }
+
+  const handleAddNewAccount = () => {
+    showSuccess('Adding new account')
+    closeAccountModal()
+    // You can implement actual add new account here
+  }
+
+  // Context menu handlers
+  const handleExportBot = (bot: BotData) => {
+    showSuccess(`Exporting bot: ${bot.name}`)
+    setContextMenuBot(null)
+    // You can implement actual bot export here
+  }
+
+  const handleDuplicateBot = (bot: BotData) => {
+    showSuccess(`Duplicating bot: ${bot.name}`)
+    setContextMenuBot(null)
+    // You can implement actual bot duplication here
+  }
+
   const handleSwitchAccount = () => {
     setShowAccountModal(true)
   }
@@ -248,7 +322,14 @@ export default function DashboardPage() {
         <div className="flex items-center justify-between">
           {/* Left side - Logo and Search */}
           <div className="flex items-center space-x-3 sm:space-x-6 flex-1 min-w-0">
-            <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-8 sm:h-[2.8rem] w-auto flex-shrink-0" />
+            <div className="flex items-center space-x-2">
+              <img src="/botrix-logo01.png" alt="Botrix Logo" className="h-8 sm:h-[2.8rem] w-auto flex-shrink-0" />
+              {isAdminMode && (
+                <span className="bg-emerald-100 text-emerald-800 text-xs font-medium px-2 py-1 rounded-full">
+                  Admin Mode
+                </span>
+              )}
+            </div>
             
             {/* Search - Hidden on mobile, shown on tablet+ */}
             <div className="relative hidden sm:block flex-1 max-w-md lg:max-w-lg">
@@ -258,7 +339,7 @@ export default function DashboardPage() {
                 placeholder="Search bots..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-full rounded-[50rem] text-sm sm:text-base bg-[#f4f4f6]"
+                className="pl-10 pr-4 py-2 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-teal-500 focus:border-transparent w-full rounded-[50vw] text-sm sm:text-base bg-[#f4f4f6]"
               />
             </div>
           </div>
@@ -303,13 +384,22 @@ export default function DashboardPage() {
                 <span className="hidden sm:block text-sm font-medium text-gray-900">{user.name}</span>
                 
                 {/* Notification Dropdown */}
-                <NotificationDropdown />
+                <NotificationDropdown 
+                  onSettings={handleNotificationSettings}
+                  onClearAll={handleClearAllNotifications}
+                />
                 
                 {/* User Profile Dropdown */}
                 <UserProfileDropdown 
                   user={user} 
                   onLogout={handleLogoutClick}
                   isLoggingOut={isLoggingOut}
+                  onFeedback={handleUserFeedback}
+                  onAccountSettings={handleAccountSettings}
+                  onAdminMode={handleAdminMode}
+                  onIntegrations={handleIntegrations}
+                  onPrivacy={handlePrivacy}
+                  onTerms={handleTerms}
                 />
               </div>
             )}
@@ -564,12 +654,18 @@ export default function DashboardPage() {
               <span>Test</span>
             </button>
             
-            <button className="w-full px-3 sm:px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
+            <button 
+              onClick={() => handleExportBot(contextMenuBot)}
+              className="w-full px-3 sm:px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3"
+            >
               <Upload className="h-4 w-4 flex-shrink-0" />
               <span>Export</span>
             </button>
             
-            <button className="w-full px-3 sm:px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
+            <button 
+              onClick={() => handleDuplicateBot(contextMenuBot)}
+              className="w-full px-3 sm:px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3"
+            >
               <Copy className="h-4 w-4 flex-shrink-0" />
               <span>Duplicate</span>
             </button>
@@ -696,7 +792,10 @@ export default function DashboardPage() {
               </div>
 
               {/* Add New Account */}
-              <div className="p-3 sm:p-4 border border-dashed border-gray-300 rounded-lg hover:border-teal-400 hover:bg-teal-50 transition-colors cursor-pointer">
+              <div 
+                onClick={handleAddNewAccount}
+                className="p-3 sm:p-4 border border-dashed border-gray-300 rounded-lg hover:border-teal-400 hover:bg-teal-50 transition-colors cursor-pointer"
+              >
                 <div className="flex items-center space-x-3">
                   <div className="w-6 h-6 sm:w-8 sm:h-8 bg-gray-100 rounded-full flex items-center justify-center flex-shrink-0">
                     <Plus className="h-3 w-3 sm:h-4 sm:w-4 text-gray-600" />
@@ -711,13 +810,19 @@ export default function DashboardPage() {
               {/* Quick Actions */}
               <div className="pt-3 sm:pt-4 border-t border-gray-200">
                 <div className="space-y-1 sm:space-y-2">
-                  <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                  <button 
+                    onClick={handleModalAccountSettings}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                  >
                     <div className="flex items-center space-x-2">
                       <Settings className="h-4 w-4 flex-shrink-0" />
                       <span>Account Settings</span>
                     </div>
                   </button>
-                  <button className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors">
+                  <button 
+                    onClick={handleManageAccounts}
+                    className="w-full text-left px-3 py-2 text-sm text-gray-700 hover:bg-gray-100 rounded-md transition-colors"
+                  >
                     <div className="flex items-center space-x-2">
                       <User className="h-4 w-4 flex-shrink-0" />
                       <span>Manage Accounts</span>
@@ -748,6 +853,18 @@ export default function DashboardPage() {
           </div>
         </div>
       )}
+
+      {/* Feedback Modal */}
+      <FeedbackModal 
+        isOpen={showFeedbackModal}
+        onClose={() => setShowFeedbackModal(false)}
+      />
+
+      {/* Notification Settings Modal */}
+      <NotificationSettingsModal 
+        isOpen={showNotificationSettings}
+        onClose={() => setShowNotificationSettings(false)}
+      />
     </div>
   )
 } 

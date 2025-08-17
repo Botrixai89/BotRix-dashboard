@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Bot, BarChart3, MessageSquare, Settings, Users, Code, Wrench, Menu, ChevronLeft, ChevronRight, X, Home } from 'lucide-react'
+import { ArrowLeft, Bot, BarChart3, MessageSquare, Settings, Code, Wrench, Menu, ChevronLeft, ChevronRight, X, Home } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams, usePathname } from 'next/navigation'
 

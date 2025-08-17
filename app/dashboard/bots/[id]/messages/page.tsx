@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Badge } from '@/components/ui/badge'
-import { Search, Filter, MessageSquare, User, Clock, Plus, Sparkles, Code, RefreshCw, Send, ArrowLeft } from 'lucide-react'
+import { Search, Filter, MessageSquare, User, Clock, Plus, Sparkles, Code, RefreshCw, Send, ArrowLeft, Wifi, WifiOff, Volume2, VolumeX } from 'lucide-react'
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import { useParams } from 'next/navigation'
@@ -12,6 +12,7 @@ import { useSocket } from '@/lib/socket-client'
 import { useAuth } from '@/lib/auth-context'
 import { useRef } from 'react'
 import { cn } from '@/lib/utils'
+import { showSuccess, showError } from '@/lib/toast'
 
 interface Conversation {
   _id: string;
@@ -76,8 +77,18 @@ export default function MessagesPage() {
   const [messageError, setMessageError] = useState('')
   const [agentMessage, setAgentMessage] = useState('')
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
-  const { lastMessage, joinBot, sendMessage, isConnected } = useSocket()
+  const { lastMessage, joinBot, sendMessage, isConnected, typingUsers } = useSocket()
   const [showChatView, setShowChatView] = useState(false) // For mobile chat view toggle
+  const [liveMessagingEnabled, setLiveMessagingEnabled] = useState(true)
+  const [soundNotificationsEnabled, setSoundNotificationsEnabled] = useState(true)
+  const [playNotificationSound, setPlayNotificationSound] = useState(() => {
+    // Create audio element for notification sound
+    if (typeof window !== 'undefined') {
+      const audio = new Audio('data:audio/wav;base64,UklGRnoGAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQoGAACBhYqFbF1fdJivrJBhNjVgodDbq2EcBj+a2/LDciUFLIHO8tiJNwgZaLvt559NEAxQp+PwtmMcBjiR1/LMeSwFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH8N2QQAoUXrTp66hVFApGn+DyvmUcBDWH0fLNeSsFJHfH0Q==');
+      return () => audio.play().catch(() => {})
+    }
+    return () => {}
+  })
 
   const tabs = [
     { id: 'all', label: 'All', count: conversations.length },
@@ -177,6 +188,15 @@ export default function MessagesPage() {
     }
   }, [params.id, isConnected])
 
+  // Show connection status notifications
+  useEffect(() => {
+    if (isConnected && liveMessagingEnabled) {
+      showSuccess('Live messaging connected')
+    } else if (!isConnected && liveMessagingEnabled) {
+      showError('Live messaging disconnected')
+    }
+  }, [isConnected, liveMessagingEnabled])
+
   useEffect(() => {
     if (messagesEndRef.current) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' })
@@ -184,25 +204,53 @@ export default function MessagesPage() {
   }, [conversationDetail?.messages?.length])
 
   useEffect(() => {
-    if (!lastMessage || !selectedConversation || !conversationDetail) return
-    if (lastMessage.conversationId !== selectedConversation._id) return
-    setConversationDetail(prev => {
-      if (!prev) return prev
-      return {
-        ...prev,
-        messages: [
-          ...prev.messages,
-          {
-            _id: Math.random().toString(36),
-            content: lastMessage.message,
-            sender: lastMessage.userInfo?.role || 'user',
-            timestamp: new Date().toISOString(),
-            type: 'text',
-          },
-        ],
+    if (!lastMessage) return
+    
+    // Only process message if live messaging is enabled
+    if (liveMessagingEnabled) {
+      // Update conversation detail if message is for the selected conversation
+      if (selectedConversation && conversationDetail && lastMessage.conversationId === selectedConversation._id) {
+        setConversationDetail(prev => {
+          if (!prev) return prev
+          return {
+            ...prev,
+            messages: [
+              ...prev.messages,
+              {
+                _id: Math.random().toString(36),
+                content: lastMessage.message,
+                sender: lastMessage.userInfo?.role || 'user',
+                timestamp: new Date().toISOString(),
+                type: 'text',
+              },
+            ],
+          }
+        })
+
+        // Play notification sound for user messages (not agent messages)
+        if (soundNotificationsEnabled && lastMessage.userInfo?.role !== 'agent') {
+          playNotificationSound()
+        }
       }
-    })
-  }, [lastMessage, selectedConversation, conversationDetail])
+
+      // Update unread count for conversations list
+      setConversations(prev => prev.map(conv => {
+        if (conv._id === lastMessage.conversationId) {
+          return {
+            ...conv,
+            unreadCount: conv._id === selectedConversation?._id ? 0 : conv.unreadCount + 1,
+            lastMessage: {
+              content: lastMessage.message,
+              sender: lastMessage.userInfo?.role || 'user',
+              timestamp: new Date().toISOString()
+            },
+            updatedAt: new Date().toISOString()
+          }
+        }
+        return conv
+      }))
+    }
+  }, [lastMessage, selectedConversation, conversationDetail, liveMessagingEnabled, soundNotificationsEnabled, playNotificationSound, conversations])
 
   const formatTime = (timestamp: string) => {
     const date = new Date(timestamp)
@@ -266,6 +314,72 @@ export default function MessagesPage() {
             <h1 className="text-xl sm:text-2xl font-bold text-gray-900">Messages</h1>
           </div>
           <div className="flex items-center space-x-2 sm:space-x-3">
+            {/* Live Messaging Status */}
+            <div className="flex items-center space-x-2">
+              <div className={`flex items-center px-2 py-1 rounded-full text-xs font-medium ${
+                isConnected && liveMessagingEnabled 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {isConnected && liveMessagingEnabled ? (
+                  <>
+                    <Wifi className="h-3 w-3 mr-1" />
+                    <span className="hidden sm:inline">Live</span>
+                  </>
+                ) : (
+                  <>
+                    <WifiOff className="h-3 w-3 mr-1" />
+                    <span className="hidden sm:inline">Offline</span>
+                  </>
+                )}
+              </div>
+            </div>
+
+            {/* Live Messaging Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setLiveMessagingEnabled(!liveMessagingEnabled)}
+              className={`text-xs sm:text-sm ${
+                liveMessagingEnabled 
+                  ? 'border-teal-200 text-teal-600 hover:bg-teal-50' 
+                  : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+            >
+              {liveMessagingEnabled ? (
+                <>
+                  <Wifi className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Live On</span>
+                  <span className="sm:hidden">Live</span>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2" />
+                  <span className="hidden sm:inline">Enable Live</span>
+                  <span className="sm:hidden">Enable</span>
+                </>
+              )}
+            </Button>
+
+            {/* Sound Notification Toggle */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setSoundNotificationsEnabled(!soundNotificationsEnabled)}
+              className={`text-xs sm:text-sm ${
+                soundNotificationsEnabled 
+                  ? 'border-teal-200 text-teal-600 hover:bg-teal-50' 
+                  : 'border-gray-200 text-gray-600 hover:bg-gray-50'
+              }`}
+              disabled={!liveMessagingEnabled}
+            >
+              {soundNotificationsEnabled ? (
+                <Volume2 className="h-3 w-3 sm:h-4 sm:w-4" />
+              ) : (
+                <VolumeX className="h-3 w-3 sm:h-4 sm:w-4" />
+              )}
+            </Button>
+            
             <Button 
               variant="outline" 
               size="sm" 
@@ -276,14 +390,6 @@ export default function MessagesPage() {
               <RefreshCw className={`h-3 w-3 sm:h-4 sm:w-4 mr-1 sm:mr-2 ${loading ? 'animate-spin' : ''}`} />
               <span className="hidden sm:inline">Refresh</span>
               <span className="sm:hidden">Sync</span>
-            </Button>
-            <Button 
-              size="sm" 
-              disabled 
-              className="bg-teal-600 text-white border-0 hover:bg-teal-700 text-xs sm:text-sm"
-            >
-              <span className="hidden sm:inline">Mark All as Read</span>
-              <span className="sm:hidden">Mark Read</span>
             </Button>
           </div>
         </div>
@@ -612,6 +718,30 @@ export default function MessagesPage() {
                         </div>
                       )
                     })}
+                    
+                    {/* Typing Indicators */}
+                    {liveMessagingEnabled && typingUsers && typingUsers
+                      .filter(typing => typing.conversationId === selectedConversation._id)
+                      .map(typing => (
+                        <div key={typing.userId} className="flex items-center gap-3 opacity-70">
+                          <div className="flex-shrink-0 self-end">
+                            {getAvatar('user', typing.userName)}
+                          </div>
+                          <div className="flex flex-col items-start">
+                            <div className="px-3 py-2 bg-gray-100 rounded-2xl rounded-bl-md">
+                              <div className="flex space-x-1">
+                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce"></div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.1s' }}></div>
+                                <div className="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style={{ animationDelay: '0.2s' }}></div>
+                              </div>
+                            </div>
+                            <span className="text-xs text-gray-400 mt-1">
+                              {typing.userName || 'Someone'} is typing...
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    
                     <div ref={messagesEndRef} />
                   </div>
                 ) : (

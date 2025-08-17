@@ -10,9 +10,25 @@ interface UserProfileDropdownProps {
   }
   onLogout: () => void
   isLoggingOut?: boolean
+  onFeedback?: () => void
+  onAccountSettings?: () => void
+  onAdminMode?: () => void
+  onIntegrations?: () => void
+  onPrivacy?: () => void
+  onTerms?: () => void
 }
 
-export function UserProfileDropdown({ user, onLogout, isLoggingOut = false }: UserProfileDropdownProps) {
+export function UserProfileDropdown({ 
+  user, 
+  onLogout, 
+  isLoggingOut = false,
+  onFeedback,
+  onAccountSettings,
+  onAdminMode,
+  onIntegrations,
+  onPrivacy,
+  onTerms
+}: UserProfileDropdownProps) {
   const handleLogout = () => {
     onLogout()
   }
@@ -62,7 +78,10 @@ export function UserProfileDropdown({ user, onLogout, isLoggingOut = false }: Us
         </div>
 
         {/* Submit Feedback Section */}
-        <div className="mx-3 my-3 p-3 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg cursor-pointer hover:from-orange-100 hover:to-amber-100 transition-all duration-200 group">
+        <div 
+          onClick={onFeedback}
+          className="mx-3 my-3 p-3 bg-gradient-to-r from-orange-50 to-amber-50 border border-orange-200 rounded-lg cursor-pointer hover:from-orange-100 hover:to-amber-100 transition-all duration-200 group"
+        >
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-2">
               <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center group-hover:bg-orange-200 transition-colors">
@@ -80,7 +99,10 @@ export function UserProfileDropdown({ user, onLogout, isLoggingOut = false }: Us
         {/* Navigation Options */}
         <div className="px-1 py-2">
           <div className="space-y-0.5">
-            <DropdownMenuItem className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer group transition-all duration-200 mx-1">
+            <DropdownMenuItem 
+              onClick={onAccountSettings}
+              className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer group transition-all duration-200 mx-1"
+            >
               <div className="flex items-center">
                 <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center mr-2 group-hover:bg-green-100 transition-colors">
                   <Settings className="h-3.5 w-3.5 text-gray-600 group-hover:text-green-600" />
@@ -90,7 +112,10 @@ export function UserProfileDropdown({ user, onLogout, isLoggingOut = false }: Us
               <ChevronRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600 transition-colors" />
             </DropdownMenuItem>
             
-            <DropdownMenuItem className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer group transition-all duration-200 mx-1">
+            <DropdownMenuItem 
+              onClick={onAdminMode}
+              className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer group transition-all duration-200 mx-1"
+            >
               <div className="flex items-center">
                 <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center mr-2 group-hover:bg-emerald-100 transition-colors">
                   <Crown className="h-3.5 w-3.5 text-gray-600 group-hover:text-emerald-600" />
@@ -100,7 +125,10 @@ export function UserProfileDropdown({ user, onLogout, isLoggingOut = false }: Us
               <ChevronRight className="h-3 w-3 text-gray-400 group-hover:text-gray-600 transition-colors" />
             </DropdownMenuItem>
             
-            <DropdownMenuItem className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer group transition-all duration-200 mx-1">
+            <DropdownMenuItem 
+              onClick={onIntegrations}
+              className="flex items-center justify-between px-3 py-2 text-sm text-gray-700 hover:bg-gray-50 rounded-lg cursor-pointer group transition-all duration-200 mx-1"
+            >
               <div className="flex items-center">
                 <div className="w-7 h-7 bg-gray-100 rounded-lg flex items-center justify-center mr-2 group-hover:bg-green-100 transition-colors">
                   <Grid3X3 className="h-3.5 w-3.5 text-gray-600 group-hover:text-green-600" />
@@ -145,12 +173,18 @@ export function UserProfileDropdown({ user, onLogout, isLoggingOut = false }: Us
         {/* Footer Links */}
         <div className="px-4 py-3 bg-gray-50 border-t border-gray-100">
           <div className="flex items-center justify-center space-x-3 text-xs text-gray-500">
-            <button className="hover:text-gray-700 transition-colors flex items-center space-x-1">
+            <button 
+              onClick={onPrivacy}
+              className="hover:text-gray-700 transition-colors flex items-center space-x-1"
+            >
               <Shield className="h-2.5 w-2.5" />
               <span>Privacy</span>
             </button>
             <div className="w-0.5 h-0.5 bg-gray-300 rounded-full" />
-            <button className="hover:text-gray-700 transition-colors flex items-center space-x-1">
+            <button 
+              onClick={onTerms}
+              className="hover:text-gray-700 transition-colors flex items-center space-x-1"
+            >
               <ExternalLink className="h-2.5 w-2.5" />
               <span>Terms</span>
             </button>

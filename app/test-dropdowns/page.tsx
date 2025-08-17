@@ -63,6 +63,40 @@ export default function TestDropdownsPage() {
     showSuccess('Logging out...')
   }
 
+  // User profile dropdown handlers
+  const handleUserFeedback = () => {
+    showSuccess('Opening feedback form')
+  }
+
+  const handleAccountSettings = () => {
+    showSuccess('Opening account settings')
+  }
+
+  const handleAdminMode = () => {
+    showSuccess('Switching to admin mode')
+  }
+
+  const handleIntegrations = () => {
+    showSuccess('Opening integrations panel')
+  }
+
+  const handlePrivacy = () => {
+    showSuccess('Opening privacy policy')
+  }
+
+  const handleTerms = () => {
+    showSuccess('Opening terms of service')
+  }
+
+  // Notification dropdown handlers
+  const handleNotificationSettings = () => {
+    showSuccess('Opening notification settings')
+  }
+
+  const handleClearAllNotifications = () => {
+    showSuccess('All notifications cleared')
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 p-8">
       <div className="max-w-4xl mx-auto">
@@ -88,7 +122,11 @@ export default function TestDropdownsPage() {
             {/* Notification Dropdown */}
             <div className="text-center">
               <h3 className="text-sm font-medium text-gray-700 mb-2">Notification Dropdown</h3>
-              <NotificationDropdown notifications={sampleNotifications} />
+              <NotificationDropdown 
+                notifications={sampleNotifications}
+                onSettings={handleNotificationSettings}
+                onClearAll={handleClearAllNotifications}
+              />
             </div>
 
             {/* User Profile Dropdown */}
@@ -97,6 +135,12 @@ export default function TestDropdownsPage() {
               <UserProfileDropdown 
                 user={sampleUser} 
                 onLogout={handleLogout}
+                onFeedback={handleUserFeedback}
+                onAccountSettings={handleAccountSettings}
+                onAdminMode={handleAdminMode}
+                onIntegrations={handleIntegrations}
+                onPrivacy={handlePrivacy}
+                onTerms={handleTerms}
               />
             </div>
           </div>

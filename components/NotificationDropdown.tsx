@@ -10,9 +10,11 @@ interface NotificationDropdownProps {
     timestamp: string
     read: boolean
   }>
+  onSettings?: () => void
+  onClearAll?: () => void
 }
 
-export function NotificationDropdown({ notifications = [] }: NotificationDropdownProps) {
+export function NotificationDropdown({ notifications = [], onSettings, onClearAll }: NotificationDropdownProps) {
   const unreadCount = notifications.filter(n => !n.read).length
 
   return (
@@ -46,7 +48,10 @@ export function NotificationDropdown({ notifications = [] }: NotificationDropdow
             </div>
             
             <div className="flex items-center space-x-2">
-              <button className="p-1 text-gray-400 hover:text-gray-600">
+              <button 
+                onClick={onSettings}
+                className="p-1 text-gray-400 hover:text-gray-600"
+              >
                 <Settings className="h-4 w-4" />
               </button>
             </div>
@@ -57,7 +62,10 @@ export function NotificationDropdown({ notifications = [] }: NotificationDropdow
         <div className="p-4">
           <div className="flex items-center justify-between mb-3">
             <span className="text-xs font-medium text-gray-500 uppercase tracking-wide">Latest</span>
-            <button className="text-xs text-gray-500 hover:text-gray-700">
+            <button 
+              onClick={onClearAll}
+              className="text-xs text-gray-500 hover:text-gray-700"
+            >
               Clear all
             </button>
           </div>
