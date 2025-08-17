@@ -181,13 +181,13 @@ export default function EmbedPage() {
   return (
     <div className="flex flex-col h-full bg-gray-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-8 py-6 shadow-sm flex-shrink-0">
-        <div className="flex items-center justify-between">
+      <header className="bg-white border-b border-gray-200 px-4 sm:px-8 py-4 sm:py-6 shadow-sm flex-shrink-0">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-3 sm:space-y-0">
           <div>
-            <h1 className="text-3xl font-bold text-gray-900">Embed Code</h1>
-            <p className="text-gray-600 mt-1">Integrate your chatbot with your website</p>
+            <h1 className="text-xl sm:text-3xl font-bold text-gray-900">Embed Code</h1>
+            <p className="text-sm sm:text-base text-gray-600 mt-1">Integrate your chatbot with your website</p>
           </div>
-          <div className="flex items-center space-x-3">
+          <div className="flex items-center space-x-2 sm:space-x-3">
             <Badge 
               variant={bot.status === 'active' ? 'default' : 'secondary'}
               className={`${
@@ -198,36 +198,36 @@ export default function EmbedPage() {
             >
               {bot.status}
             </Badge>
-            <Button variant="outline" size="sm" className="border-teal-200 text-teal-600 hover:bg-teal-50">
-              <Eye className="h-4 w-4 mr-2" />
-              Preview
+            <Button variant="outline" size="sm" className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2 px-3 text-sm">
+              <Eye className="h-4 w-4 sm:mr-2" />
+              <span className="hidden sm:inline">Preview</span>
             </Button>
           </div>
         </div>
       </header>
 
       {/* Content */}
-      <main className="flex-1 overflow-y-auto p-8 space-y-8 min-h-0">
+      <main className="flex-1 overflow-y-auto p-4 sm:p-8 space-y-6 sm:space-y-8 min-h-0">
         {/* Widget Test URL */}
-        <Card className="border border-gray-200 shadow-sm bg-white">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center">
+        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
+          <CardHeader className="px-4 sm:px-6">
+            <div className="flex items-start sm:items-center space-x-3">
+              <div className="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center flex-shrink-0">
                 <Eye className="h-5 w-5" />
               </div>
-              <div>
-                <CardTitle className="text-xl">Test Your Widget</CardTitle>
-                <CardDescription>
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-xl">Test Your Widget</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   Direct URL to test your chat widget in action
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <div className="space-y-4">
-              <div className="bg-teal-50 p-6 rounded-xl border border-teal-200">
-                <h4 className="font-semibold text-teal-900 mb-3 flex items-center">
-                  <Globe className="w-4 h-4 mr-2" />
+              <div className="bg-teal-50 p-4 sm:p-6 rounded-xl border border-teal-200">
+                <h4 className="font-semibold text-teal-900 mb-3 flex items-center text-sm sm:text-base">
+                  <Globe className="w-4 h-4 mr-2 flex-shrink-0" />
                   Widget Test URL:
                 </h4>
                 <div className="relative">
@@ -235,22 +235,22 @@ export default function EmbedPage() {
                     type="text"
                     readOnly
                     value={`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`}
-                    className="w-full p-3 pr-20 bg-white border border-teal-300 rounded-lg text-sm font-mono text-teal-800"
+                    className="w-full p-3 pr-16 sm:pr-20 bg-white border border-teal-300 rounded-lg text-xs sm:text-sm font-mono text-teal-800 min-h-[44px]"
                   />
                   <Button
                     size="sm"
-                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-teal-600 text-white border-0 hover:bg-teal-700"
+                    className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-teal-600 text-white border-0 hover:bg-teal-700 px-2 sm:px-3"
                     onClick={() => copyToClipboard(`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`, 'testUrl')}
                   >
-                    <Copy className="h-4 w-4 mr-1" />
-                    {copiedTestUrl ? 'Copied!' : 'Copy'}
+                    <Copy className="h-4 w-4 sm:mr-1" />
+                    <span className="hidden sm:inline">{copiedTestUrl ? 'Copied!' : 'Copy'}</span>
                   </Button>
                 </div>
-                <div className="mt-3 flex space-x-3">
+                <div className="mt-3 flex flex-col sm:flex-row space-y-2 sm:space-y-0 sm:space-x-3">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-teal-200 text-teal-600 hover:bg-teal-50"
+                    className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2 px-4 min-h-[40px] w-full sm:w-auto"
                     onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
                   >
                     <ExternalLink className="h-4 w-4 mr-2" />
@@ -259,7 +259,7 @@ export default function EmbedPage() {
                   <Button
                     variant="outline"
                     size="sm"
-                    className="border-teal-200 text-teal-600 hover:bg-teal-50"
+                    className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2 px-4 min-h-[40px] w-full sm:w-auto"
                     onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
                   >
                     <TestTube className="h-4 w-4 mr-2" />
@@ -272,33 +272,33 @@ export default function EmbedPage() {
         </Card>
 
         {/* Widget Integration */}
-        <Card className="border border-gray-200 shadow-sm bg-white">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center">
+        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
+          <CardHeader className="px-4 sm:px-6">
+            <div className="flex items-start sm:items-center space-x-3">
+              <div className="w-10 h-10 bg-blue-500 text-white rounded-lg flex items-center justify-center flex-shrink-0">
                 <Code className="h-5 w-5" />
               </div>
-              <div>
-                <CardTitle className="text-xl">Widget Integration (Advanced)</CardTitle>
-                <CardDescription>
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-xl">Widget Integration (Advanced)</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   Full control over widget initialization with custom settings
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <div className="space-y-4">
               <div className="relative">
-                <pre className="bg-gray-50 p-6 rounded-xl overflow-x-auto text-sm font-mono border border-gray-200">
+                <pre className="bg-gray-50 p-4 sm:p-6 rounded-xl overflow-x-auto text-xs sm:text-sm font-mono border border-gray-200 max-h-80 sm:max-h-96">
                   <code className="text-gray-800">{generateEmbedCode(bot)}</code>
                 </pre>
                 <Button
                   size="sm"
-                  className="absolute top-4 right-4 bg-teal-600 text-white border-0 hover:bg-teal-700"
+                  className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-teal-600 text-white border-0 hover:bg-teal-700 px-2 sm:px-3"
                   onClick={() => copyToClipboard(generateEmbedCode(bot), 'code')}
                 >
-                  <Copy className="h-4 w-4 mr-1" />
-                  {copiedCode ? 'Copied!' : 'Copy'}
+                  <Copy className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">{copiedCode ? 'Copied!' : 'Copy'}</span>
                 </Button>
               </div>
             </div>
@@ -306,33 +306,33 @@ export default function EmbedPage() {
         </Card>
 
         {/* Simple Widget Integration */}
-        <Card className="border border-gray-200 shadow-sm bg-white">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-green-500 text-white rounded-lg flex items-center justify-center">
+        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
+          <CardHeader className="px-4 sm:px-6">
+            <div className="flex items-start sm:items-center space-x-3">
+              <div className="w-10 h-10 bg-green-500 text-white rounded-lg flex items-center justify-center flex-shrink-0">
                 <Zap className="h-5 w-5" />
               </div>
-              <div>
-                <CardTitle className="text-xl">Simple Widget Integration</CardTitle>
-                <CardDescription>
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-xl">Simple Widget Integration</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   One-line embed using data attributes (easiest method)
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <div className="space-y-4">
               <div className="relative">
-                <pre className="bg-gray-50 p-6 rounded-xl overflow-x-auto text-sm font-mono border border-gray-200">
+                <pre className="bg-gray-50 p-4 sm:p-6 rounded-xl overflow-x-auto text-xs sm:text-sm font-mono border border-gray-200 max-h-80 sm:max-h-96">
                   <code className="text-gray-800">{generateSimpleEmbedCode(bot)}</code>
                 </pre>
                 <Button
                   size="sm"
-                  className="absolute top-4 right-4 bg-teal-600 text-white border-0 hover:bg-teal-700"
+                  className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-teal-600 text-white border-0 hover:bg-teal-700 px-2 sm:px-3"
                   onClick={() => copyToClipboard(generateSimpleEmbedCode(bot), 'simple')}
                 >
-                  <Copy className="h-4 w-4 mr-1" />
-                  {copiedSimple ? 'Copied!' : 'Copy'}
+                  <Copy className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">{copiedSimple ? 'Copied!' : 'Copy'}</span>
                 </Button>
               </div>
             </div>
@@ -340,33 +340,33 @@ export default function EmbedPage() {
         </Card>
 
         {/* API Integration */}
-        <Card className="border border-gray-200 shadow-sm bg-white">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center">
+        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
+          <CardHeader className="px-4 sm:px-6">
+            <div className="flex items-start sm:items-center space-x-3">
+              <div className="w-10 h-10 bg-teal-600 text-white rounded-lg flex items-center justify-center flex-shrink-0">
                 <Settings className="h-5 w-5" />
               </div>
-              <div>
-                <CardTitle className="text-xl">Direct API Integration</CardTitle>
-                <CardDescription>
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-xl">Direct API Integration</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   For custom implementations using the API directly
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
+          <CardContent className="px-4 sm:px-6">
             <div className="space-y-4">
               <div className="relative">
-                <pre className="bg-gray-50 p-6 rounded-xl overflow-x-auto text-sm font-mono border border-gray-200">
+                <pre className="bg-gray-50 p-4 sm:p-6 rounded-xl overflow-x-auto text-xs sm:text-sm font-mono border border-gray-200 max-h-80 sm:max-h-96">
                   <code className="text-gray-800">{generateAPICode(bot)}</code>
                 </pre>
                 <Button
                   size="sm"
-                  className="absolute top-4 right-4 bg-teal-600 text-white border-0 hover:bg-teal-700"
+                  className="absolute top-3 right-3 sm:top-4 sm:right-4 bg-teal-600 text-white border-0 hover:bg-teal-700 px-2 sm:px-3"
                   onClick={() => copyToClipboard(generateAPICode(bot), 'api')}
                 >
-                  <Copy className="h-4 w-4 mr-1" />
-                  {copiedAPI ? 'Copied!' : 'Copy'}
+                  <Copy className="h-4 w-4 sm:mr-1" />
+                  <span className="hidden sm:inline">{copiedAPI ? 'Copied!' : 'Copy'}</span>
                 </Button>
               </div>
             </div>
@@ -374,28 +374,28 @@ export default function EmbedPage() {
         </Card>
 
         {/* Webhook Integration */}
-        <Card className="border border-gray-200 shadow-sm bg-white">
-          <CardHeader>
-            <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 bg-orange-500 text-white rounded-lg flex items-center justify-center">
+        <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
+          <CardHeader className="px-4 sm:px-6">
+            <div className="flex items-start sm:items-center space-x-3">
+              <div className="w-10 h-10 bg-orange-500 text-white rounded-lg flex items-center justify-center flex-shrink-0">
                 <Globe className="h-5 w-5" />
               </div>
-              <div>
-                <CardTitle className="text-xl">Webhook Integration</CardTitle>
-                <CardDescription>
+              <div className="min-w-0 flex-1">
+                <CardTitle className="text-lg sm:text-xl">Webhook Integration</CardTitle>
+                <CardDescription className="text-sm sm:text-base">
                   How your bot communicates with automation
                 </CardDescription>
               </div>
             </div>
           </CardHeader>
-          <CardContent>
-            <div className="space-y-6">
-              <div className="bg-blue-50 p-6 rounded-xl border border-blue-200">
-                <h4 className="font-semibold text-blue-900 mb-3 flex items-center">
-                  <Sparkles className="w-5 h-5 mr-2" />
+          <CardContent className="px-4 sm:px-6">
+            <div className="space-y-4 sm:space-y-6">
+              <div className="bg-blue-50 p-4 sm:p-6 rounded-xl border border-blue-200">
+                <h4 className="font-semibold text-blue-900 mb-3 flex items-center text-sm sm:text-base">
+                  <Sparkles className="w-4 h-4 sm:w-5 sm:h-5 mr-2 flex-shrink-0" />
                   Current Webhook URL:
                 </h4>
-                <code className="text-sm text-blue-800 break-all bg-white/70 px-3 py-2 rounded-lg">
+                <code className="text-xs sm:text-sm text-blue-800 break-all bg-white/70 px-3 py-2 rounded-lg block">
                   {bot.settings.webhookUrl}
                 </code>
               </div>
