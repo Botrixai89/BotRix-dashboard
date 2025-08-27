@@ -14,11 +14,13 @@
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            botId: this.botId,
-            message: message,
-            conversationId: this.conversationId,
-            format: this.conversationId ? 'existing' : 'new',
-            userInfo: {
+            type: "text",
+            content: {
+              text: message
+            },
+            _botId: this.botId,
+            _conversationId: this.conversationId,
+            _userInfo: {
               ip: 'client-ip',
               userAgent: navigator.userAgent,
               ...userInfo
@@ -31,10 +33,12 @@
         }
 
         const data = await response.json();
-        if (Array.isArray(data) && data.length > 0 && data[0]._id) {
-          this.conversationId = data[0]._id;
-        } else if (data.conversationId) {
+        
+        // Handle conversation ID for the new format
+        if (data.conversationId) {
           this.conversationId = data.conversationId;
+        } else if (Array.isArray(data) && data.length > 0 && data[0]._id) {
+          this.conversationId = data[0]._id;
         }
 
         return data;
@@ -405,7 +409,7 @@
               console.log('No logo available, using fallback icon');
             }
             // Store color and image settings
-            let botHeaderColor = data.bot.settings?.headerColor || '#8b5cf6';
+            let botHeaderColor = data.bot.settings?.primaryColor || data.bot.settings?.headerColor || '#8b5cf6';
             // Force darker colors for better visibility
             if (botHeaderColor) {
               // If it's a light green color, make it darker
@@ -2548,35 +2552,67 @@
       // Send button
       this.sendButton.addEventListener('click', () => this.sendMessage());
       
-      // Input events
+      // Input events - Enhanced with better focus management
       this.input.addEventListener('keypress', (e) => {
-        if (e.key === 'Enter') {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
           this.sendMessage();
         }
       });
 
+      this.input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && !e.shiftKey) {
+          e.preventDefault();
+          this.sendMessage();
+        }
+      });
+
+      this.input.addEventListener('input', (e) => {
+        // Enable/disable send button based on input content
+        const hasContent = e.target.value.trim().length > 0;
+        this.sendButton.disabled = !hasContent;
+      });
+
       this.input.addEventListener('focus', () => {
         this.inputRow.classList.add('focused');
+        // Ensure input is properly focused and accessible
+        this.input.setAttribute('aria-expanded', 'true');
       });
 
       this.input.addEventListener('blur', () => {
         this.inputRow.classList.remove('focused');
+        this.input.setAttribute('aria-expanded', 'false');
       });
 
       // Voice button
-      this.voiceBtn.addEventListener('click', () => this.handleVoiceInput());
+      this.voiceBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.handleVoiceInput();
+      });
       
       // Voice toggle
-      this.voiceToggle.addEventListener('click', () => {
+      this.voiceToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
         const enabled = this.voiceService.toggleVoice();
         this.voiceToggle.classList.toggle('active', enabled);
         this.showNotification(enabled ? 'Voice enabled' : 'Voice disabled');
       });
 
-
-
       // Toggle button
-      this.toggleButton.addEventListener('click', () => this.toggle());
+      this.toggleButton.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        this.toggle();
+      });
+
+      // Ensure input is properly accessible
+      this.input.setAttribute('role', 'textbox');
+      this.input.setAttribute('aria-label', 'Type your message');
+      this.input.setAttribute('aria-describedby', 'send-button');
+      this.sendButton.setAttribute('id', 'send-button');
+      this.sendButton.setAttribute('aria-label', 'Send message');
     }
 
     addMessage(content, sender, options = {}) {
@@ -2760,10 +2796,13 @@
       const message = this.input.value.trim();
       if (!message) return;
 
-      this.addMessage(message, 'user');
+      // Clear input and disable immediately
       this.input.value = '';
       this.input.disabled = true;
       this.sendButton.disabled = true;
+      
+      // Add user message
+      this.addMessage(message, 'user');
 
       this.showTyping();
 
@@ -2888,6 +2927,7 @@
       const welcomeMessage = script.getAttribute('data-botrix-welcome-message');
       const enableVoice = script.getAttribute('data-botrix-enable-voice') !== 'false';
       const theme = script.getAttribute('data-botrix-theme') || 'modern';
+      const demoMode = script.getAttribute('data-botrix-demo-mode') === 'true'; // Only true if explicitly set to 'true'
       
       if (botId) {
         window.BotrixChat.createWidget(botId, {
@@ -2897,7 +2937,7 @@
           welcomeMessage,
           enableVoice,
           theme,
-          demoMode: true // Enable demo mode for testing
+          demoMode: demoMode // Default to false (real webhook) unless explicitly set to true
         });
       }
     });

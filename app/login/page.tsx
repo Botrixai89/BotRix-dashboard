@@ -12,6 +12,7 @@ import { showSuccess, showError, toastMessages } from '@/lib/toast'
 import { useAuth } from '@/lib/auth-context'
 import { signIn, useSession } from 'next-auth/react'
 import { Loading } from '@/components/ui/loading'
+import EnvironmentStatus from '@/components/EnvironmentStatus'
 
 export default function LoginPage() {
   const { login, user, loading } = useAuth()
@@ -145,6 +146,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen bg-[#E0FFFF] relative">
+      <EnvironmentStatus />
       <div className="relative z-10 min-h-screen flex items-center justify-center p-4 sm:p-6 lg:p-8">
         <div className="w-full max-w-sm sm:max-w-md space-y-4 sm:space-y-6">
           {/* Login Card - Compact */}
@@ -257,7 +259,11 @@ export default function LoginPage() {
               <div className="text-center pt-2">
                 <p className="text-xs text-gray-600">
                   Don't have an account?{' '}
-                  <Link href="/signup" className="text-teal-600 hover:text-teal-700 font-medium transition-colors">
+                  <Link 
+                    href="/signup" 
+                    className="text-teal-600 hover:text-teal-700 font-medium transition-colors underline cursor-pointer z-10 relative"
+                    style={{ pointerEvents: 'auto' }}
+                  >
                     Sign up
                   </Link>
                 </p>

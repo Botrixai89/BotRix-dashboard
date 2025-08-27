@@ -59,4 +59,10 @@ const ConversationSchema = new Schema({
   timestamps: true,
 });
 
+// Add indexes for better performance
+ConversationSchema.index({ botId: 1, updatedAt: -1 });
+ConversationSchema.index({ botId: 1, status: 1 });
+ConversationSchema.index({ 'userInfo.ip': 1, 'userInfo.userAgent': 1 });
+ConversationSchema.index({ 'messages.content': 'text' });
+
 export default (mongoose.models?.Conversation as mongoose.Model<any>) || model('Conversation', ConversationSchema); 

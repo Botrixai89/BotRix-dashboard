@@ -49,7 +49,7 @@ export async function POST(request: NextRequest) {
       companyLogo: companyLogo || null,
       settings: {
         welcomeMessage: welcomeMessage || 'Hello! How can I help you today?',
-        primaryColor: primaryColor || '#2563eb',
+        primaryColor: primaryColor || '#8b5cf6',
         webhookUrl: webhookUrl || '',
         fallbackMessage: "I'm sorry, I didn't understand that. Can you please rephrase?",
         collectUserInfo: false,

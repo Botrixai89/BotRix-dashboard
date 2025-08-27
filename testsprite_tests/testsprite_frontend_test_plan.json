@@ -1,0 +1,607 @@
+[
+  {
+    "id": "TC001",
+    "title": "User Signup via Email/Password",
+    "description": "Verify that a new user can sign up using valid email and password, and receive an email verification link.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to signup page"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid email address and strong password"
+      },
+      {
+        "type": "action",
+        "description": "Submit signup form"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that registration is successful and email verification message is sent"
+      }
+    ]
+  },
+  {
+    "id": "TC002",
+    "title": "Signup with Existing Email",
+    "description": "Check that signup fails with an error when attempting to register an email already in use.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to signup page"
+      },
+      {
+        "type": "action",
+        "description": "Enter an email already registered and any password"
+      },
+      {
+        "type": "action",
+        "description": "Submit signup form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that an error indicating email in use is shown"
+      }
+    ]
+  },
+  {
+    "id": "TC003",
+    "title": "Email Verification Process",
+    "description": "Validate that users receive an email verification link and can verify their email successfully.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Sign up a new user via email"
+      },
+      {
+        "type": "action",
+        "description": "Check email inbox for verification link"
+      },
+      {
+        "type": "action",
+        "description": "Click verification link"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm user email is marked as verified"
+      }
+    ]
+  },
+  {
+    "id": "TC004",
+    "title": "User Login with Email/Password",
+    "description": "Verify that a verified user can login using their email and password successfully.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page"
+      },
+      {
+        "type": "action",
+        "description": "Enter valid, verified email and correct password"
+      },
+      {
+        "type": "action",
+        "description": "Submit login form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify login success and redirection to dashboard"
+      }
+    ]
+  },
+  {
+    "id": "TC005",
+    "title": "User Login with Google OAuth",
+    "description": "Verify that a user can log in using Google OAuth authentication successfully.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to login page"
+      },
+      {
+        "type": "action",
+        "description": "Click on 'Login with Google' button"
+      },
+      {
+        "type": "action",
+        "description": "Complete Google OAuth flow with valid Google account"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that user is logged in and redirected to dashboard"
+      }
+    ]
+  },
+  {
+    "id": "TC006",
+    "title": "Password Reset Workflow",
+    "description": "Test that users can request a password reset and successfully update their password via emailed link.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to forgot password page"
+      },
+      {
+        "type": "action",
+        "description": "Enter registered email and submit reset request"
+      },
+      {
+        "type": "action",
+        "description": "Check email inbox and click password reset link"
+      },
+      {
+        "type": "action",
+        "description": "Enter new valid password and submit"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify password is updated and user can login with new password"
+      }
+    ]
+  },
+  {
+    "id": "TC007",
+    "title": "Create New Chatbot",
+    "description": "Verify that a logged-in user can successfully create a new chatbot with valid metadata.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login and navigate to create new bot page"
+      },
+      {
+        "type": "action",
+        "description": "Enter bot name, description, and initial configuration"
+      },
+      {
+        "type": "action",
+        "description": "Submit creation form"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify new bot is listed in user's bots and details are correct"
+      }
+    ]
+  },
+  {
+    "id": "TC008",
+    "title": "Edit Existing Bot Configuration",
+    "description": "Check that users can edit and save changes to an existing chatbot's configuration through visual builder.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Select an existing bot from bot list"
+      },
+      {
+        "type": "action",
+        "description": "Open the visual bot flow builder"
+      },
+      {
+        "type": "action",
+        "description": "Modify flow components and configuration"
+      },
+      {
+        "type": "action",
+        "description": "Save changes"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that changes persist and reflected in bot data"
+      }
+    ]
+  },
+  {
+    "id": "TC009",
+    "title": "Delete a Bot",
+    "description": "Verify users can delete an existing bot and that it is no longer accessible.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to bot list"
+      },
+      {
+        "type": "action",
+        "description": "Select a bot and initiate delete action"
+      },
+      {
+        "type": "action",
+        "description": "Confirm deletion in prompt"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify bot is removed from bot list and data store"
+      }
+    ]
+  },
+  {
+    "id": "TC010",
+    "title": "Test Bot Flow with Valid Input",
+    "description": "Test that a bot responds correctly to valid user inputs during test session in visual builder.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open a bot's test interface"
+      },
+      {
+        "type": "action",
+        "description": "Send valid messages to chatbot"
+      },
+      {
+        "type": "assertion",
+        "description": "Validate that bot replies match configured flow responses"
+      }
+    ]
+  },
+  {
+    "id": "TC011",
+    "title": "Real-Time Chat Message Sending and Receiving",
+    "description": "Verify real-time sending and receiving of messages using Socket.IO in chat interface.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open chat interface for a bot"
+      },
+      {
+        "type": "action",
+        "description": "Send message as user"
+      },
+      {
+        "type": "assertion",
+        "description": "Check message is delivered and displayed instantly to both user and bot"
+      },
+      {
+        "type": "action",
+        "description": "Receive bot reply message"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify reply appears in real-time without refresh"
+      }
+    ]
+  },
+  {
+    "id": "TC012",
+    "title": "Voice Text-to-Speech Conversion",
+    "description": "Validate that bot text messages can be converted to speech using supported voices via Google Cloud API.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Select bot message to convert to speech"
+      },
+      {
+        "type": "action",
+        "description": "Choose a supported voice"
+      },
+      {
+        "type": "action",
+        "description": "Initiate text-to-speech action"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify audio plays correctly matching message text"
+      }
+    ]
+  },
+  {
+    "id": "TC013",
+    "title": "Voice Speech-to-Text Input",
+    "description": "Test bot accepts and correctly transcribes spoken input from user via speech-to-text conversion.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Activate speech-to-text input in chat interface"
+      },
+      {
+        "type": "action",
+        "description": "Speak a test phrase clearly"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify transcribed text matches spoken input and submits to bot"
+      }
+    ]
+  },
+  {
+    "id": "TC014",
+    "title": "Unsupported Voice Feature Fallback Handling",
+    "description": "Confirm system detects unsupported browser features for voice integration and shows fallback UI.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Use a browser environment without Web Speech API support"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to voice integration features"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify user sees clear message about unsupported feature and no errors occur"
+      }
+    ]
+  },
+  {
+    "id": "TC015",
+    "title": "Image Upload via Cloudinary Integration",
+    "description": "Verify that image uploads succeed and are stored in Cloudinary in production environment.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to bot or chat image upload interface"
+      },
+      {
+        "type": "action",
+        "description": "Select valid image file and upload"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify upload completes successfully and image is accessible from Cloudinary URL"
+      }
+    ]
+  },
+  {
+    "id": "TC016",
+    "title": "File Upload Fallback to Local Storage",
+    "description": "Validate that file uploads fall back to local storage when Cloudinary is unavailable (e.g., in development mode).",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Configure environment for local storage fallback"
+      },
+      {
+        "type": "action",
+        "description": "Upload an image or file"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm file is stored locally and accessible"
+      }
+    ]
+  },
+  {
+    "id": "TC017",
+    "title": "Analytics Dashboard Accuracy",
+    "description": "Verify analytics dashboard shows accurate, current metrics on bot usage and user engagements.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Generate bot usage data by interacting with bot"
+      },
+      {
+        "type": "action",
+        "description": "Navigate to analytics dashboard for the bot"
+      },
+      {
+        "type": "assertion",
+        "description": "Review accuracy and timeliness of displayed metrics and charts"
+      }
+    ]
+  },
+  {
+    "id": "TC018",
+    "title": "Embed Chat Widget on External Website",
+    "description": "Test that chat widget embed script can be added to an external site and functions correctly with customization options.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Copy embed script from bot embed page"
+      },
+      {
+        "type": "action",
+        "description": "Insert script with customization options into sample external web page"
+      },
+      {
+        "type": "assertion",
+        "description": "Load external page and verify chat widget appears and operates correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC019",
+    "title": "Team Member Invitation and Role Assignment",
+    "description": "Verify user can invite team members and assign roles successfully, and the invitee receives notification.",
+    "category": "functional",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Navigate to team management section"
+      },
+      {
+        "type": "action",
+        "description": "Send invitation to new collaborator email and assign role"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify invite is recorded and invitee receives email invitation"
+      }
+    ]
+  },
+  {
+    "id": "TC020",
+    "title": "Team Member Access Control",
+    "description": "Check that team members with different roles have appropriate permissions and restricted access.",
+    "category": "security",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Login as team member with limited role"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to perform actions restricted to admins (e.g., delete bot)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify access is denied and error or warning message shown"
+      }
+    ]
+  },
+  {
+    "id": "TC021",
+    "title": "Webhook Integration Trigger and Security",
+    "description": "Validate that configured webhooks trigger correctly with proper authentication and handle failures securely.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Configure webhook URL and authentication for a bot"
+      },
+      {
+        "type": "action",
+        "description": "Trigger event that calls webhook"
+      },
+      {
+        "type": "assertion",
+        "description": "Confirm webhook receives expected payload and verifies authentication"
+      },
+      {
+        "type": "action",
+        "description": "Trigger webhook with invalid token or authentication"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify webhook rejects unauthorized requests gracefully"
+      }
+    ]
+  },
+  {
+    "id": "TC022",
+    "title": "UI Component Rendering Consistency",
+    "description": "Verify that reusable UI components render correctly and consistently across supported browsers and device screen sizes.",
+    "category": "ui",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Load pages with Radix UI components on multiple browsers (Chrome, Firefox, Safari, Edge)"
+      },
+      {
+        "type": "assertion",
+        "description": "Check correct styling, layout, and functionality"
+      },
+      {
+        "type": "action",
+        "description": "Resize browser window and test on mobile device simulators"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify responsiveness and accessibility compliance"
+      }
+    ]
+  },
+  {
+    "id": "TC023",
+    "title": "Handling Invalid Bot Configuration in Builder",
+    "description": "Test that invalid configurations in the bot visual builder are detected and appropriate validation messages are shown.",
+    "category": "error handling",
+    "priority": "Medium",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Create or edit a bot flow with missing required nodes or invalid transitions"
+      },
+      {
+        "type": "action",
+        "description": "Attempt to save the bot configuration"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify validation errors are displayed and save is prevented until fixed"
+      }
+    ]
+  },
+  {
+    "id": "TC024",
+    "title": "Chat Message Persistence After Refresh",
+    "description": "Verify that messages in a conversation persist and are correctly reloaded from the server on page refresh.",
+    "category": "functional",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Open an active conversation and send messages"
+      },
+      {
+        "type": "action",
+        "description": "Refresh the chat page"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify that all previous messages are loaded and displayed correctly"
+      }
+    ]
+  },
+  {
+    "id": "TC025",
+    "title": "File Upload Limits and Error Handling",
+    "description": "Test uploading unsupported file types, oversized files, and simulate network failure during upload to validate error handling.",
+    "category": "error handling",
+    "priority": "High",
+    "steps": [
+      {
+        "type": "action",
+        "description": "Attempt file upload with unsupported file type (e.g., .exe)"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify error message indicates unsupported file type"
+      },
+      {
+        "type": "action",
+        "description": "Attempt file upload with file exceeding size limits"
+      },
+      {
+        "type": "assertion",
+        "description": "Verify appropriate error about file size is shown"
+      },
+      {
+        "type": "action",
+        "description": "Simulate network failure during upload"
+      },
+      {
+        "type": "assertion",
+        "description": "Check that error is caught and user informed to retry"
+      }
+    ]
+  }
+]

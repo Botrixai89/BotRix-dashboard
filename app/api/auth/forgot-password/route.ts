@@ -45,12 +45,20 @@ export async function POST(request: NextRequest) {
     user.passwordResetExpires = passwordResetExpires
     await user.save()
 
-    // Send password reset email
-    const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${passwordResetToken}`
-    
-    // Import and use the email service
-    const { sendPasswordResetEmail } = await import('@/lib/email-service')
-    await sendPasswordResetEmail(user.email, user.name, resetUrl)
+    // Send password reset email (with error handling)
+    try {
+      const resetUrl = `${process.env.NEXTAUTH_URL}/reset-password?token=${passwordResetToken}`
+      
+      // Import and use the email service
+      const { sendPasswordResetEmail } = await import('@/lib/email-service')
+      await sendPasswordResetEmail(user.email, user.name, resetUrl)
+      
+      console.log('Password reset email sent successfully')
+    } catch (emailError) {
+      console.error('Failed to send password reset email:', emailError)
+      // Don't fail the request if email fails, just log it
+      // In production, you might want to queue the email for retry
+    }
 
     return NextResponse.json(
       { 
@@ -69,8 +77,16 @@ export async function POST(request: NextRequest) {
       )
     }
 
+    // Handle validation errors
+    if (error instanceof Error && error.message.includes('validation')) {
+      return NextResponse.json(
+        { error: 'Invalid data provided. Please check your email format.' },
+        { status: 400 }
+      )
+    }
+
     return NextResponse.json(
-      { error: 'Internal server error' },
+      { error: 'Internal server error. Please try again later.' },
       { status: 500 }
     )
   }

@@ -5,12 +5,18 @@ import User from '@/models/User'
 
 export async function GET(request: NextRequest) {
   try {
+    console.log('🔍 Auth check request received');
+    console.log('🍪 All cookies:', request.cookies.getAll().map(c => c.name));
+    
     // First, try to get token from cookies
     const token = getTokenFromCookies(request)
+    console.log('🍪 Custom token found:', !!token);
     
     if (token) {
       // Verify token
       const payload = verifyToken(token)
+      console.log('✅ Custom token verified:', !!payload);
+      
       if (payload) {
         // Connect to database
         await dbConnect()
@@ -18,6 +24,7 @@ export async function GET(request: NextRequest) {
         // Get user from database
         const user = await User.findById(payload.userId).select('-password')
         if (user) {
+          console.log('👤 User found via custom token:', user.email);
           return NextResponse.json({
             user: {
               _id: user._id,
@@ -29,7 +36,11 @@ export async function GET(request: NextRequest) {
               lastLogin: user.lastLogin,
             }
           })
+        } else {
+          console.log('❌ User not found in database for custom token');
         }
+      } else {
+        console.log('❌ Custom token verification failed');
       }
     }
 
@@ -37,16 +48,23 @@ export async function GET(request: NextRequest) {
     const nextAuthToken = request.cookies.get('next-auth.session-token')?.value || 
                          request.cookies.get('__Secure-next-auth.session-token')?.value;
     
+    console.log('🔐 NextAuth token found:', !!nextAuthToken);
+    
     if (nextAuthToken) {
       try {
         const jwt = require('jsonwebtoken');
         const NEXTAUTH_SECRET = process.env.NEXTAUTH_SECRET || 'your-nextauth-secret';
         const payload = jwt.verify(nextAuthToken, NEXTAUTH_SECRET);
         
+        console.log('✅ NextAuth token verified:', !!payload);
+        
         if (payload?.email) {
+          console.log('📧 NextAuth email found:', payload.email);
           await dbConnect();
           const user = await User.findOne({ email: payload.email }).select('-password');
           if (user) {
+            console.log('👤 User found via NextAuth token:', user.email);
+            
             // Generate a custom token for this user
             const customToken = generateToken({
               _id: user._id.toString(),
@@ -76,15 +94,21 @@ export async function GET(request: NextRequest) {
               path: '/',
             });
             
+            console.log('✅ Custom token generated and set for NextAuth user');
             return response;
+          } else {
+            console.log('❌ User not found in database for NextAuth token');
           }
+        } else {
+          console.log('❌ No email found in NextAuth payload');
         }
       } catch (error) {
-        console.log('NextAuth token verification failed:', error);
+        console.log('❌ NextAuth token verification failed:', error);
         // Don't throw error, just continue to return 401
       }
     }
     
+    console.log('❌ No valid authentication found');
     return NextResponse.json(
       { error: 'Not authenticated' },
       { status: 401 }

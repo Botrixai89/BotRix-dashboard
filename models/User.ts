@@ -17,6 +17,7 @@ const UserSchema = new Schema({
   googleId: {
     type: String,
     sparse: true, // Allows multiple null values but unique non-null values
+    index: true, // Add index here instead of at the bottom
   },
   password: {
     type: String,
@@ -58,7 +59,6 @@ const UserSchema = new Schema({
 
 // Indexes for better query performance
 UserSchema.index({ passwordResetToken: 1 });
-UserSchema.index({ googleId: 1 });
 
 // Virtual for checking if account is locked
 UserSchema.virtual('isLocked').get(function() {

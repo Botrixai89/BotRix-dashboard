@@ -25,6 +25,30 @@ export default function CreateBotPage() {
     const file = e.target.files?.[0]
     if (!file) return
     
+    // Clear previous errors
+    setError('')
+    
+    // Validate file type
+    const allowedTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setError(`Invalid file type. Please select a valid image file (JPEG, PNG, GIF, or WebP). Received: ${file.type}`)
+      return
+    }
+    
+    // Validate file size (5MB limit)
+    const maxSize = 5 * 1024 * 1024 // 5MB
+    if (file.size > maxSize) {
+      const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2)
+      setError(`File size too large. Maximum size is 5MB. Your file is ${fileSizeMB}MB.`)
+      return
+    }
+    
+    // Validate file name
+    if (file.name.length > 100) {
+      setError('File name too long. Please use a shorter name.')
+      return
+    }
+    
     console.log('Logo upload started:', { name: file.name, type: file.type, size: file.size })
     setLogoUploading(true)
     setError('')
@@ -44,13 +68,29 @@ export default function CreateBotPage() {
         console.log('Logo uploaded successfully:', data.url)
         setLogoLoading(true)
         setLogoUrl(data.url)
+        showSuccess('Logo uploaded successfully!')
       } else {
         console.error('Upload failed:', data.error)
-        setError(data.error || 'Failed to upload logo')
+        let errorMessage = 'Failed to upload logo'
+        
+        if (res.status === 413) {
+          errorMessage = 'File too large. Please select a smaller image.'
+        } else if (res.status === 415) {
+          errorMessage = 'Unsupported file type. Please select a valid image.'
+        } else if (res.status === 500) {
+          errorMessage = 'Server error during upload. Please try again.'
+        } else if (data.error) {
+          errorMessage = data.error
+        }
+        
+        setError(errorMessage)
+        showError(errorMessage)
       }
     } catch (err) {
       console.error('Upload error:', err)
-      setError('Failed to upload logo')
+      const errorMessage = 'Failed to upload logo. Please try again.'
+      setError(errorMessage)
+      showError(errorMessage)
     } finally {
       setLogoUploading(false)
     }

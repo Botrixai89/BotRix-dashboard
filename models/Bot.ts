@@ -7,7 +7,7 @@ const BotSettingsSchema = new Schema({
   },
   primaryColor: {
     type: String,
-    default: '#2563eb',
+    default: '#8b5cf6',
   },
   fallbackMessage: {
     type: String,
@@ -24,6 +24,147 @@ const BotSettingsSchema = new Schema({
   webhookUrl: {
     type: String,
     default: '',
+  },
+  // Rule-based bot configuration
+  botType: {
+    type: String,
+    enum: ['webhook', 'rule-based', 'hybrid'],
+    default: 'webhook',
+  },
+  ruleBasedConfig: {
+    enabled: {
+      type: Boolean,
+      default: false,
+    },
+    rules: [{
+      id: String,
+      name: String,
+      conditions: [{
+        field: String, // 'message', 'user_input', 'variable'
+        operator: {
+          type: String,
+          enum: ['contains', 'equals', 'starts_with', 'ends_with', 'regex', 'greater_than', 'less_than', 'in_list']
+        },
+        value: Schema.Types.Mixed,
+        caseSensitive: {
+          type: Boolean,
+          default: false,
+        }
+      }],
+      actions: [{
+        type: {
+          type: String,
+          enum: ['send_message', 'send_image', 'set_variable', 'call_webhook', 'redirect', 'pause']
+        },
+        data: Schema.Types.Mixed,
+        order: Number
+      }],
+      priority: {
+        type: Number,
+        default: 1,
+      },
+      isActive: {
+        type: Boolean,
+        default: true,
+      }
+    }],
+    variables: [{
+      name: String,
+      type: {
+        type: String,
+        enum: ['string', 'number', 'boolean', 'array', 'object']
+      },
+      defaultValue: Schema.Types.Mixed,
+      description: String
+    }]
+  },
+  // Enhanced webhook configuration
+  webhookConfig: {
+    primary: {
+      url: String,
+      method: {
+        type: String,
+        enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+        default: 'POST'
+      },
+      headers: Schema.Types.Mixed,
+      timeout: {
+        type: Number,
+        default: 30,
+        min: 1,
+        max: 300
+      },
+      retryAttempts: {
+        type: Number,
+        default: 2,
+        min: 0,
+        max: 5
+      },
+      isActive: {
+        type: Boolean,
+        default: true
+      }
+    },
+    fallback: {
+      url: String,
+      method: {
+        type: String,
+        enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+        default: 'POST'
+      },
+      headers: Schema.Types.Mixed,
+      timeout: {
+        type: Number,
+        default: 30,
+        min: 1,
+        max: 300
+      },
+      retryAttempts: {
+        type: Number,
+        default: 1,
+        min: 0,
+        max: 3
+      },
+      isActive: {
+        type: Boolean,
+        default: false
+      }
+    },
+    customWebhooks: [{
+      id: String,
+      name: String,
+      url: String,
+      method: {
+        type: String,
+        enum: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE'],
+        default: 'POST'
+      },
+      headers: Schema.Types.Mixed,
+      timeout: {
+        type: Number,
+        default: 30,
+        min: 1,
+        max: 300
+      },
+      retryAttempts: {
+        type: Number,
+        default: 1,
+        min: 0,
+        max: 3
+      },
+      triggerConditions: [{
+        field: String,
+        operator: {
+          type: String,
+          enum: ['contains', 'equals', 'starts_with', 'ends_with', 'regex']
+        },
+        value: Schema.Types.Mixed
+      }],
+      isActive: {
+        type: Boolean,
+        default: true
+      }
+    }]
   },
   // Widget customization
   widgetIcon: {

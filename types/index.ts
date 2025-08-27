@@ -37,6 +37,68 @@ export interface BotSettings {
   bodyColor: string;
   logo?: string;
   widgetImages?: string[];
+  botType?: 'webhook' | 'rule-based' | 'hybrid';
+  ruleBasedConfig?: {
+    enabled: boolean;
+    rules: Array<{
+      id: string;
+      name: string;
+      conditions: Array<{
+        field: string;
+        operator: 'contains' | 'equals' | 'starts_with' | 'ends_with' | 'regex' | 'greater_than' | 'less_than' | 'in_list';
+        value: any;
+        caseSensitive?: boolean;
+      }>;
+      actions: Array<{
+        type: 'send_message' | 'send_image' | 'set_variable' | 'call_webhook' | 'redirect' | 'pause';
+        data: any;
+        order: number;
+      }>;
+      priority: number;
+      isActive: boolean;
+    }>;
+    variables: Array<{
+      name: string;
+      type: 'string' | 'number' | 'boolean' | 'array' | 'object';
+      defaultValue: any;
+      description: string;
+    }>;
+  };
+  webhookConfig?: {
+    primary: {
+      url: string;
+      method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+      headers: Record<string, string>;
+      timeout: number;
+      retryAttempts: number;
+      isActive: boolean;
+    };
+    fallback: {
+      url: string;
+      method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+      headers: Record<string, string>;
+      timeout: number;
+      retryAttempts: number;
+      isActive: boolean;
+    };
+    customWebhooks: Array<{
+      id: string;
+      name: string;
+      url: string;
+      method: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';
+      headers: Record<string, string>;
+      timeout: number;
+      retryAttempts: number;
+      isActive: boolean;
+      triggerConditions: Array<{
+        field: string;
+        operator: 'contains' | 'equals' | 'starts_with' | 'ends_with' | 'regex';
+        value: any;
+      }>;
+    }>;
+  };
+  voiceEnabled?: boolean;
+  voiceSettings?: VoiceSettings;
 }
 
 export interface BotMetrics {

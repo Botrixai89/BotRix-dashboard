@@ -1,22 +1,68 @@
 'use client'
 
+import { useCallback, useEffect, useState, useMemo, useRef } from 'react'
+import ReactFlow, {
+  Node,
+  Edge,
+  addEdge,
+  Background,
+  Controls,
+  MiniMap,
+  useNodesState,
+  useEdgesState,
+  Connection,
+  Panel,
+  NodeTypes,
+  EdgeTypes,
+  ReactFlowProvider,
+  useReactFlow,
+} from 'reactflow'
+import 'reactflow/dist/style.css'
+
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { 
   Plus, Edit, Trash2, MessageSquare, Save, Settings, Zap, Globe, Palette, TestTube, 
   AlertTriangle, CheckCircle, XCircle, Volume2, VolumeX, Play, Pause, Search, 
   ArrowRight, Copy, MoreVertical, Image, Clock, User, Home, FileText, Share2,
-  ChevronDown, ChevronRight, RotateCcw, X
+  ChevronDown, ChevronRight, RotateCcw, X, Workflow, Bot, Eye, Code, Download, Upload,
+  Info, FileUp, Mic, Video, Link as LinkIcon, Database, Cpu, Zap as ZapIcon, Target, GitBranch,
+  Layers, BarChart3, Users, Lightbulb, Settings as SettingsIcon, Puzzle, Network,
+  Maximize2, Minimize2, Undo2, Redo2, ZoomIn, ZoomOut, FileText as FileTextIcon,
+  UserCheck, Send, Bot as BotIcon, MessageCircle, Calendar, Mail, Phone, MapPin,
+  ChevronLeft, Bell, RotateCw, Menu, PanelLeftClose, PanelRightClose
 } from 'lucide-react'
-import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
-import Link from 'next/link'
 import { showSuccess, showError } from '@/lib/toast'
-import { getVoiceService } from '@/lib/voice-service'
 import { Loading, ButtonLoading } from '@/components/ui/loading'
+import Link from 'next/link'
+
+// Custom Node Components
+import MessageNode from './components/MessageNode'
+import ImageNode from './components/ImageNode'
+import InputNode from './components/InputNode'
+import PauseNode from './components/PauseNode'
+import WebhookNode from './components/WebhookNode'
+import ConditionNode from './components/ConditionNode'
+import WelcomeNode from './components/WelcomeNode'
+
+// Rule-based and Webhook Components
+import RuleBuilder from './components/RuleBuilder'
+import WebhookConfig from './components/WebhookConfig'
+
+const nodeTypes: NodeTypes = {
+  messageNode: MessageNode,
+  imageNode: ImageNode,
+  inputNode: InputNode,
+  pauseNode: PauseNode,
+  webhookNode: WebhookNode,
+  conditionNode: ConditionNode,
+  welcomeNode: WelcomeNode,
+}
 
 interface Bot {
   _id: string;
@@ -27,125 +73,128 @@ interface Bot {
     welcomeMessage: string;
     fallbackMessage: string;
     primaryColor: string;
-    widgetIcon?: string;
-    widgetIconType: string;
-    widgetIconEmoji: string;
-    voiceEnabled: boolean;
-    voiceSettings: {
-      voice: 'alloy' | 'echo' | 'fable' | 'onyx' | 'nova' | 'shimmer';
-      speed: number;
-      pitch: number;
-      language: string;
+    botType?: 'webhook' | 'rule-based' | 'hybrid';
+    ruleBasedConfig?: {
+      enabled: boolean;
+      rules: any[];
+      variables: Record<string, any>;
+    };
+    webhookConfig?: {
+      primary: any;
+      fallback: any;
+      customWebhooks: any[];
+    };
+    conversationFlows?: {
+      paths: any[];
+      activePath: string;
     };
   };
 }
 
-interface TestResult {
-  webhookTest: {
-    status: string;
-    message: string;
-    statusCode?: number;
-    response?: any;
-    error?: string;
-  };
-}
-
-interface FlowNode {
-  id: string;
-  type: 'welcome' | 'message' | 'image' | 'pause' | 'condition' | 'webhook';
-  title: string;
-  content: string;
-  position: { x: number; y: number };
-  connections: string[];
+interface FlowData {
+  root: string;
+  nodes: Record<string, any>;
+  edges: Record<string, string[]>;
 }
 
 interface Path {
   id: string;
   name: string;
-  nodes: FlowNode[];
+  description: string;
   isActive: boolean;
+  flowData?: FlowData;
 }
 
-export default function BuilderPage() {
+const NODE_CATEGORIES = {
+  messaging: {
+    name: 'Messaging',
+    icon: MessageSquare,
+    nodes: [
+      { type: 'welcomeNode', name: 'Welcome Message', icon: MessageCircle, color: 'orange' },
+      { type: 'messageNode', name: 'Send Message', icon: Send, color: 'blue' },
+      { type: 'imageNode', name: 'Send Image', icon: Image, color: 'green' },
+    ]
+  },
+  interaction: {
+    name: 'Interaction',
+    icon: User,
+    nodes: [
+      { type: 'inputNode', name: 'Get User Input', icon: UserCheck, color: 'purple' },
+      { type: 'pauseNode', name: 'Pause', icon: Clock, color: 'yellow' },
+    ]
+  },
+  logic: {
+    name: 'Logic',
+    icon: GitBranch,
+    nodes: [
+      { type: 'conditionNode', name: 'Condition', icon: Target, color: 'red' },
+      { type: 'webhookNode', name: 'Webhook', icon: Globe, color: 'indigo' },
+    ]
+  }
+}
+
+export default function BotBuilderPage() {
   const params = useParams()
   const [bot, setBot] = useState<Bot | null>(null)
   const [isLoading, setIsLoading] = useState(true)
   const [error, setError] = useState('')
   const [isSaving, setIsSaving] = useState(false)
-  const [testResult, setTestResult] = useState<TestResult | null>(null)
-  const [isTestingWebhook, setIsTestingWebhook] = useState(false)
+  const [selectedNode, setSelectedNode] = useState<Node | null>(null)
+  const [reactFlowInstance, setReactFlowInstance] = useState<any>(null)
+  const [activePath, setActivePath] = useState('welcome-new-user')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [zoom, setZoom] = useState(1)
+  const [showNodePalette, setShowNodePalette] = useState(false)
   
-  // New state for the flow builder
-  const [activeSection, setActiveSection] = useState('canvas')
-  const [selectedNode, setSelectedNode] = useState<FlowNode | null>(null)
-  const [paths, setPaths] = useState<Path[]>([
-    {
-      id: 'welcome-new-user',
-      name: 'Welcome new user',
-      isActive: true,
-      nodes: []
-    },
-    {
-      id: 'greet-returning-user',
-      name: 'Greet returning user',
-      isActive: false,
-      nodes: []
-    },
-    {
-      id: 'default-message',
-      name: 'Default Message',
-      isActive: false,
-      nodes: []
-    },
-    {
-      id: 'post-resolution',
-      name: 'Post resolution',
-      isActive: false,
-      nodes: []
-    },
-    {
-      id: 'agent-unavailable',
-      name: 'Agent Unavailable',
-      isActive: false,
-      nodes: []
-    }
-  ])
-  const [selectedPath, setSelectedPath] = useState(paths[0])
-  const [expandedSections, setExpandedSections] = useState<string[]>(['paths'])
+  // Bot type and mode state
+  const [botType, setBotType] = useState<'webhook' | 'rule-based' | 'hybrid'>('webhook')
+  const [builderMode, setBuilderMode] = useState<'flow' | 'rules' | 'webhooks'>('flow')
+  
+  // Sidebar visibility state
+  const [leftSidebarOpen, setLeftSidebarOpen] = useState(true)
+  const [isMobile, setIsMobile] = useState(false)
+  
+  // React Flow state
+  const [nodes, setNodes, onNodesChange] = useNodesState([])
+  const [edges, setEdges, onEdgesChange] = useEdgesState([])
 
-  // Form state
-  const [formData, setFormData] = useState({
-    webhookUrl: '',
-    welcomeMessage: '',
-    fallbackMessage: '',
-    primaryColor: '',
-    widgetIcon: '',
-    widgetIconType: 'default', // string, not a union type
-    widgetIconEmoji: '💬',
-    voiceEnabled: false,
-    voiceSettings: {
-      voice: 'alloy' as const,
-      speed: 1.0,
-      pitch: 1.0,
-      language: 'en-US'
-    },
-    headerColor: '#8b5cf6',
-    footerColor: '#f8fafc',
-    bodyColor: '#ffffff',
-    logo: '',
-    widgetImages: [''] as string[]
-  })
+  // Available paths based on the JSON structure
+  const [paths, setPaths] = useState<Path[]>([
+    { id: 'welcome-new-user', name: 'Welcome new user', description: 'Initial greeting for new users', isActive: true },
+    { id: 'greet-returning-user', name: 'Greet returning user', description: 'Welcome back message', isActive: false },
+    { id: 'default-fallback-msg', name: 'Default Message', description: 'Fallback response', isActive: false },
+    { id: 'livechat-post-resolution', name: 'Post resolution', description: 'After issue resolution', isActive: false },
+    { id: 'agent-unavailable-msg', name: 'Agent Unavailable', description: 'When agents are busy', isActive: false },
+  ])
 
   useEffect(() => {
     fetchBot()
   }, [params.id])
 
   useEffect(() => {
-    // Initialize paths only once when bot data is first loaded
-    if (bot && paths.length > 0 && paths[0].nodes.length === 0) {
-      initializeDefaultPaths()
+    if (bot) {
+      setBotType(bot.settings.botType || 'webhook')
     }
-  }, [bot, formData.welcomeMessage, formData.fallbackMessage])
+  }, [bot])
+
+  // Handle responsive behavior
+  useEffect(() => {
+    const handleResize = () => {
+      const width = window.innerWidth
+      setIsMobile(width < 1024) // lg breakpoint
+      
+      // Auto-hide left sidebar on mobile
+      if (width < 1024) {
+        setLeftSidebarOpen(false)
+      } else {
+        setLeftSidebarOpen(true)
+      }
+    }
+
+    handleResize() // Initial check
+    window.addEventListener('resize', handleResize)
+    return () => window.removeEventListener('resize', handleResize)
+  }, [])
 
   const fetchBot = async () => {
     try {
@@ -154,44 +203,12 @@ export default function BuilderPage() {
 
       if (response.ok) {
         setBot(result.bot)
-        setFormData({
-          webhookUrl: result.bot.settings?.webhookUrl || '',
-          welcomeMessage: result.bot.settings?.welcomeMessage || '',
-          fallbackMessage: result.bot.settings?.fallbackMessage || '',
-          primaryColor: result.bot.settings?.primaryColor || '#7c3aed',
-          widgetIcon: result.bot.settings?.widgetIcon || '',
-          widgetIconType: result.bot.settings?.widgetIconType || 'default',
-          widgetIconEmoji: result.bot.settings?.widgetIconEmoji || '💬',
-          voiceEnabled: result.bot.settings?.voiceEnabled || false,
-          voiceSettings: {
-            voice: result.bot.settings?.voiceSettings?.voice || 'alloy',
-            speed: result.bot.settings?.voiceSettings?.speed || 1.0,
-            pitch: result.bot.settings?.voiceSettings?.pitch || 1.0,
-            language: result.bot.settings?.voiceSettings?.language || 'en-US'
-          },
-          headerColor: result.bot.settings?.headerColor || '#8b5cf6',
-          footerColor: result.bot.settings?.footerColor || '#f8fafc',
-          bodyColor: result.bot.settings?.bodyColor || '#ffffff',
-          logo: result.bot.settings?.logo || '',
-          widgetImages: result.bot.settings?.widgetImages || ['']
-        })
-
-        // Load conversation flows if they exist, otherwise initialize defaults
-        if (result.bot.settings?.conversationFlows && result.bot.settings.conversationFlows.paths) {
-          setPaths(result.bot.settings.conversationFlows.paths)
-          const activePath = result.bot.settings.conversationFlows.paths.find(
-            (p: Path) => p.id === result.bot.settings.conversationFlows.activePath
-          )
-          if (activePath) {
-            setSelectedPath(activePath)
-          } else {
-            setSelectedPath(result.bot.settings.conversationFlows.paths[0])
-          }
+        // Load existing flow data if available
+        if (result.bot.settings?.conversationFlows) {
+          loadFlowData(result.bot.settings.conversationFlows)
         } else {
-          // Initialize with default structure and populate with form data
-          setTimeout(() => {
-            initializeDefaultPaths()
-          }, 100)
+          // Initialize with default welcome flow
+          initializeDefaultFlow()
         }
       } else {
         setError(result.error || 'Failed to fetch bot')
@@ -203,53 +220,183 @@ export default function BuilderPage() {
     }
   }
 
-  const handleSave = async () => {
+  const initializeDefaultFlow = () => {
+    const defaultNodes: Node[] = [
+      {
+        id: 'start',
+        type: 'welcomeNode',
+        position: { x: 250, y: 100 },
+        data: { 
+          message: bot?.settings?.welcomeMessage || 'Hello! Welcome to our bot! 👋',
+          label: 'Welcome Message'
+        },
+      },
+      {
+        id: 'get-user-input',
+        type: 'inputNode',
+        position: { x: 250, y: 300 },
+        data: { 
+          prompt: 'How can I help you today?',
+          variable: 'user_query',
+          label: 'Get User Input'
+        },
+      },
+      {
+        id: 'send-response',
+        type: 'messageNode',
+        position: { x: 250, y: 500 },
+        data: { 
+          message: 'Thank you for your message. I\'ll help you with that!',
+          label: 'Send Response'
+        },
+      }
+    ]
+
+    const defaultEdges: Edge[] = [
+      { id: 'e1', source: 'start', target: 'get-user-input', type: 'smoothstep' },
+      { id: 'e2', source: 'get-user-input', target: 'send-response', type: 'smoothstep' },
+    ]
+
+    setNodes(defaultNodes)
+    setEdges(defaultEdges)
+  }
+
+  const loadFlowData = (flowData: any) => {
+    // Convert the JSON structure to React Flow format
+    const flowNodes: Node[] = []
+    const flowEdges: Edge[] = []
+
+    // Process nodes
+    Object.entries(flowData.nodes || {}).forEach(([nodeId, nodeData]: [string, any]) => {
+      const nodeType = getNodeType(nodeData.type)
+      const position = { x: Math.random() * 500, y: Math.random() * 400 }
+      
+      flowNodes.push({
+        id: nodeId,
+        type: nodeType,
+        position,
+        data: {
+          ...nodeData,
+          label: nodeData.node_name || nodeData.type,
+        },
+      })
+    })
+
+    // Process edges
+    Object.entries(flowData.edges || {}).forEach(([sourceId, targets]: [string, any]) => {
+      if (Array.isArray(targets)) {
+        targets.forEach((targetId, index) => {
+          flowEdges.push({
+            id: `e-${sourceId}-${targetId}-${index}`,
+            source: sourceId,
+            target: targetId,
+            type: 'smoothstep',
+          })
+        })
+      }
+    })
+
+    setNodes(flowNodes)
+    setEdges(flowEdges)
+  }
+
+  const getNodeType = (type: string): string => {
+    switch (type) {
+      case 'SEND_MSG':
+        return 'messageNode'
+      case 'SEND_IMAGE':
+        return 'imageNode'
+      case 'RCV_INP':
+        return 'inputNode'
+      case 'PAUSE_NODE':
+        return 'pauseNode'
+      case 'WEBHOOK':
+        return 'webhookNode'
+      case 'CONDITION':
+        return 'conditionNode'
+      default:
+        return 'messageNode'
+    }
+  }
+
+  const onConnect = useCallback(
+    (params: Connection) => setEdges((eds) => addEdge(params, eds)),
+    [setEdges],
+  )
+
+  const onNodeClick = useCallback((event: any, node: Node) => {
+    setSelectedNode(node)
+  }, [])
+
+  const onPaneClick = useCallback(() => {
+    setSelectedNode(null)
+  }, [])
+
+  const addNode = (type: string) => {
+    const newNode: Node = {
+      id: `${type}-${Date.now()}`,
+      type,
+      position: { x: Math.random() * 400 + 100, y: Math.random() * 300 + 100 },
+      data: { 
+        label: `New ${type.replace('Node', '')}`,
+        message: '',
+        prompt: '',
+        variable: '',
+        duration: 2,
+        url: '',
+        condition: ''
+      },
+    }
+    setNodes((nds) => nds.concat(newNode))
+    setShowNodePalette(false)
+  }
+
+  const updateNodeData = (nodeId: string, data: any) => {
+    setNodes((nds) =>
+      nds.map((node) => {
+        if (node.id === nodeId) {
+          return { ...node, data: { ...node.data, ...data } }
+        }
+        return node
+      })
+    )
+  }
+
+  const deleteNode = (nodeId: string) => {
+    setNodes((nds) => nds.filter((node) => node.id !== nodeId))
+    setEdges((eds) => eds.filter((edge) => edge.source !== nodeId && edge.target !== nodeId))
+    if (selectedNode?.id === nodeId) {
+      setSelectedNode(null)
+    }
+  }
+
+  const saveFlow = async () => {
     setIsSaving(true)
     try {
-      // Validate required fields
-      if (!formData.webhookUrl.trim()) {
-        showError('Webhook URL is required')
-        return
+      // Convert React Flow format back to the JSON structure
+      const flowData: FlowData = {
+        root: nodes[0]?.id || '',
+        nodes: {},
+        edges: {},
       }
 
-      // Validate voice settings
-      if (formData.voiceEnabled) {
-        if (formData.voiceSettings.speed < 0.25 || formData.voiceSettings.speed > 4.0) {
-          showError('Voice speed must be between 0.25 and 4.0')
-          return
+      // Convert nodes
+      nodes.forEach((node) => {
+        flowData.nodes[node.id] = {
+          node_key: node.id,
+          type: getOriginalNodeType(node.type || ''),
+          node_name: node.data.label,
+          ...node.data,
         }
-        if (formData.voiceSettings.pitch < 0.25 || formData.voiceSettings.pitch > 4.0) {
-          showError('Voice pitch must be between 0.25 and 4.0')
-          return
+      })
+
+      // Convert edges
+      edges.forEach((edge) => {
+        if (!flowData.edges[edge.source]) {
+          flowData.edges[edge.source] = []
         }
-      }
-
-      // Clean up widget images array by removing empty strings
-      const cleanedWidgetImages = (formData.widgetImages || []).filter((img: string) => img.trim() !== '')
-
-      const settingsData = {
-        webhookUrl: formData.webhookUrl,
-        welcomeMessage: formData.welcomeMessage,
-        fallbackMessage: formData.fallbackMessage,
-        primaryColor: formData.primaryColor,
-        widgetIcon: formData.widgetIcon,
-        widgetIconType: formData.widgetIconType,
-        widgetIconEmoji: formData.widgetIconEmoji,
-        voiceEnabled: formData.voiceEnabled,
-        voiceSettings: formData.voiceSettings,
-        headerColor: formData.headerColor,
-        footerColor: formData.footerColor,
-        bodyColor: formData.bodyColor,
-        logo: formData.logo,
-        widgetImages: cleanedWidgetImages,
-        // Save the conversation flows
-        conversationFlows: {
-          paths: paths,
-          activePath: selectedPath.id
-        }
-      }
-
-      console.log('Saving bot settings:', settingsData)
+        flowData.edges[edge.source].push(edge.target)
+      })
 
       const response = await fetch(`/api/bots/${params.id}`, {
         method: 'PUT',
@@ -257,869 +404,751 @@ export default function BuilderPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          settings: settingsData
+          settings: {
+            ...bot?.settings,
+            conversationFlows: {
+              paths: paths.map(path => ({
+                id: path.id,
+                name: path.name,
+                isActive: path.id === activePath,
+                flowData: path.id === activePath ? flowData : null
+              })),
+              activePath: activePath
+            }
+          }
         }),
       })
 
       if (response.ok) {
-        const result = await response.json()
-        console.log('Save successful:', result)
-        showSuccess('Bot settings updated successfully!')
-        await fetchBot() // Refresh the bot data
+        showSuccess('Flow saved successfully!')
       } else {
         const result = await response.json()
-        console.error('Save failed:', result)
-        showError(result.error || 'Failed to update bot')
+        showError(result.error || 'Failed to save flow')
       }
     } catch (err) {
-      console.error('Save error:', err)
       showError('Network error. Please try again.')
     } finally {
       setIsSaving(false)
     }
   }
 
-  const testWebhook = async () => {
-    setIsTestingWebhook(true)
-    try {
-      const response = await fetch(`/api/bots/${params.id}/test`)
-      const result = await response.json()
-      
-      if (response.ok) {
-        setTestResult(result)
-        if (result.webhookTest.status === 'success') {
-          showSuccess('Webhook is working correctly!')
-        } else {
-          showError('Webhook test failed - check configuration')
-        }
-      } else {
-        showError('Failed to test webhook')
-      }
-    } catch (err) {
-      showError('Failed to test webhook')
-    } finally {
-      setIsTestingWebhook(false)
-    }
-  }
-
-  const handleInputChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value
-    }))
-  }
-
-  const handleVoiceSettingsChange = (field: string, value: any) => {
-    setFormData(prev => ({
-      ...prev,
-      voiceSettings: {
-        ...prev.voiceSettings,
-        [field]: value
-      }
-    }))
-  }
-
-  const addNewNode = (type: FlowNode['type']) => {
-    const newNode: FlowNode = {
-      id: `node-${Date.now()}`,
-      type,
-      title: getNodeTitle(type),
-      content: getDefaultContent(type),
-      position: { x: 100, y: 200 },
-      connections: []
-    }
-
-    const updatedPath = {
-      ...selectedPath,
-      nodes: [...selectedPath.nodes, newNode]
-    }
-
-    setSelectedPath(updatedPath)
-    setPaths(prevPaths => 
-      prevPaths.map(path => 
-        path.id === selectedPath.id ? updatedPath : path
-      )
-    )
-    setSelectedNode(newNode)
-  }
-
-  const getNodeTitle = (type: FlowNode['type']): string => {
+  const getOriginalNodeType = (type: string): string => {
     switch (type) {
-      case 'welcome': return 'Welcome Message'
-      case 'message': return 'Send Message'
-      case 'image': return 'Send Image'
-      case 'pause': return 'Pause'
-      case 'condition': return 'Condition'
-      case 'webhook': return 'Webhook Call'
-      default: return 'New Node'
+      case 'messageNode':
+        return 'SEND_MSG'
+      case 'imageNode':
+        return 'SEND_IMAGE'
+      case 'inputNode':
+        return 'RCV_INP'
+      case 'pauseNode':
+        return 'PAUSE_NODE'
+      case 'webhookNode':
+        return 'WEBHOOK'
+      case 'conditionNode':
+        return 'CONDITION'
+      default:
+        return 'SEND_MSG'
     }
   }
 
-  const getDefaultContent = (type: FlowNode['type']): string => {
-    switch (type) {
-      case 'welcome': return 'Hello! Welcome'
-      case 'message': return 'Enter your message here...'
-      case 'image': return ''
-      case 'pause': return '2'
-      case 'condition': return 'if condition'
-      case 'webhook': return '/api/webhook'
-      default: return ''
+  const exportFlow = () => {
+    const flowData = {
+      nodes,
+      edges,
+      activePath,
+      botId: params.id,
     }
-  }
-
-  const updateNodeContent = (nodeId: string, content: string) => {
-    const updatedPath = {
-      ...selectedPath,
-      nodes: selectedPath.nodes.map(node =>
-        node.id === nodeId ? { ...node, content } : node
-      )
-    }
-
-    setSelectedPath(updatedPath)
-    setPaths(prevPaths =>
-      prevPaths.map(path =>
-        path.id === selectedPath.id ? updatedPath : path
-      )
-    )
-
-    if (selectedNode && selectedNode.id === nodeId) {
-      setSelectedNode({ ...selectedNode, content })
-    }
-  }
-
-  const deleteNode = (nodeId: string) => {
-    const updatedPath = {
-      ...selectedPath,
-      nodes: selectedPath.nodes.filter(node => node.id !== nodeId)
-    }
-
-    setSelectedPath(updatedPath)
-    setPaths(prevPaths =>
-      prevPaths.map(path =>
-        path.id === selectedPath.id ? updatedPath : path
-      )
-    )
-
-    if (selectedNode && selectedNode.id === nodeId) {
-      setSelectedNode(null)
-    }
-  }
-
-  const addNewPath = (name: string) => {
-    const newPath: Path = {
-      id: `path-${Date.now()}`,
-      name,
-      isActive: false,
-      nodes: []
-    }
-
-    setPaths(prevPaths => [...prevPaths, newPath])
-    setSelectedPath(newPath)
-  }
-
-  const duplicatePath = (pathId: string) => {
-    const pathToDuplicate = paths.find(p => p.id === pathId)
-    if (pathToDuplicate) {
-      const duplicatedPath: Path = {
-        ...pathToDuplicate,
-        id: `path-${Date.now()}`,
-        name: `${pathToDuplicate.name} (Copy)`,
-        isActive: false,
-        nodes: pathToDuplicate.nodes.map(node => ({
-          ...node,
-          id: `node-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`
-        }))
-      }
-      setPaths(prevPaths => [...prevPaths, duplicatedPath])
-      setSelectedPath(duplicatedPath)
-    }
-  }
-
-  const toggleSection = (sectionId: string) => {
-    setExpandedSections(prev => 
-      prev.includes(sectionId) 
-        ? prev.filter(id => id !== sectionId)
-        : [...prev, sectionId]
-    )
-  }
-
-  const selectPathByType = (pathType: string) => {
-    const path = paths.find(p => p.id === pathType)
-    if (path) {
-      setSelectedPath(path)
-      setSelectedNode(null)
-    }
-  }
-
-  const initializeDefaultPaths = () => {
-    // Create default nodes based on current form data
-    const defaultPaths: Path[] = [
-      {
-        id: 'welcome-new-user',
-        name: 'Welcome new user',
-        isActive: true,
-        nodes: formData.welcomeMessage ? [{
-          id: 'welcome-node-1',
-          type: 'welcome',
-          title: 'Welcome Message',
-          content: formData.welcomeMessage,
-          position: { x: 100, y: 100 },
-          connections: []
-        }] : []
-      },
-      {
-        id: 'greet-returning-user',
-        name: 'Greet returning user',
-        isActive: false,
-        nodes: []
-      },
-      {
-        id: 'default-message',
-        name: 'Default Message',
-        isActive: false,
-        nodes: formData.fallbackMessage ? [{
-          id: 'fallback-node-1',
-          type: 'message',
-          title: 'Fallback Message',
-          content: formData.fallbackMessage,
-          position: { x: 100, y: 100 },
-          connections: []
-        }] : []
-      },
-      {
-        id: 'post-resolution',
-        name: 'Post resolution',
-        isActive: false,
-        nodes: []
-      },
-      {
-        id: 'agent-unavailable',
-        name: 'Agent Unavailable',
-        isActive: false,
-        nodes: []
-      }
-    ]
+    const dataStr = JSON.stringify(flowData, null, 2)
+    const dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(dataStr)
     
-    setPaths(defaultPaths)
-    setSelectedPath(defaultPaths[0])
+    const exportFileDefaultName = `bot-flow-${params.id}-${new Date().toISOString().split('T')[0]}.json`
+    
+    const linkElement = document.createElement('a')
+    linkElement.setAttribute('href', dataUri)
+    linkElement.setAttribute('download', exportFileDefaultName)
+    linkElement.click()
   }
+
+  const filteredPaths = paths.filter(path => 
+    path.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    path.description.toLowerCase().includes(searchQuery.toLowerCase())
+  )
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
-        <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm flex-shrink-0">
-          <h1 className="text-3xl font-bold text-gray-900">Bot Builder</h1>
-        </header>
-        <main className="flex-1 p-8 min-h-0">
-          <div className="flex items-center justify-center h-64">
-            <Loading size="lg" text="Loading bot settings..." />
-          </div>
-        </main>
+      <div className="flex items-center justify-center h-full">
+        <Loading size="lg" text="Loading bot builder..." />
       </div>
     )
   }
 
   if (error || !bot) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
-        <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm flex-shrink-0">
-          <h1 className="text-3xl font-bold text-gray-900">Bot Builder</h1>
-        </header>
-        <main className="flex-1 p-8 min-h-0">
-          <div className="flex items-center justify-center h-64">
-            <div className="text-red-500">{error || 'Bot not found'}</div>
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="p-4 rounded-full bg-red-100 text-red-600 mb-4 inline-block">
+            <Workflow className="h-8 w-8" />
           </div>
-        </main>
-      </div>
-    )
-  }
-
-  const renderNodeIcon = (type: string) => {
-    switch (type) {
-      case 'welcome':
-        return <MessageSquare className="h-4 w-4" />
-      case 'message':
-        return <MessageSquare className="h-4 w-4" />
-      case 'image':
-        return <Image className="h-4 w-4" />
-      case 'pause':
-        return <Clock className="h-4 w-4" />
-      case 'condition':
-        return <Share2 className="h-4 w-4" />
-      case 'webhook':
-        return <Globe className="h-4 w-4" />
-      default:
-        return <MessageSquare className="h-4 w-4" />
-    }
-  }
-
-  const renderNode = (node: FlowNode, index: number) => {
-    const isSelected = selectedNode?.id === node.id
-    return (
-      <div key={node.id} className="flex flex-col sm:flex-row items-stretch sm:items-center mb-3 sm:mb-2">
-        <div 
-          className={`flex-1 flex items-center p-4 sm:p-3 rounded-lg border cursor-pointer transition-all min-h-[60px] ${
-            isSelected 
-              ? 'border-orange-400 bg-orange-50' 
-              : 'border-gray-200 bg-white hover:border-gray-300 active:bg-gray-50'
-          }`}
-          onClick={() => setSelectedNode(node)}
-        >
-          <div className={`p-2 sm:p-2 rounded-lg mr-3 flex-shrink-0 ${
-            node.type === 'welcome' ? 'bg-orange-100 text-orange-600' :
-            node.type === 'message' ? 'bg-orange-100 text-orange-600' :
-            node.type === 'image' ? 'bg-blue-100 text-blue-600' :
-            node.type === 'pause' ? 'bg-green-100 text-green-600' :
-            'bg-gray-100 text-gray-600'
-          }`}>
-            {renderNodeIcon(node.type)}
-          </div>
-          <div className="flex-1 min-w-0">
-            <div className="font-medium text-gray-900 text-sm sm:text-base">{node.title}</div>
-            {node.content && (
-              <div className="text-sm text-gray-500 truncate mt-1">
-                {node.content.length > 40 ? `${node.content.substring(0, 40)}...` : node.content}
-              </div>
-            )}
-          </div>
-          <div className="flex items-center space-x-1 sm:space-x-2 flex-shrink-0 ml-2">
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="h-9 w-9 sm:h-8 sm:w-8 p-0 hover:bg-gray-100 active:bg-gray-200 rounded-lg"
-              onClick={(e) => {
-                e.stopPropagation()
-                setSelectedNode(node)
-              }}
-            >
-              <Edit className="h-4 w-4" />
-            </Button>
-            <Button 
-              size="sm" 
-              variant="ghost" 
-              className="h-9 w-9 sm:h-8 sm:w-8 p-0 text-red-500 hover:text-red-700 hover:bg-red-50 active:bg-red-100 rounded-lg"
-              onClick={(e) => {
-                e.stopPropagation()
-                deleteNode(node.id)
-              }}
-            >
-              <Trash2 className="h-4 w-4" />
-            </Button>
-          </div>
+          <div className="text-red-600 font-medium">{error || 'Bot not found'}</div>
         </div>
-        {index < selectedPath.nodes.length - 1 && (
-          <div className="flex justify-center sm:justify-start py-2 sm:py-0 sm:mx-2">
-            <ArrowRight className="h-4 w-4 text-gray-400 rotate-90 sm:rotate-0" />
-          </div>
-        )}
       </div>
     )
   }
 
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gray-50">
-      {/* Mobile Header */}
-      <div className="lg:hidden bg-white border-b border-gray-200 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-2">
-          <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-            <MessageSquare className="h-4 w-4 text-orange-600" />
-          </div>
-          <div>
-            <h1 className="font-semibold text-gray-900 text-sm">{bot?.name || 'Bot Builder'}</h1>
-            <p className="text-xs text-gray-500">{selectedPath.name}</p>
-          </div>
-        </div>
-        <Button
-          variant="ghost"
-          size="sm"
-          onClick={() => setActiveSection(activeSection === 'canvas' ? 'paths' : 'canvas')}
-          className="p-2 rounded-lg"
-        >
-          {activeSection === 'canvas' ? <MessageSquare className="h-4 w-4" /> : <ArrowRight className="h-4 w-4" />}
-        </Button>
-      </div>
-
-      {/* Left Sidebar */}
-      <div className={`${activeSection === 'paths' ? 'block' : 'hidden'} lg:block w-full lg:w-80 bg-white border-r border-gray-200 flex flex-col`}>
-        {/* Sidebar Header */}
-        <div className="p-3 sm:p-4 border-b border-gray-200">
-          <div className="hidden lg:flex items-center space-x-2 mb-4">
-            <div className="w-8 h-8 bg-orange-100 rounded-lg flex items-center justify-center">
-              <MessageSquare className="h-4 w-4 text-orange-600" />
+    <ReactFlowProvider>
+      <div className="flex h-screen bg-gray-50 overflow-hidden">
+        {/* Left Sidebar - Path Management */}
+        <div className={`${
+          leftSidebarOpen ? 'w-80' : 'w-0'
+        } bg-white border-r border-gray-200 flex flex-col transition-all duration-300 ease-in-out ${
+          isMobile ? 'absolute left-0 top-0 h-full z-40' : 'relative'
+        }`}>
+          {/* Header */}
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-2">
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-500 to-purple-600 rounded-lg flex items-center justify-center">
+                  <Workflow className="h-4 w-4 text-white" />
+                </div>
+                <h2 className="text-lg font-semibold text-gray-900">Builder</h2>
+              </div>
+              {isMobile && (
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLeftSidebarOpen(false)}
+                  className="lg:hidden"
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
             </div>
-            <div>
-              <h1 className="font-semibold text-gray-900">{bot?.name || '#LittUpLocal'}</h1>
-              <p className="text-sm text-gray-500">Welcome new user</p>
+            
+            {/* Search */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+              <Input
+                placeholder="Search path..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10"
+              />
             </div>
           </div>
           
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
-            <Input
-              placeholder="Search path..."
-              className="pl-10 h-10 sm:h-9 bg-gray-50 border-gray-200 text-base sm:text-sm"
-            />
-          </div>
-        </div>
-
-        {/* Paths Section */}
-        <div className="flex-1 overflow-y-auto">
-          <div className="p-4">
-                        <div className="flex items-center justify-between mb-3">
-              <button
-                className="flex items-center font-semibold text-gray-900 hover:text-gray-700 transition-colors"
-                onClick={() => toggleSection('paths')}
-              >
-                {expandedSections.includes('paths') ? (
-                  <ChevronDown className="h-4 w-4 mr-1" />
-                ) : (
-                  <ChevronRight className="h-4 w-4 mr-1" />
-                )}
-                Paths
-              </button>
-              <Button 
-                size="sm" 
-                variant="ghost" 
-                className="h-8 w-8 p-0"
-                onClick={() => {
-                  const pathName = prompt("Enter path name:")
-                  if (pathName && pathName.trim()) {
-                    addNewPath(pathName.trim())
-                  }
-                }}
-              >
-                <Plus className="h-4 w-4" />
+          {/* Paths List */}
+          <div className="flex-1 overflow-y-auto p-4">
+            <div className="flex items-center justify-between mb-3">
+              <h3 className="text-sm font-medium text-gray-900">Paths</h3>
+              <Button variant="outline" size="sm" className="h-7 px-2">
+                <Plus className="h-3 w-3 mr-1" />
+                Add Path
               </Button>
             </div>
             
-            {expandedSections.includes('paths') && (
-              <div className="space-y-1 mb-6">
-                {paths.filter(path => path.id.startsWith('welcome-new-user') || path.id.startsWith('path-')).map((path) => (
+            <div className="space-y-2">
+              {filteredPaths.map((path) => (
+                <div
+                  key={path.id}
+                  className={`p-3 rounded-lg border cursor-pointer transition-colors ${
+                    activePath === path.id
+                      ? 'bg-blue-50 border-blue-200 text-blue-900'
+                      : 'bg-white border-gray-200 hover:bg-gray-50'
+                  }`}
+                  onClick={() => setActivePath(path.id)}
+                >
+                  <div className="flex items-center justify-between">
+                    <div className="font-medium text-sm">{path.name}</div>
+                    {path.isActive && (
+                      <Badge variant="secondary" className="text-xs">Active</Badge>
+                    )}
+                  </div>
+                  <div className="text-xs text-gray-500 mt-1">{path.description}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Bottom Navigation */}
+          <div className="p-4 border-t border-gray-200">
+            <div className="grid grid-cols-4 gap-2">
+              {[
+                { icon: Home, label: 'Home', active: false },
+                { icon: MessageCircle, label: 'Chat', active: false },
+                { icon: BarChart3, label: 'Analytics', active: false },
+                { icon: Network, label: 'Share', active: true },
+                { icon: Lightbulb, label: 'Ideas', active: false },
+                { icon: Users, label: 'Team', active: false },
+                { icon: SettingsIcon, label: 'Settings', active: false },
+                { icon: Puzzle, label: 'Integrations', active: false },
+              ].map((item, index) => {
+                const Icon = item.icon
+                return (
                   <div
-                    key={path.id}
-                    className={`p-2 rounded-lg cursor-pointer transition-colors group ${
-                      selectedPath.id === path.id
-                        ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                        : 'hover:bg-gray-50'
+                    key={index}
+                    className={`flex flex-col items-center p-2 rounded-lg cursor-pointer transition-colors ${
+                      item.active ? 'bg-blue-50 text-blue-600' : 'text-gray-500 hover:bg-gray-50'
                     }`}
-                    onClick={() => setSelectedPath(path)}
                   >
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm font-medium">{path.name}</span>
-                      <div className="flex items-center space-x-1">
-                        {path.isActive && (
-                          <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                        )}
-                        <Button
-                          size="sm"
-                          variant="ghost"
-                          className="h-6 w-6 p-0 opacity-0 group-hover:opacity-100 transition-opacity"
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            duplicatePath(path.id)
-                          }}
-                        >
-                          <Copy className="h-3 w-3" />
-                        </Button>
-              </div>
-              </div>
+                    <Icon className="h-4 w-4 mb-1" />
+                    <span className="text-xs hidden sm:block">{item.label}</span>
+                  </div>
+                )
+              })}
             </div>
-                ))}
-            </div>
+          </div>
+        </div>
+
+        {/* Main Flow Area */}
+        <div className={`flex-1 flex flex-col min-w-0 transition-all duration-300 ${
+          selectedNode ? 'mr-80' : ''
+        }`}>
+          {/* Top Toolbar */}
+          <div className="bg-white border-b border-gray-200 px-4 py-3">
+            {/* Mobile Menu Button */}
+            {isMobile && (
+              <div className="flex items-center mb-3">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setLeftSidebarOpen(true)}
+                  className="mr-2"
+                >
+                  <Menu className="h-4 w-4" />
+                </Button>
+                <span className="text-sm font-medium text-gray-700">Bot Builder</span>
+              </div>
             )}
-
-            {/* Predefined conversation flows */}
-            <div className="space-y-3">
-              <button
-                className={`w-full text-left p-2 rounded-lg transition-colors ${
-                  selectedPath.id === 'greet-returning-user'
-                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                    : 'hover:bg-gray-50'
-                }`}
-                onClick={() => selectPathByType('greet-returning-user')}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <ChevronRight className="h-4 w-4 mr-2 text-gray-500" />
-                    <span className="font-medium text-gray-900">Greet returning user</span>
-            </div>
-                  <div className="text-xs text-gray-500">
-                    {paths.find(p => p.id === 'greet-returning-user')?.nodes.length || 0} nodes
-              </div>
-              </div>
-              </button>
-              
-              <button
-                className={`w-full text-left p-2 rounded-lg transition-colors ${
-                  selectedPath.id === 'default-message'
-                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                    : 'hover:bg-gray-50'
-                }`}
-                onClick={() => selectPathByType('default-message')}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <ChevronRight className="h-4 w-4 mr-2 text-gray-500" />
-                    <span className="font-medium text-gray-900">Default Message</span>
-            </div>
-                  <div className="text-xs text-gray-500">
-                    {paths.find(p => p.id === 'default-message')?.nodes.length || 0} nodes
-            </div>
+            {/* Top Row */}
+            <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center space-x-4">
+                <Link href="/dashboard/bots" className="flex items-center text-gray-500 hover:text-gray-700">
+                  <ChevronLeft className="h-4 w-4 mr-1" />
+                  Bots
+                </Link>
+                <div className="flex items-center space-x-2">
+                  <div className="w-6 h-6 bg-gradient-to-br from-blue-500 to-purple-600 rounded flex items-center justify-center">
+                    <MessageCircle className="h-3 w-3 text-white" />
+                  </div>
+                  <span className="font-medium text-gray-900">#{bot.name}</span>
                 </div>
-              </button>
-              
-              <button
-                className={`w-full text-left p-2 rounded-lg transition-colors ${
-                  selectedPath.id === 'post-resolution'
-                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                    : 'hover:bg-gray-50'
-                }`}
-                onClick={() => selectPathByType('post-resolution')}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <ChevronRight className="h-4 w-4 mr-2 text-gray-500" />
-                    <span className="font-medium text-gray-900">Post resolution</span>
               </div>
-                  <div className="text-xs text-gray-500">
-                    {paths.find(p => p.id === 'post-resolution')?.nodes.length || 0} nodes
-            </div>
-                </div>
-              </button>
               
-                          <button
-                className={`w-full text-left p-2 rounded-lg transition-colors ${
-                  selectedPath.id === 'agent-unavailable'
-                    ? 'bg-orange-50 text-orange-700 border border-orange-200'
-                    : 'hover:bg-gray-50'
-                }`}
-                onClick={() => selectPathByType('agent-unavailable')}
-              >
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center">
-                    <ChevronRight className="h-4 w-4 mr-2 text-gray-500" />
-                    <span className="font-medium text-gray-900">Agent Unavailable</span>
-                  </div>
-                  <div className="text-xs text-gray-500">
-                    {paths.find(p => p.id === 'agent-unavailable')?.nodes.length || 0} nodes
-                  </div>
+              <div className="flex items-center space-x-2">
+                <Button variant="ghost" size="sm" className="hidden lg:flex">
+                  <User className="h-4 w-4 mr-2" />
+                  Switch Account
+                </Button>
+                <Button variant="ghost" size="sm" className="hidden md:flex">
+                  <Bell className="h-4 w-4" />
+                </Button>
+                <div className="w-8 h-8 bg-gray-200 rounded-full flex items-center justify-center">
+                  <span className="text-sm font-medium text-gray-600">R</span>
                 </div>
-                          </button>
-                      </div>
-                    </div>
-                  </div>
-      </div>
-
-      {/* Main Content Area */}
-      <div className={`${activeSection === 'canvas' || activeSection === 'config' ? 'block' : 'hidden'} lg:block flex-1 flex flex-col`}>
-        {/* Top Navigation Bar */}
-        <div className="bg-white border-b border-gray-200 px-4 sm:px-6 py-3 sm:py-4">
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between space-y-3 sm:space-y-0">
-            <div className="flex items-center space-x-3 sm:space-x-4">
-              <h2 className="text-base sm:text-lg font-semibold text-gray-900">Builder</h2>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-gray-300 px-3 py-2 text-sm"
-              >
-                <Play className="h-4 w-4 mr-2" />
-                Start
-              </Button>
+              </div>
             </div>
+            
+            {/* Bottom Row - Active Path Tab */}
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div className="bg-blue-100 text-blue-800 px-3 py-1.5 rounded-lg text-sm font-medium">
+                  {paths.find(p => p.id === activePath)?.name || 'Welcome new user'}
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button variant="outline" size="sm" className="hidden md:flex">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Edit
+                </Button>
+                <Button variant="outline" size="sm" className="hidden lg:flex">
+                  <Info className="h-4 w-4 mr-2" />
+                  Info
+                </Button>
+                <Button variant="outline" size="sm" className="hidden lg:flex">
+                  <FileTextIcon className="h-4 w-4 mr-2" />
+                  Duplicate
+                </Button>
+                <Button variant="outline" size="sm" className="hidden lg:flex">
+                  <UserCheck className="h-4 w-4 mr-2" />
+                  Mark Available
+                </Button>
+                <Button variant="outline" size="sm">
+                  <Play className="h-4 w-4 mr-2" />
+                  Test
+                </Button>
+                <div className="flex items-center space-x-1 border border-gray-200 rounded-lg p-1 hidden md:flex">
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                    <ZoomOut className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                    <ZoomIn className="h-3 w-3" />
+                  </Button>
+                </div>
+                <div className="flex items-center space-x-1 border border-gray-200 rounded-lg p-1 hidden lg:flex">
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                    <RotateCcw className="h-3 w-3" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0">
+                    <RotateCw className="h-3 w-3" />
+                  </Button>
+                </div>
+                <Button
+                  size="sm"
+                  onClick={() => setShowNodePalette(!showNodePalette)}
+                >
+                  <Plus className="h-4 w-4 mr-2" />
+                  Add Node
+                </Button>
+              </div>
+            </div>
+          </div>
 
-            <div className="flex items-center space-x-2 sm:space-x-3 w-full sm:w-auto overflow-x-auto">
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={testWebhook}
-                disabled={isTestingWebhook || !formData.webhookUrl}
-                className="px-3 py-2 text-sm min-h-[36px] flex-shrink-0"
-              >
-                <TestTube className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">{isTestingWebhook ? 'Testing...' : 'Test'}</span>
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                onClick={() => {
-                  if (confirm('Are you sure you want to reset this conversation flow? This will remove all nodes.')) {
-                    const resetPath = {
-                      ...selectedPath,
-                      nodes: []
-                    }
-                    setSelectedPath(resetPath)
-                    setPaths(prevPaths =>
-                      prevPaths.map(path =>
-                        path.id === selectedPath.id ? resetPath : path
-                      )
-                    )
-                    setSelectedNode(null)
-                  }
-                }}
-                className="px-3 py-2 text-sm min-h-[36px] flex-shrink-0"
-              >
-                <RotateCcw className="h-4 w-4 sm:mr-2" />
-                <span className="hidden sm:inline">Reset</span>
-              </Button>
-              <Button 
-                size="sm"
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 text-sm min-h-[36px] flex-shrink-0"
-                onClick={handleSave}
-                disabled={isSaving}
-              >
-                {isSaving ? (
-                  <>
-                    <ButtonLoading size="sm" />
-                    <span className="ml-2 hidden sm:inline">Saving...</span>
-                  </>
-                ) : (
-                  <>
-                    <Save className="h-4 w-4 sm:mr-2" />
-                    <span className="hidden sm:inline">Save</span>
-                  </>
-                )}
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="px-3 py-2 text-sm min-h-[36px] flex-shrink-0 lg:hidden"
-                onClick={() => setActiveSection('config')}
-              >
-                <Settings className="h-4 w-4" />
-              </Button>
-                    </div>
-                    </div>
-                  </div>
-
-        {/* Flow Builder Canvas */}
-        <div className="flex-1 flex">
-          <div className="flex-1 p-3 sm:p-6 overflow-auto">
-            <div className="max-w-4xl">
-              <div className="bg-white rounded-lg border border-gray-200 p-4 sm:p-6">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between mb-4 sm:mb-6 space-y-3 sm:space-y-0">
-                  <div>
-                    <h3 className="text-base sm:text-lg font-semibold text-gray-900">{selectedPath.name}</h3>
-                    <p className="text-sm text-gray-500">Configure your conversation flow</p>
-                  </div>
-                  <div className="flex items-center space-x-2">
-                    <select 
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          addNewNode(e.target.value as FlowNode['type'])
-                          e.target.value = ''
-                        }
-                      }}
-                      className="px-3 py-2 border border-gray-300 rounded-md text-sm min-h-[40px] flex-1 sm:flex-none"
-                      defaultValue=""
-                    >
-                      <option value="" disabled>Add Node</option>
-                      <option value="message">Send Message</option>
-                      <option value="image">Send Image</option>
-                      <option value="pause">Pause</option>
-                      <option value="condition">Condition</option>
-                      <option value="webhook">Webhook</option>
-                    </select>
-                  </div>
+          {/* Bot Type and Mode Selection */}
+          <div className="bg-white border-b border-gray-200 px-4 py-3">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-1 block">Bot Type</Label>
+                  <Select value={botType} onValueChange={(value: any) => setBotType(value)}>
+                    <SelectTrigger className="w-40">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="webhook">Webhook Bot</SelectItem>
+                      <SelectItem value="rule-based">Rule-Based Bot</SelectItem>
+                      <SelectItem value="hybrid">Hybrid Bot</SelectItem>
+                    </SelectContent>
+                  </Select>
                 </div>
                 
-                                {/* Flow visualization */}
-                <div className="space-y-4">
-                  {selectedPath.nodes.length === 0 ? (
-                    <div className="text-center py-8 sm:py-12 border-2 border-dashed border-gray-300 rounded-lg">
-                      <MessageSquare className="h-10 w-10 sm:h-12 sm:w-12 text-gray-400 mx-auto mb-3 sm:mb-4" />
-                      <h3 className="text-base sm:text-lg font-medium text-gray-900 mb-2">No nodes in this path</h3>
-                      <p className="text-sm sm:text-base text-gray-500 mb-4 px-4">Add your first node to start building the conversation flow</p>
-                      <select 
-                        onChange={(e) => {
-                          if (e.target.value) {
-                            addNewNode(e.target.value as FlowNode['type'])
-                            e.target.value = ''
-                          }
-                        }}
-                        className="px-4 py-3 border border-gray-300 rounded-md text-sm bg-white min-h-[44px] w-full max-w-xs"
-                        defaultValue=""
-                      >
-                        <option value="" disabled>Add First Node</option>
-                        <option value="welcome">Welcome Message</option>
-                        <option value="message">Send Message</option>
-                        <option value="image">Send Image</option>
-                        <option value="pause">Pause</option>
-                        <option value="webhook">Webhook</option>
-                      </select>
-                    </div>
-                  ) : (
-                    <div className="space-y-4">
-                      {selectedPath.nodes.map((node, index) => renderNode(node, index))}
-                </div>
-                  )}
-              </div>
-            </div>
-              </div>
-            </div>
-
-          {/* Right Configuration Panel */}
-          <div className={`${activeSection === 'config' ? 'block' : 'hidden'} lg:block w-full lg:w-80 bg-white border-l border-gray-200 p-4 sm:p-6 absolute lg:relative top-0 left-0 right-0 bottom-0 lg:top-auto lg:left-auto lg:right-auto lg:bottom-auto z-10 lg:z-auto overflow-y-auto`}>
-            {/* Mobile Configuration Header */}
-            <div className="lg:hidden flex items-center justify-between mb-4 pb-3 border-b border-gray-200">
-              <h3 className="font-semibold text-gray-900">Configuration</h3>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setActiveSection('canvas')}
-                className="p-2 rounded-lg"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </div>
-
-            {selectedNode ? (
-              <div>
-                <div className="flex items-center space-x-3 mb-4 sm:mb-6">
-                  <div className={`p-2 rounded-lg ${
-                    selectedNode.type === 'welcome' ? 'bg-orange-100 text-orange-600' :
-                    selectedNode.type === 'message' ? 'bg-orange-100 text-orange-600' :
-                    selectedNode.type === 'image' ? 'bg-blue-100 text-blue-600' :
-                    selectedNode.type === 'pause' ? 'bg-green-100 text-green-600' :
-                    'bg-gray-100 text-gray-600'
-                  }`}>
-                    {renderNodeIcon(selectedNode.type)}
+                <div>
+                  <Label className="text-sm font-medium text-gray-700 mb-1 block">Builder Mode</Label>
+                  <div className="flex space-x-1">
+                    <Button
+                      variant={builderMode === 'flow' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setBuilderMode('flow')}
+                    >
+                      <Workflow className="h-4 w-4 mr-2" />
+                      Flow
+                    </Button>
+                    <Button
+                      variant={builderMode === 'rules' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setBuilderMode('rules')}
+                    >
+                      <GitBranch className="h-4 w-4 mr-2" />
+                      Rules
+                    </Button>
+                    <Button
+                      variant={builderMode === 'webhooks' ? 'default' : 'outline'}
+                      size="sm"
+                      onClick={() => setBuilderMode('webhooks')}
+                    >
+                      <Globe className="h-4 w-4 mr-2" />
+                      Webhooks
+                    </Button>
                   </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center space-x-2">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Save bot type to database
+                    fetch(`/api/bots/${params.id}`, {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        settings: { ...bot.settings, botType }
+                      })
+                    });
+                  }}
+                >
+                  <Save className="h-4 w-4 mr-2" />
+                  Save Bot Type
+                </Button>
+              </div>
+            </div>
+          </div>
+
+          {/* Node Palette Overlay */}
+          {showNodePalette && (
+            <div className={`absolute top-20 z-50 bg-white border border-gray-200 rounded-lg shadow-lg p-4 ${
+              isMobile ? 'left-4 right-4 w-auto' : 'right-4 w-80'
+            }`} style={{ zIndex: 1000 }}>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-medium text-gray-900">Add Node</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setShowNodePalette(false)}
+                >
+                  <X className="h-4 w-4" />
+                </Button>
+              </div>
+              
+              <div className="space-y-4">
+                {Object.entries(NODE_CATEGORIES).map(([categoryKey, category]) => {
+                  const CategoryIcon = category.icon
+                  return (
+                    <div key={categoryKey}>
+                      <div className="flex items-center space-x-2 mb-2">
+                        <CategoryIcon className="h-4 w-4 text-gray-500" />
+                        <span className="text-sm font-medium text-gray-700">{category.name}</span>
+                      </div>
+                      <div className="space-y-1">
+                        {category.nodes.map((node) => {
+                          const NodeIcon = node.icon
+                          return (
+                            <Button
+                              key={node.type}
+                              variant="outline"
+                              size="sm"
+                              className="w-full justify-start"
+                              onClick={() => addNode(node.type)}
+                            >
+                              <div className={`w-3 h-3 rounded-full bg-${node.color}-500 mr-2`}></div>
+                              <NodeIcon className="h-4 w-4 mr-2" />
+                              {node.name}
+                            </Button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )}
+
+                     {/* Conditional Rendering based on Builder Mode */}
+           {builderMode === 'flow' && (
+             /* React Flow Canvas */
+             <div className={`flex-1 relative min-w-0 transition-all duration-300 ${
+               selectedNode ? 'opacity-50 pointer-events-none' : ''
+             }`}>
+               <ReactFlow
+                 nodes={nodes}
+                 edges={edges}
+                 onNodesChange={onNodesChange}
+                 onEdgesChange={onEdgesChange}
+                 onConnect={onConnect}
+                 onNodeClick={onNodeClick}
+                 onPaneClick={onPaneClick}
+                 onInit={setReactFlowInstance}
+                 nodeTypes={nodeTypes}
+                 fitView
+                 attributionPosition="bottom-left"
+                 className="w-full h-full"
+               >
+                 <Background />
+                 <Controls />
+                 <MiniMap />
+                 
+                 {/* Flow Actions Panel */}
+                 <Panel position="top-right" className="space-y-2">
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={exportFlow}
+                   >
+                     <Download className="h-4 w-4 mr-2" />
+                     Export
+                   </Button>
+                   <Button
+                     variant="outline"
+                     size="sm"
+                     onClick={() => window.open(`/test-widget.html?botId=${params.id}`, '_blank')}
+                   >
+                     <Eye className="h-4 w-4 mr-2" />
+                     Test
+                   </Button>
+                   <Button
+                     size="sm"
+                     onClick={saveFlow}
+                     disabled={isSaving}
+                   >
+                     {isSaving ? (
+                       <>
+                         <ButtonLoading size="sm" />
+                         <span className="ml-2">Saving...</span>
+                       </>
+                     ) : (
+                       <>
+                         <Save className="h-4 w-4 mr-2" />
+                         Save Flow
+                       </>
+                     )}
+                   </Button>
+                 </Panel>
+                 
+                 {/* Mobile Floating Action Button for Node Properties */}
+                 {selectedNode && isMobile && (
+                   <Panel position="bottom-right" className="mb-4">
+                     <Button
+                       size="sm"
+                       onClick={() => setSelectedNode(null)}
+                       className="shadow-lg"
+                     >
+                       <X className="h-4 w-4 mr-2" />
+                       Close
+                     </Button>
+                   </Panel>
+                 )}
+               </ReactFlow>
+             </div>
+           )}
+
+           {builderMode === 'rules' && (
+             <div className="flex-1 p-6 overflow-y-auto">
+               <RuleBuilder
+                 botId={params.id as string}
+                 initialRules={bot?.settings?.ruleBasedConfig?.rules || []}
+                 onSave={async (rules) => {
+                   try {
+                     const response = await fetch(`/api/bots/${params.id}`, {
+                       method: 'PUT',
+                       headers: { 'Content-Type': 'application/json' },
+                       body: JSON.stringify({
+                         settings: {
+                           ...bot?.settings,
+                           ruleBasedConfig: {
+                             ...bot?.settings?.ruleBasedConfig,
+                             enabled: true,
+                             rules
+                           }
+                         }
+                       })
+                     });
+                     if (response.ok) {
+                       showSuccess('Rules saved successfully!');
+                     } else {
+                       showError('Failed to save rules');
+                     }
+                   } catch (error) {
+                     showError('Error saving rules');
+                   }
+                 }}
+                 onTest={(rule) => {
+                   // Test rule functionality
+                   console.log('Testing rule:', rule);
+                   showSuccess('Rule test completed!');
+                 }}
+               />
+             </div>
+           )}
+
+           {builderMode === 'webhooks' && (
+             <div className="flex-1 p-6 overflow-y-auto">
+               <WebhookConfig
+                 botId={params.id as string}
+                 initialConfig={bot?.settings?.webhookConfig || {
+                   primary: {
+                     url: '',
+                     method: 'POST',
+                     headers: {},
+                     timeout: 30,
+                     retryAttempts: 2,
+                     isActive: true
+                   },
+                   fallback: {
+                     url: '',
+                     method: 'POST',
+                     headers: {},
+                     timeout: 30,
+                     retryAttempts: 1,
+                     isActive: false
+                   },
+                   customWebhooks: []
+                 }}
+                 onSave={async (config) => {
+                   try {
+                     const response = await fetch(`/api/bots/${params.id}`, {
+                       method: 'PUT',
+                       headers: { 'Content-Type': 'application/json' },
+                       body: JSON.stringify({
+                         settings: {
+                           ...bot?.settings,
+                           webhookConfig: config
+                         }
+                       })
+                     });
+                     if (response.ok) {
+                       showSuccess('Webhook configuration saved successfully!');
+                     } else {
+                       showError('Failed to save webhook configuration');
+                     }
+                   } catch (error) {
+                     showError('Error saving webhook configuration');
+                   }
+                 }}
+                 onTest={(webhook) => {
+                   // Test webhook functionality
+                   console.log('Testing webhook:', webhook);
+                   showSuccess('Webhook test completed!');
+                 }}
+               />
+             </div>
+           )}
+        </div>
+
+        {/* Right Sidebar - Node Properties (AILifeBot Style) */}
+        {selectedNode && (
+          <div className="fixed right-0 top-0 h-full w-80 bg-white border-l border-gray-200 shadow-xl z-50 overflow-y-auto">
+            <div className="p-6">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-semibold text-gray-900">Node Properties</h3>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setSelectedNode(null)}
+                  className="hover:bg-gray-100"
+                >
+                  <X className="h-5 w-5" />
+                </Button>
+              </div>
+
+              <div className="space-y-6">
+                <div>
+                  <Label htmlFor="node-label" className="text-sm font-medium text-gray-700 mb-2 block">
+                    Node Label
+                  </Label>
+                  <Input
+                    id="node-label"
+                    value={selectedNode.data.label || ''}
+                    onChange={(e) => updateNodeData(selectedNode.id, { label: e.target.value })}
+                    className="w-full"
+                    placeholder="Enter node label..."
+                  />
+                </div>
+
+                {selectedNode.type === 'messageNode' && (
                   <div>
-                    <h3 className="font-semibold text-gray-900 text-base sm:text-lg">{selectedNode.title}</h3>
-                    <p className="text-sm text-gray-500 capitalize">{selectedNode.type} node</p>
-                  </div>
-                </div>
-
-                {selectedNode.type === 'welcome' && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="welcomeContent" className="text-sm font-medium">
-                        Welcome Message
-              </Label>
-                <Input
-                        id="welcomeContent"
-                        value={selectedNode.content}
-                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
-                        placeholder="Hello! Welcome"
-                        className="mt-1 h-12 text-base px-4 rounded-lg"
-                />
-              </div>
-            </div>
-                )}
-
-                {selectedNode.type === 'message' && (
-                  <div className="space-y-4">
-              <div>
-                      <Label htmlFor="messageContent" className="text-sm font-medium">
-                        Message Content
-              </Label>
-                      <textarea
-                        id="messageContent"
-                        value={selectedNode.content}
-                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
-                        placeholder="Enter your message..."
-                        rows={4}
-                        className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
-                      />
-                  </div>
-              </div>
-                )}
-
-                {selectedNode.type === 'image' && (
-                  <div className="space-y-4">
-              <div>
-                      <Label htmlFor="imageUrl" className="text-sm font-medium">
-                        Image URL
-                  </Label>
-                      <Input
-                        id="imageUrl"
-                        value={selectedNode.content}
-                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
-                        placeholder="https://example.com/image.jpg"
-                        className="mt-1 h-12 text-base px-4 rounded-lg"
-                      />
-                </div>
-                    {selectedNode.content && (
-                      <div className="border border-gray-300 rounded-lg p-4">
-                        <img 
-                          src={selectedNode.content} 
-                          alt="Preview" 
-                          className="w-full h-32 object-cover rounded"
-                          onError={(e) => {
-                            e.currentTarget.style.display = 'none'
-                          }}
-                        />
-                </div>
-                    )}
-                    <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                      <Image className="h-8 w-8 text-gray-400 mx-auto mb-2" />
-                      <p className="text-sm text-gray-500">Upload or paste image URL</p>
-              </div>
-            </div>
-                )}
-
-                {selectedNode.type === 'pause' && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="pauseDuration" className="text-sm font-medium">
-                        Pause Duration (seconds)
-                  </Label>
-                  <select
-                        id="pauseDuration"
-                        value={selectedNode.content}
-                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
-                        className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-base min-h-[48px]"
-                      >
-                        <option value="1">1 second</option>
-                        <option value="2">2 seconds</option>
-                        <option value="3">3 seconds</option>
-                        <option value="5">5 seconds</option>
-                        <option value="10">10 seconds</option>
-                  </select>
-                </div>
-                  </div>
-                )}
-
-                {selectedNode.type === 'webhook' && (
-                  <div className="space-y-4">
-                    <div>
-                      <Label htmlFor="webhookUrl" className="text-sm font-medium">
-                        Webhook URL
+                    <Label htmlFor="message" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Message
                     </Label>
-                      <Input
-                        id="webhookUrl"
-                        value={selectedNode.content}
-                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
-                        placeholder="/api/webhook"
-                        className="mt-1 h-12 text-base px-4 rounded-lg"
-                      />
+                    <textarea
+                      id="message"
+                      value={selectedNode.data.message || ''}
+                      onChange={(e) => updateNodeData(selectedNode.id, { message: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={6}
+                      placeholder="Enter your message here..."
+                    />
+                    <p className="text-xs text-gray-500 mt-2">
+                      Use curly braces to refer to user inputs or parameters. For example - {'{'}First Name{'}'}
+                    </p>
+                  </div>
+                )}
+
+                {selectedNode.type === 'imageNode' && (
+                  <div>
+                    <Label htmlFor="image-url" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Image URL
+                    </Label>
+                    <Input
+                      id="image-url"
+                      value={selectedNode.data.imageUrl || ''}
+                      onChange={(e) => updateNodeData(selectedNode.id, { imageUrl: e.target.value })}
+                      className="w-full"
+                      placeholder="https://example.com/image.jpg"
+                    />
+                    <div className="mt-3">
+                      <Button variant="outline" size="sm" className="w-full">
+                        <Upload className="h-4 w-4 mr-2" />
+                        Upload Image
+                      </Button>
                     </div>
                   </div>
                 )}
 
-                {selectedNode.type === 'condition' && (
-                  <div className="space-y-4">
+                {selectedNode.type === 'inputNode' && (
+                  <>
                     <div>
-                      <Label htmlFor="conditionLogic" className="text-sm font-medium">
-                        Condition Logic
-                    </Label>
-                      <textarea
-                        id="conditionLogic"
-                        value={selectedNode.content}
-                        onChange={(e) => updateNodeContent(selectedNode.id, e.target.value)}
-                        placeholder="if user.message contains 'help'"
-                        rows={3}
-                        className="w-full mt-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-base"
+                      <Label htmlFor="prompt" className="text-sm font-medium text-gray-700 mb-2 block">
+                        Prompt Message
+                      </Label>
+                      <Input
+                        id="prompt"
+                        value={selectedNode.data.prompt || ''}
+                        onChange={(e) => updateNodeData(selectedNode.id, { prompt: e.target.value })}
+                        className="w-full"
+                        placeholder="How can I help you today?"
                       />
                     </div>
+                    <div>
+                      <Label htmlFor="variable" className="text-sm font-medium text-gray-700 mb-2 block">
+                        Variable Name
+                      </Label>
+                      <Input
+                        id="variable"
+                        value={selectedNode.data.variable || ''}
+                        onChange={(e) => updateNodeData(selectedNode.id, { variable: e.target.value })}
+                        className="w-full"
+                        placeholder="user_query"
+                      />
+                    </div>
+                  </>
+                )}
+
+                {selectedNode.type === 'pauseNode' && (
+                  <div>
+                    <Label htmlFor="duration" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Duration (seconds)
+                    </Label>
+                    <Input
+                      id="duration"
+                      type="number"
+                      value={selectedNode.data.duration || 2}
+                      onChange={(e) => updateNodeData(selectedNode.id, { duration: parseInt(e.target.value) })}
+                      className="w-full"
+                      min="1"
+                      max="60"
+                    />
                   </div>
                 )}
 
-                <div className="mt-6 pt-4 border-t border-gray-200">
+                {selectedNode.type === 'webhookNode' && (
+                  <div>
+                    <Label htmlFor="webhook-url" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Webhook URL
+                    </Label>
+                    <Input
+                      id="webhook-url"
+                      value={selectedNode.data.url || ''}
+                      onChange={(e) => updateNodeData(selectedNode.id, { url: e.target.value })}
+                      className="w-full"
+                      placeholder="https://api.example.com/webhook"
+                    />
+                  </div>
+                )}
+
+                {selectedNode.type === 'conditionNode' && (
+                  <div>
+                    <Label htmlFor="condition" className="text-sm font-medium text-gray-700 mb-2 block">
+                      Condition Logic
+                    </Label>
+                    <textarea
+                      id="condition"
+                      value={selectedNode.data.condition || ''}
+                      onChange={(e) => updateNodeData(selectedNode.id, { condition: e.target.value })}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                      rows={4}
+                      placeholder="if user.message contains 'help'"
+                    />
+                  </div>
+                )}
+
+                <div className="pt-6 border-t border-gray-200">
                   <Button
                     variant="outline"
                     size="sm"
-                    className="w-full text-red-600 border-red-200 hover:bg-red-50 py-3 px-4 text-base min-h-[48px] rounded-lg"
+                    className="w-full text-red-600 border-red-200 hover:bg-red-50"
                     onClick={() => deleteNode(selectedNode.id)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
@@ -1127,78 +1156,21 @@ export default function BuilderPage() {
                   </Button>
                 </div>
               </div>
-            ) : (
-              <div className="space-y-6">
-                {/* Bot Status Section */}
-                <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
-                  <div className="flex items-start space-x-3">
-                    <div className="w-8 h-8 bg-blue-100 rounded-lg flex items-center justify-center">
-                      <User className="h-4 w-4 text-blue-600" />
-                    </div>
-                    <div className="flex-1">
-                      <h4 className="font-medium text-blue-900 mb-1">Bot Status</h4>
-                      <div className="space-y-1">
-                        <p className="text-sm text-blue-700">
-                          Status: <span className="font-medium">{bot?.status || 'Loading...'}</span>
-                        </p>
-                        <p className="text-sm text-blue-700">
-                          Webhook: {formData.webhookUrl ? (
-                            <span className="text-green-600 font-medium">✓ Configured</span>
-                          ) : (
-                            <span className="text-orange-600 font-medium">⚠ Not configured</span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                {/* QR Code Section */}
-                <div className="border border-gray-200 rounded-lg p-4">
-                  <h4 className="font-medium text-gray-900 mb-3">Widget QR Code</h4>
-                  <div className="bg-white border-2 border-gray-200 rounded-lg p-6 text-center">
-                    <div className="w-32 h-32 bg-gray-100 rounded-lg mx-auto mb-3 flex items-center justify-center">
-                      {/* QR Code - using a real QR code pattern based on bot URL */}
-                      <img 
-                        src={`https://api.qrserver.com/v1/create-qr-code/?size=128x128&data=${encodeURIComponent(
-                          `${typeof window !== 'undefined' ? window.location.origin : 'https://yoursite.com'}/widget/${bot?._id || 'demo'}`
-                        )}`}
-                        alt="Bot QR Code"
-                        className="w-full h-full rounded"
-                        onError={(e) => {
-                          // Fallback to pattern if QR service fails
-                          e.currentTarget.style.display = 'none'
-                          const parent = e.currentTarget.parentElement
-                          if (parent) {
-                            parent.innerHTML = `
-                              <div class="w-full h-full bg-gray-300 rounded flex items-center justify-center">
-                                <svg class="w-16 h-16 text-gray-600" fill="currentColor" viewBox="0 0 20 20">
-                                  <path fill-rule="evenodd" d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm2 2V5h1v1H5zM3 13a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1v-3zm2 2v-1h1v1H5zM13 3a1 1 0 00-1 1v3a1 1 0 001 1h3a1 1 0 001-1V4a1 1 0 00-1-1h-3zm1 2v1h1V5h-1z" clip-rule="evenodd"/>
-                                </svg>
-                  </div>
-                            `
-                          }
-                        }}
-                      />
-                </div>
-                    <p className="text-sm text-gray-600">Scan to test your bot</p>
-                    <p className="text-xs text-gray-400 mt-1">
-                      Bot ID: {bot?._id ? bot._id.slice(-8) : 'loading...'}
-                    </p>
-                  </div>
-                </div>
-
-                {/* No Node Selected */}
-                <div className="text-center text-gray-500 mt-8">
-                  <Settings className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-                  <h3 className="font-medium text-gray-900 mb-2">No node selected</h3>
-                  <p className="text-sm">Select a node from the flow to configure its settings</p>
-                </div>
-              </div>
-            )}
+            </div>
           </div>
-        </div>
+        )}
+        
+        {/* Mobile Backdrop Overlay */}
+        {isMobile && (leftSidebarOpen || selectedNode) && (
+          <div 
+            className="fixed inset-0 bg-black bg-opacity-50 z-30 lg:hidden"
+            onClick={() => {
+              setLeftSidebarOpen(false)
+              setSelectedNode(null)
+            }}
+          />
+        )}
       </div>
-    </div>
+    </ReactFlowProvider>
   )
-} 
+}

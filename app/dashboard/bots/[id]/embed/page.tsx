@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Badge } from '@/components/ui/badge'
-import { Copy, ExternalLink, Settings, Eye, Code, Zap, Sparkles, Globe, TestTube } from 'lucide-react'
+import { Copy, ExternalLink, Settings, Eye, Code, Zap, Sparkles, Globe, TestTube, Workflow, Bot } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams } from 'next/navigation'
 import { Loading } from '@/components/ui/loading'
@@ -58,20 +58,21 @@ export default function EmbedPage() {
 
   const generateEmbedCode = (bot: Bot) => {
     const domain = typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com';
-    return `<!-- Botrix Chat Widget -->
+    return `<!-- Botrix Rule-Based Chat Widget -->
 <script>
   (function() {
     // Load the chat widget
     const script = document.createElement('script');
     script.src = '${domain}/widget.js';
     script.onload = function() {
-      // Initialize chat widget with webhook integration
+      // Initialize chat widget with rule-based bot
       window.BotrixChat.createWidget('${bot._id}', {
         primaryColor: '${bot.settings.primaryColor}',
         position: 'bottom-right',
         welcomeMessage: '${bot.settings.welcomeMessage}',
-        baseUrl: '${domain}', // Your Botrix domain
-        theme: '${bot.settings.theme || 'modern'}', // Apply theme styling
+        baseUrl: '${domain}',
+        theme: '${bot.settings.theme || 'modern'}',
+        botType: 'rule-based', // Specify this is a rule-based bot
         // Widget icon settings are automatically loaded from bot configuration
       });
     };
@@ -83,7 +84,7 @@ export default function EmbedPage() {
 
   const generateSimpleEmbedCode = (bot: Bot) => {
     const domain = typeof window !== 'undefined' ? window.location.origin : 'https://your-domain.com';
-    return `<!-- Botrix Chat Widget (Simple Version) -->
+    return `<!-- Botrix Rule-Based Chat Widget (Simple Version) -->
 <script 
   src="${domain}/widget.js"
   data-botrix-bot-id="${bot._id}"
@@ -91,17 +92,19 @@ export default function EmbedPage() {
   data-botrix-position="bottom-right"
   data-botrix-welcome-message="${bot.settings.welcomeMessage}"
   data-botrix-theme="${bot.settings.theme || 'modern'}"
+  data-botrix-bot-type="rule-based"
   async>
 </script>`
   }
 
   const generateAPICode = (bot: Bot) => {
-    return `<!-- Alternative: Direct API integration -->
+    return `<!-- Alternative: Direct API integration for rule-based bot -->
 <script>
   // Direct API integration for custom implementations
   const BOTRIX_API = {
     botId: '${bot._id}',
     baseUrl: 'https://your-domain.com', // Replace with your actual domain
+    botType: 'rule-based',
     async sendMessage(message, conversationId = null) {
       const response = await fetch(this.baseUrl + '/api/chat', {
         method: 'POST',
@@ -110,6 +113,7 @@ export default function EmbedPage() {
           botId: this.botId,
           message: message,
           conversationId: conversationId,
+          botType: this.botType,
           userInfo: {
             ip: 'client-ip',
             userAgent: navigator.userAgent
@@ -140,16 +144,16 @@ export default function EmbedPage() {
       }
     } catch (err) {
       console.error('Failed to copy text: ', err)
+    }
   }
-}
 
   if (isLoading) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <div className="flex flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50">
         <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm flex-shrink-0">
-          <h1 className="text-3xl font-bold text-gray-900">Embed Code</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Embed Rule-Based Bot</h1>
         </header>
-        <main className="flex-1 p-8 min-h-0">
+        <main className="flex-1 p-8 overflow-y-auto">
           <div className="flex items-center justify-center h-64">
             <Loading size="lg" text="Loading embed code..." />
           </div>
@@ -160,11 +164,11 @@ export default function EmbedPage() {
 
   if (error || !bot) {
     return (
-      <div className="flex flex-col h-full bg-gradient-to-br from-slate-50 via-white to-blue-50">
+      <div className="flex flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50">
         <header className="bg-white/80 backdrop-blur-sm border-b border-purple-100 px-8 py-6 shadow-sm flex-shrink-0">
-          <h1 className="text-3xl font-bold text-gray-900">Embed Code</h1>
+          <h1 className="text-3xl font-bold text-gray-900">Embed Rule-Based Bot</h1>
         </header>
-        <main className="flex-1 p-8 min-h-0">
+        <main className="flex-1 p-8 overflow-y-auto">
           <div className="flex items-center justify-center h-64">
             <div className="text-center">
               <div className="p-4 rounded-full bg-red-100 text-red-600 mb-4 inline-block">
@@ -179,137 +183,263 @@ export default function EmbedPage() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-gray-50">
+    <div className="flex flex-col bg-gradient-to-br from-slate-50 via-white to-blue-50">
       {/* Header */}
-      <header className="bg-white border-b border-gray-200 px-4 sm:px-6 py-4 shadow-sm">
-        <div className="flex flex-col space-y-3">
-          <div className="flex items-start sm:items-center justify-between gap-3">
-            <div className="min-w-0 flex-1">
-              <h1 className="text-xl sm:text-2xl font-bold text-gray-900 truncate">Embed Code</h1>
-              <p className="text-sm sm:text-base text-gray-600 mt-1">Integrate your chatbot with your website</p>
+      <header className="bg-white/80 backdrop-blur-sm border-b border-teal-100 px-6 py-6 shadow-sm flex-shrink-0">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center space-x-4">
+            <div className="w-12 h-12 bg-teal-600 text-white rounded-xl flex items-center justify-center">
+              <Code className="h-6 w-6" />
             </div>
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900">Embed</h1>
+              <p className="text-gray-600">Integrate your rule-based chatbot with your website</p>
+            </div>
+          </div>
+          <div className="flex items-center space-x-3">
+            <Badge 
+              variant="outline"
+              className="px-3 py-1 bg-teal-100 text-teal-800 border-teal-200"
+            >
+              <Workflow className="h-3 w-3 mr-1" />
+              Rule-Based
+            </Badge>
             <Badge 
               variant={bot.status === 'active' ? 'default' : 'secondary'}
-              className={`flex-shrink-0 text-xs sm:text-sm px-2 py-1 ${
+              className={`px-3 py-1 ${
                 bot.status === 'active' 
-                  ? 'bg-green-100 text-green-800' 
-                  : 'bg-yellow-100 text-yellow-800'
+                  ? 'bg-green-100 text-green-800 border-green-200' 
+                  : 'bg-yellow-100 text-yellow-800 border-yellow-200'
               }`}
             >
               {bot.status}
             </Badge>
           </div>
-          <Button 
-            variant="outline" 
-            size="sm" 
-            className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2.5 px-4 text-sm w-full sm:w-auto sm:self-start min-h-[44px]"
-            onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
-          >
-            <Eye className="h-4 w-4 mr-2" />
-            Preview Widget
-          </Button>
         </div>
       </header>
 
       {/* Content */}
-      <main className="flex-1 p-4 sm:p-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto w-full">
-        {/* Widget Test URL */}
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <CardHeader className="px-4 sm:px-6 py-4 sm:py-5">
-            <div className="flex items-start sm:items-center space-x-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-teal-600 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                <Eye className="h-5 w-5 sm:h-6 sm:w-6" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">Test Your Widget</CardTitle>
-                <CardDescription className="text-sm sm:text-base text-gray-600 mt-1">
-                  Direct URL to test your chat widget in action
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="bg-teal-50 p-3 sm:p-4 rounded-xl border border-teal-200">
-              <div className="flex items-center mb-3">
-                <Globe className="w-4 h-4 mr-2 text-teal-600 flex-shrink-0" />
-                <span className="font-medium text-teal-900 text-sm sm:text-base">Widget Test URL:</span>
-              </div>
-              
-              <div className="bg-white rounded-lg border border-teal-300 p-2 sm:p-3 mb-3 overflow-hidden">
-                <div className="text-xs sm:text-sm font-mono text-teal-800 break-all leading-relaxed">
-                  {`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`}
-                </div>
-              </div>
-              
-              <div className="flex flex-col sm:flex-row gap-2">
-                <Button
-                  className="bg-teal-600 text-white hover:bg-teal-700 py-2.5 px-4 rounded-lg font-medium text-sm flex-1 sm:flex-none sm:min-w-[120px]"
-                  onClick={() => copyToClipboard(`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`, 'testUrl')}
-                >
-                  <Copy className="h-4 w-4 mr-2" />
-                  {copiedTestUrl ? 'Copied!' : 'Copy URL'}
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2.5 px-4 rounded-lg font-medium text-sm flex-1 sm:flex-none sm:min-w-[140px]"
-                  onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Open in New Tab
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2.5 px-4 rounded-lg font-medium text-sm flex-1 sm:flex-none sm:min-w-[120px]"
-                  onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
-                >
-                  <TestTube className="h-4 w-4 mr-2" />
-                  Test Widget
-                </Button>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+      <main className="flex-1 p-6 space-y-6 max-w-5xl mx-auto w-full overflow-y-auto">
+                 {/* Widget Test URL */}
+         <Card className="bg-white rounded-xl shadow-sm border border-teal-200">
+           <CardHeader className="px-6 py-5">
+             <div className="flex items-center space-x-3">
+               <div className="w-12 h-12 bg-teal-600 text-white rounded-xl flex items-center justify-center">
+                 <Eye className="h-6 w-6" />
+               </div>
+               <div>
+                 <CardTitle className="text-lg font-semibold text-gray-900">Widget Test URL</CardTitle>
+                 <CardDescription className="text-gray-600">
+                   Direct URL to test your rule-based chat widget in action
+                 </CardDescription>
+               </div>
+             </div>
+           </CardHeader>
+           <CardContent className="px-6 pb-6">
+             <div className="bg-teal-50 p-4 rounded-xl border border-teal-200">
+               <div className="flex items-center mb-3">
+                 <Globe className="w-4 h-4 mr-2 text-teal-600" />
+                 <span className="font-medium text-teal-900">Widget Test URL:</span>
+               </div>
+               
+               <div className="bg-white rounded-lg border border-teal-300 p-3 mb-4 overflow-hidden">
+                 <div className="text-sm font-mono text-teal-800 break-all leading-relaxed">
+                   {`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`}
+                 </div>
+               </div>
+               
+               <div className="flex gap-3">
+                 <Button
+                   className="bg-teal-600 text-white hover:bg-teal-700 py-2.5 px-4 rounded-lg font-medium"
+                   onClick={() => copyToClipboard(`${typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000'}/test-widget.html?botId=${bot._id}`, 'testUrl')}
+                 >
+                   <Copy className="h-4 w-4 mr-2" />
+                   {copiedTestUrl ? 'Copied!' : 'Copy URL'}
+                 </Button>
+                 
+                 <Button
+                   variant="outline"
+                   className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2.5 px-4 rounded-lg font-medium"
+                   onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
+                 >
+                   <ExternalLink className="h-4 w-4 mr-2" />
+                   Open in New Tab
+                 </Button>
+                 
+                 <Button
+                   variant="outline"
+                   className="border-teal-200 text-teal-600 hover:bg-teal-50 py-2.5 px-4 rounded-lg font-medium"
+                   onClick={() => window.open(`/test-widget.html?botId=${bot._id}`, '_blank')}
+                 >
+                   <TestTube className="h-4 w-4 mr-2" />
+                   Test Widget
+                 </Button>
+               </div>
+             </div>
+           </CardContent>
+         </Card>
 
-        {/* Widget Integration */}
-        <Card className="bg-white rounded-xl shadow-sm border border-gray-200">
-          <CardHeader className="px-4 sm:px-6 py-4 sm:py-5">
-            <div className="flex items-start sm:items-center space-x-3">
-              <div className="w-10 h-10 sm:w-12 sm:h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center flex-shrink-0">
-                <Code className="h-5 w-5 sm:h-6 sm:w-6" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <CardTitle className="text-base sm:text-lg font-semibold text-gray-900">Widget Integration (Advanced)</CardTitle>
-                <CardDescription className="text-sm sm:text-base text-gray-600 mt-1">
-                  Full control over widget initialization with custom settings
-                </CardDescription>
-              </div>
-            </div>
-          </CardHeader>
-          <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
-            <div className="bg-gray-50 rounded-xl border border-gray-200 p-3 sm:p-4 mb-4">
-              <div className="max-h-48 sm:max-h-60 overflow-y-auto">
-                <pre className="text-xs sm:text-sm font-mono text-gray-800 whitespace-pre-wrap leading-relaxed">
-                  <code>{generateEmbedCode(bot)}</code>
-                </pre>
-              </div>
-            </div>
-            
-            <div className="flex justify-center">
-              <Button
-                className="bg-blue-600 text-white hover:bg-blue-700 py-2.5 px-4 rounded-lg font-medium text-sm w-full sm:w-auto"
-                onClick={() => copyToClipboard(generateEmbedCode(bot), 'code')}
-              >
-                <Copy className="h-4 w-4 mr-2" />
-                {copiedCode ? 'Copied!' : 'Copy Integration Code'}
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
+                 {/* Widget Integration */}
+         <Card className="bg-white rounded-xl shadow-sm border border-blue-200">
+           <CardHeader className="px-6 py-5">
+             <div className="flex items-center space-x-3">
+               <div className="w-12 h-12 bg-blue-500 text-white rounded-xl flex items-center justify-center">
+                 <Code className="h-6 w-6" />
+               </div>
+               <div>
+                 <CardTitle className="text-lg font-semibold text-gray-900">Widget Integration (Advanced)</CardTitle>
+                 <CardDescription className="text-gray-600">
+                   Full control over widget initialization with custom settings for rule-based bot
+                 </CardDescription>
+               </div>
+             </div>
+           </CardHeader>
+           <CardContent className="px-6 pb-6">
+             <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-4">
+               <div className="max-h-60 overflow-y-auto">
+                 <pre className="text-sm font-mono text-gray-800 whitespace-pre-wrap leading-relaxed">
+                   <code>{generateEmbedCode(bot)}</code>
+                 </pre>
+               </div>
+             </div>
+             
+             <div className="flex justify-center">
+               <Button
+                 className="bg-blue-600 text-white hover:bg-blue-700 py-2.5 px-4 rounded-lg font-medium"
+                 onClick={() => copyToClipboard(generateEmbedCode(bot), 'code')}
+               >
+                 <Copy className="h-4 w-4 mr-2" />
+                 {copiedCode ? 'Copied!' : 'Copy Integration Code'}
+               </Button>
+             </div>
+           </CardContent>
+         </Card>
 
+                 {/* Simple Integration */}
+         <Card className="bg-white rounded-xl shadow-sm border border-green-200">
+           <CardHeader className="px-6 py-5">
+             <div className="flex items-center space-x-3">
+               <div className="w-12 h-12 bg-green-500 text-white rounded-xl flex items-center justify-center">
+                 <Zap className="h-6 w-6" />
+               </div>
+               <div>
+                 <CardTitle className="text-lg font-semibold text-gray-900">Simple Integration</CardTitle>
+                 <CardDescription className="text-gray-600">
+                   Quick and easy integration with minimal configuration
+                 </CardDescription>
+               </div>
+             </div>
+           </CardHeader>
+           <CardContent className="px-6 pb-6">
+             <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-4">
+               <div className="max-h-32 overflow-y-auto">
+                 <pre className="text-sm font-mono text-gray-800 whitespace-pre-wrap leading-relaxed">
+                   <code>{generateSimpleEmbedCode(bot)}</code>
+                 </pre>
+               </div>
+             </div>
+             
+             <div className="flex justify-center">
+               <Button
+                 className="bg-green-600 text-white hover:bg-green-700 py-2.5 px-4 rounded-lg font-medium"
+                 onClick={() => copyToClipboard(generateSimpleEmbedCode(bot), 'simple')}
+               >
+                 <Copy className="h-4 w-4 mr-2" />
+                 {copiedSimple ? 'Copied!' : 'Copy Simple Code'}
+               </Button>
+             </div>
+           </CardContent>
+         </Card>
 
+                 {/* API Integration */}
+         <Card className="bg-white rounded-xl shadow-sm border border-purple-200">
+           <CardHeader className="px-6 py-5">
+             <div className="flex items-center space-x-3">
+               <div className="w-12 h-12 bg-purple-500 text-white rounded-xl flex items-center justify-center">
+                 <Settings className="h-6 w-6" />
+               </div>
+               <div>
+                 <CardTitle className="text-lg font-semibold text-gray-900">API Integration</CardTitle>
+                 <CardDescription className="text-gray-600">
+                   Direct API integration for custom implementations and rule-based bot logic
+                 </CardDescription>
+               </div>
+             </div>
+           </CardHeader>
+           <CardContent className="px-6 pb-6">
+             <div className="bg-gray-50 rounded-xl border border-gray-200 p-4 mb-4">
+               <div className="max-h-60 overflow-y-auto">
+                 <pre className="text-sm font-mono text-gray-800 whitespace-pre-wrap leading-relaxed">
+                   <code>{generateAPICode(bot)}</code>
+                 </pre>
+               </div>
+             </div>
+             
+             <div className="flex justify-center">
+               <Button
+                 className="bg-purple-600 text-white hover:bg-purple-700 py-2.5 px-4 rounded-lg font-medium"
+                 onClick={() => copyToClipboard(generateAPICode(bot), 'api')}
+               >
+                 <Copy className="h-4 w-4 mr-2" />
+                 {copiedAPI ? 'Copied!' : 'Copy API Code'}
+               </Button>
+             </div>
+           </CardContent>
+         </Card>
+
+                 {/* Features Section */}
+         <Card className="bg-white rounded-xl shadow-sm border border-gray-200">
+           <CardHeader className="px-6 py-5">
+             <CardTitle className="text-lg font-semibold text-gray-900">Rule-Based Bot Features</CardTitle>
+             <CardDescription className="text-gray-600">
+               What makes our rule-based chatbot special
+             </CardDescription>
+           </CardHeader>
+           <CardContent className="px-6 pb-6">
+             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+               <div className="flex items-start space-x-3">
+                 <div className="w-10 h-10 bg-blue-100 text-blue-600 rounded-lg flex items-center justify-center">
+                   <Workflow className="h-5 w-5" />
+                 </div>
+                 <div>
+                   <h4 className="font-medium text-gray-900">Visual Flow Builder</h4>
+                   <p className="text-sm text-gray-600 mt-1">Drag-and-drop interface for creating conversation flows</p>
+                 </div>
+               </div>
+               
+               <div className="flex items-start space-x-3">
+                 <div className="w-10 h-10 bg-green-100 text-green-600 rounded-lg flex items-center justify-center">
+                   <Globe className="h-5 w-5" />
+                 </div>
+                 <div>
+                   <h4 className="font-medium text-gray-900">Webhook Integration</h4>
+                   <p className="text-sm text-gray-600 mt-1">Connect with external APIs and services</p>
+                 </div>
+               </div>
+               
+               <div className="flex items-start space-x-3">
+                 <div className="w-10 h-10 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center">
+                   <Zap className="h-5 w-5" />
+                 </div>
+                 <div>
+                   <h4 className="font-medium text-gray-900">Conditional Logic</h4>
+                   <p className="text-sm text-gray-600 mt-1">Create complex decision trees and branching</p>
+                 </div>
+               </div>
+               
+               <div className="flex items-start space-x-3">
+                 <div className="w-10 h-10 bg-orange-100 text-orange-600 rounded-lg flex items-center justify-center">
+                   <Bot className="h-5 w-5" />
+                 </div>
+                 <div>
+                   <h4 className="font-medium text-gray-900">Multi-Node Support</h4>
+                   <p className="text-sm text-gray-600 mt-1">Message, input, pause, and condition nodes</p>
+                 </div>
+               </div>
+             </div>
+           </CardContent>
+         </Card>
       </main>
     </div>
   )
-} 
+}

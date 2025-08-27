@@ -4,19 +4,28 @@ import dbConnect from '@/lib/mongodb'
 import User from '@/models/User'
 import { generateToken } from '@/lib/auth'
 
+// Check if Google OAuth credentials are configured
+const hasGoogleCredentials = process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET;
+
+if (!hasGoogleCredentials) {
+  console.warn('⚠️ Google OAuth credentials not configured. Google sign-in will be disabled.');
+}
+
 const authOptions: NextAuthOptions = {
   providers: [
-    GoogleProvider({
-      clientId: process.env.GOOGLE_CLIENT_ID!,
-      clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
-      authorization: {
-        params: {
-          prompt: "consent",
-          access_type: "offline",
-          response_type: "code"
+    ...(hasGoogleCredentials ? [
+      GoogleProvider({
+        clientId: process.env.GOOGLE_CLIENT_ID!,
+        clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        authorization: {
+          params: {
+            prompt: "consent",
+            access_type: "offline",
+            response_type: "code"
+          }
         }
-      }
-    }),
+      })
+    ] : []),
   ],
   callbacks: {
     async signIn({ user, account, profile, email }: any) {

@@ -316,23 +316,23 @@
             const script = document.createElement('script');
             script.src = '/widget.js';
             script.onload = function() {
-                // Use the same initialization method as embedded widget
-                // Create a script element with data attributes to match embedded widget behavior
-                const widgetScript = document.createElement('script');
-                widgetScript.setAttribute('data-botrix-bot-id', bot._id);
-                widgetScript.setAttribute('data-botrix-primary-color', bot.settings.primaryColor || '#14b8a6');
-                widgetScript.setAttribute('data-botrix-secondary-color', bot.settings.secondaryColor || '#0f766e');
-                widgetScript.setAttribute('data-botrix-position', 'bottom-right');
-                widgetScript.setAttribute('data-botrix-welcome-message', bot.settings.welcomeMessage);
-                widgetScript.setAttribute('data-botrix-enable-voice', 'true');
-                widgetScript.setAttribute('data-botrix-theme', 'modern');
-                
-                // Add the script to trigger auto-initialization
-                document.head.appendChild(widgetScript);
-                
-                // Trigger the DOMContentLoaded event to initialize the widget
-                const event = new Event('DOMContentLoaded');
-                document.dispatchEvent(event);
+                // Wait a bit for the script to fully load
+                setTimeout(() => {
+                    // Initialize the widget directly with demoMode: false to use real webhook
+                    if (window.BotrixChat) {
+                        window.BotrixChat.createWidget(bot._id, {
+                            primaryColor: bot.settings.primaryColor,
+                            secondaryColor: bot.settings.secondaryColor || bot.settings.primaryColor,
+                            position: 'bottom-right',
+                            welcomeMessage: bot.settings.welcomeMessage,
+                            enableVoice: true,
+                            theme: bot.settings.theme || 'modern',
+                            demoMode: false // Disable demo mode to use real webhook responses
+                        });
+                    } else {
+                        console.error('BotrixChat not available');
+                    }
+                }, 100);
             };
             script.async = true;
             document.head.appendChild(script);

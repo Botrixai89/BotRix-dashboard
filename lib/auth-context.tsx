@@ -38,6 +38,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [session, status]);
 
   const checkAuth = async () => {
+    console.log('🔍 checkAuth called - NextAuth status:', status, 'session:', !!session)
+    
     // If NextAuth is loading, wait
     if (status === 'loading') {
       console.log('⏳ NextAuth is loading, waiting...')
@@ -90,6 +92,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const login = async (email: string, password: string) => {
+    console.log('🔐 Login attempt for:', email)
     try {
       const response = await fetch('/api/auth/login', {
         method: 'POST',
@@ -101,20 +104,30 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       const data = await response.json();
+      console.log('📡 Login response:', { status: response.status, ok: response.ok, data })
 
       if (response.ok) {
+        console.log('✅ Login successful, setting user:', data.user)
+        // Set user immediately from response
         setUser(data.user);
+        // Also trigger a fresh auth check to ensure everything is properly set up
+        setTimeout(() => {
+          console.log('🔄 Triggering auth check after login...')
+          checkAuth();
+        }, 100);
         return { success: true };
       } else {
+        console.log('❌ Login failed:', data.error)
         return { success: false, error: data.error };
       }
     } catch (error) {
-      console.error('Login error:', error);
+      console.error('❌ Login error:', error);
       return { success: false, error: 'Network error' };
     }
   };
 
   const signup = async (name: string, email: string, password: string) => {
+    console.log('📝 Signup attempt for:', email)
     try {
       const response = await fetch('/api/auth/signup', {
         method: 'POST',
@@ -126,15 +139,24 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       });
 
       const data = await response.json();
+      console.log('📡 Signup response:', { status: response.status, ok: response.ok, data })
 
       if (response.ok) {
+        console.log('✅ Signup successful, setting user:', data.user)
+        // Set user immediately from response
         setUser(data.user);
+        // Also trigger a fresh auth check to ensure everything is properly set up
+        setTimeout(() => {
+          console.log('🔄 Triggering auth check after signup...')
+          checkAuth();
+        }, 100);
         return { success: true };
       } else {
+        console.log('❌ Signup failed:', data.error)
         return { success: false, error: data.error };
       }
     } catch (error) {
-      console.error('Signup error:', error);
+      console.error('❌ Signup error:', error);
       return { success: false, error: 'Network error' };
     }
   };

@@ -3,6 +3,7 @@ import dbConnect from '@/lib/mongodb';
 import Bot from '@/models/Bot';
 import Conversation from '@/models/Conversation';
 import { getRandomName } from '@/lib/utils';
+import { ruleBasedBotService } from '@/lib/rule-based-bot';
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -162,7 +163,7 @@ export async function POST(request: NextRequest) {
       await conversation.save();
       const responseData = [
         {
-          content: { text: greeting },
+          content: greeting,
           _id: conversation._id,
           sender: 'bot',
           type: 'text',
@@ -171,7 +172,7 @@ export async function POST(request: NextRequest) {
           userInfo: conversation.userInfo
         },
         {
-          content: { text: 'May I know your name please? (You can say "skip" if you prefer a random name)' },
+          content: 'May I know your name please? (You can say "skip" if you prefer a random name)',
           _id: conversation._id,
           sender: 'bot',
           type: 'text',
@@ -186,25 +187,117 @@ export async function POST(request: NextRequest) {
     // Save conversation
     await conversation.save();
 
-    // Check if webhook URL is configured
-    if (!bot.settings.webhookUrl || bot.settings.webhookUrl.trim() === '') {
-      console.log('❌ No webhook URL configured for this bot');
-      
-      // Add fallback response to conversation
+    // Check bot type and handle accordingly
+    const botType = bot.settings.botType || 'webhook';
+    console.log('🤖 Bot type:', botType);
+
+    // Handle rule-based bot first
+    if (botType === 'rule-based' || botType === 'hybrid') {
+      if (bot.settings.ruleBasedConfig?.enabled) {
+        console.log('🎯 Executing rule-based bot logic');
+        
+        // Execute rules with conversation context
+        const context = {
+          message,
+          conversationId: conversation._id.toString(),
+          userInfo: conversation.userInfo,
+          botId: bot._id.toString(),
+          timestamp: new Date().toISOString()
+        };
+
+        const ruleResult = await ruleBasedBotService.executeRules(bot, message, context);
+        
+        if (ruleResult.matched) {
+          console.log('✅ Rule matched, executing actions');
+          
+          // Add bot response to conversation
+          if (ruleResult.response) {
+            const botMessage = {
+              content: ruleResult.response,
+              sender: 'bot' as const,
+              timestamp: new Date(),
+            };
+            conversation.messages.push(botMessage);
+            await conversation.save();
+
+            // Return response
+            const responseData = [
+              {
+                content: ruleResult.response, // Use string content directly
+                _id: conversation._id,
+                sender: "bot",
+                type: "text",
+                createdAt: new Date().toISOString(),
+                voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+              }
+            ];
+
+            // Add image response if available
+            if (ruleResult.imageUrl) {
+              responseData.push({
+                content: ruleResult.imageUrl, // Use string content for image URL
+                _id: conversation._id,
+                sender: "bot",
+                type: "image",
+                createdAt: new Date().toISOString(),
+                voiceSettings: null
+              });
+            }
+
+            return NextResponse.json(responseData, {
+              headers: corsHeaders,
+            });
+          }
+        } else {
+          console.log('❌ No rules matched');
+        }
+      }
+    }
+
+    // For hybrid bots or when rules don't match, fall back to webhook
+    if (botType === 'webhook' || botType === 'hybrid') {
+      // Check if webhook URL is configured
+      if (!bot.settings.webhookUrl || bot.settings.webhookUrl.trim() === '') {
+        console.log('❌ No webhook URL configured for this bot');
+        
+        // Add fallback response to conversation
+        const fallbackMessage = {
+          content: bot.settings.fallbackMessage || "I'm sorry, I'm not configured to respond right now. Please check the bot settings.",
+          sender: 'bot' as const,
+          timestamp: new Date(),
+        };
+        conversation.messages.push(fallbackMessage);
+        await conversation.save();
+
+        // Return fallback response
+        const responseData = [
+          {
+            content: fallbackMessage.content,
+            _id: conversation._id,
+            sender: "bot",
+            type: "text",
+            createdAt: new Date().toISOString(),
+            voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+          }
+        ];
+
+        return NextResponse.json(responseData, {
+          headers: corsHeaders,
+        });
+      }
+    } else {
+      // For rule-based only bots with no matching rules
       const fallbackMessage = {
-        content: bot.settings.fallbackMessage || "I'm sorry, I'm not configured to respond right now. Please check the bot settings.",
+        content: bot.settings.fallbackMessage || "I'm sorry, I didn't understand that. Can you please rephrase?",
         sender: 'bot' as const,
         timestamp: new Date(),
       };
       conversation.messages.push(fallbackMessage);
       await conversation.save();
 
-      // Return fallback response
       const responseData = [
         {
-          content: {
-            text: fallbackMessage.content
-          },
+          content: fallbackMessage.content,
           _id: conversation._id,
           sender: "bot",
           type: "text",
@@ -297,15 +390,21 @@ export async function POST(request: NextRequest) {
           // Format: { output: "..." } - This is the working format
           botResponse = responseData.output;
         } else if (Array.isArray(responseData) && responseData.length > 0) {
-          // Format: [{ content: { text: "..." }, sender: "bot", type: "text", ... }]
+          // Format: [{ content: "...", sender: "bot", type: "text", ... }]
           const firstMessage = responseData[0];
-          if (firstMessage.content && firstMessage.content.text) {
+          if (firstMessage.content && typeof firstMessage.content === 'string') {
+            botResponse = firstMessage.content;
+          } else if (firstMessage.content && firstMessage.content.text) {
+            // Fallback for old format
             botResponse = firstMessage.content.text;
           } else {
             botResponse = bot.settings.fallbackMessage;
           }
+        } else if (responseData.content && typeof responseData.content === 'string') {
+          // Format: { content: "..." }
+          botResponse = responseData.content;
         } else if (responseData.content && responseData.content.text) {
-          // Format: { content: { text: "..." } }
+          // Fallback for old format: { content: { text: "..." } }
           botResponse = responseData.content.text;
         } else if (responseData.message) {
           // Format: { message: "..." }
@@ -390,9 +489,7 @@ export async function POST(request: NextRequest) {
       // Return response in the same format as the working bot
       const responseData = [
         {
-          content: {
-            text: botResponse
-          },
+          content: botResponse,
           _id: conversation._id,
           sender: "bot",
           type: "text",

@@ -65,6 +65,7 @@
   }
   body {
     @apply bg-background text-foreground;
+    overflow-x: hidden; /* Prevent horizontal scroll globally */
   }
   
   /* Mobile-first responsive improvements */
@@ -97,6 +98,59 @@
   
   .brand-primary-bg {
     background-color: hsl(var(--brand-teal-light));
+  }
+  
+  /* ReactFlow responsive fixes */
+  .react-flow__viewport {
+    overflow: hidden !important;
+  }
+  
+  .react-flow__container {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  .react-flow__pane {
+    width: 100% !important;
+    height: 100% !important;
+  }
+  
+  /* Prevent horizontal scroll on mobile */
+  @media (max-width: 1024px) {
+    .react-flow__viewport {
+      min-width: auto !important;
+    }
+    
+    .react-flow__pane {
+      min-width: auto !important;
+    }
+  }
+  
+  /* Node Properties Panel Overlay */
+  .node-properties-overlay {
+    position: fixed !important;
+    right: 0 !important;
+    top: 0 !important;
+    height: 100vh !important;
+    width: 320px !important;
+    z-index: 50 !important;
+    background: white !important;
+    border-left: 1px solid #e5e7eb !important;
+    box-shadow: -4px 0 12px rgba(0, 0, 0, 0.1) !important;
+    overflow-y: auto !important;
+  }
+  
+  /* Canvas dimming when node is selected */
+  .canvas-dimmed {
+    opacity: 0.5 !important;
+    pointer-events: none !important;
+    transition: opacity 0.3s ease-in-out !important;
+  }
+  
+  /* Ensure proper spacing when node properties is open */
+  .main-content-with-properties {
+    margin-right: 320px !important;
+    transition: margin-right 0.3s ease-in-out !important;
   }
   
   .brand-primary-hover {
@@ -219,6 +273,16 @@
     .mobile-block {
       @apply block;
     }
+    
+    /* Prevent horizontal scroll on mobile */
+    .mobile-no-scroll-x {
+      overflow-x: hidden;
+    }
+    
+    /* Ensure proper container behavior */
+    .mobile-container {
+      @apply w-full max-w-full px-4;
+    }
   }
   
   /* Tablet-specific improvements */
@@ -234,6 +298,11 @@
     .tablet-px-6 {
       @apply px-6;
     }
+    
+    /* Prevent horizontal scroll on tablet */
+    .tablet-no-scroll-x {
+      overflow-x: hidden;
+    }
   }
   
   /* Desktop-specific improvements */
@@ -244,6 +313,11 @@
     
     .desktop-px-8 {
       @apply px-8;
+    }
+    
+    /* Prevent horizontal scroll on desktop */
+    .desktop-no-scroll-x {
+      overflow-x: hidden;
     }
   }
   

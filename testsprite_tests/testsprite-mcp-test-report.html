@@ -1,0 +1,571 @@
+
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+      <meta charset="UTF-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>Markdown Preview</title>
+      <style>
+        body {
+          font-family: sans-serif;
+          padding: 40px;
+          line-height: 1.6;
+          background: #fdfdfd;
+          color: #333;
+        }
+        pre {
+          background: #f4f4f4;
+          padding: 10px;
+          border-radius: 5px;
+          overflow-x: auto;
+        }
+        code {
+          font-family: monospace;
+          background: #eee;
+          padding: 2px 4px;
+        }
+        table {
+          border-collapse: collapse;
+          width: 100%;
+          margin-top: 20px;
+        }
+        th, td {
+          border: 1px solid #ccc;
+          padding: 8px 12px;
+          text-align: left;
+        }
+        th {
+          background-color: #f2f2f2;
+          font-weight: bold;
+        }
+      </style>
+    </head>
+    <body>
+      <h1>TestSprite AI Testing Report(MCP)</h1>
+<hr>
+<h2>1️⃣ Document Metadata</h2>
+<ul>
+<li><strong>Project Name:</strong> BotRix-dashboard</li>
+<li><strong>Version:</strong> 0.1.0</li>
+<li><strong>Date:</strong> 2025-08-21</li>
+<li><strong>Prepared by:</strong> TestSprite AI Team</li>
+</ul>
+<hr>
+<h2>2️⃣ Requirement Validation Summary</h2>
+<h3>Requirement: User Authentication System</h3>
+<ul>
+<li><strong>Description:</strong> Complete authentication system with email/password login, signup, password reset, and email verification.</li>
+</ul>
+<h4>Test 1</h4>
+<ul>
+<li><strong>Test ID:</strong> TC001</li>
+<li><strong>Test Name:</strong> User Signup via Email/Password</li>
+<li><strong>Test Code:</strong> <a href="./TC001_User_Signup_via_EmailPassword.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/49485ce3-38d5-464b-a5f8-ef37619beae6</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> The signup functionality is working correctly; consider adding additional checks for edge cases such as invalid email formats or password strength feedback.</li>
+</ul>
+<hr>
+<h4>Test 2</h4>
+<ul>
+<li><strong>Test ID:</strong> TC002</li>
+<li><strong>Test Name:</strong> Signup with Existing Email</li>
+<li><strong>Test Code:</strong> <a href="./TC002_Signup_with_Existing_Email.py">code_file</a></li>
+<li><strong>Test Error:</strong> Testing stopped because the 'Sign up' link on the login page is not clickable, preventing access to the signup page and thus blocking the test for signup failure with an already registered email.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/f7115771-74eb-4c79-a487-8e049c3009f7</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Fix the UI issue preventing the 'Sign up' link from being clickable, ensuring proper navigation to signup page. Also verify backend returns appropriate error for existing email registrations.</li>
+</ul>
+<hr>
+<h4>Test 3</h4>
+<ul>
+<li><strong>Test ID:</strong> TC003</li>
+<li><strong>Test Name:</strong> Email Verification Process</li>
+<li><strong>Test Code:</strong> <a href="./TC003_Email_Verification_Process.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/6069606b-4c61-4870-a0d1-4af3d5c2f63c</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Functionality is correct; consider testing email link expiration and resend email flows to improve robustness.</li>
+</ul>
+<hr>
+<h4>Test 4</h4>
+<ul>
+<li><strong>Test ID:</strong> TC004</li>
+<li><strong>Test Name:</strong> User Login with Email/Password</li>
+<li><strong>Test Code:</strong> <a href="./TC004_User_Login_with_EmailPassword.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/2f62c0ee-56d3-406c-9f8f-edee844e4c06</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Functionality is correct; could enhance by testing multi-factor authentication scenarios.</li>
+</ul>
+<hr>
+<h4>Test 5</h4>
+<ul>
+<li><strong>Test ID:</strong> TC005</li>
+<li><strong>Test Name:</strong> User Login with Google OAuth</li>
+<li><strong>Test Code:</strong> <a href="./TC005_User_Login_with_Google_OAuth.py">code_file</a></li>
+<li><strong>Test Error:</strong> Google OAuth login flow was initiated successfully, but the login could not be completed due to Google's security restrictions on this browser or app. The user is blocked from signing in with the message 'This browser or app may not be secure.'</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/165c03fa-5b3e-4d23-b8a2-00866158bc87</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Adjust test environment to use a supported and secure browser for OAuth testing or mock OAuth flows. Investigate production OAuth environment for similar restrictions and address security settings.</li>
+</ul>
+<hr>
+<h4>Test 6</h4>
+<ul>
+<li><strong>Test ID:</strong> TC006</li>
+<li><strong>Test Name:</strong> Password Reset Workflow</li>
+<li><strong>Test Code:</strong> <a href="./TC006_Password_Reset_Workflow.py">code_file</a></li>
+<li><strong>Test Error:</strong> Test stopped due to internal server error after submitting password reset request. Password reset email was not sent, so cannot verify password update or login with new password.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/26664c2c-97c9-423e-b5de-b8b2a75c58f0</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Investigate and fix server-side issues causing the 500 error during password reset request processing. Add proper error handling and tests for backend service reliability.</li>
+</ul>
+<hr>
+<h3>Requirement: Bot Management System</h3>
+<ul>
+<li><strong>Description:</strong> Complete bot creation, editing, configuration, and management system with visual builder.</li>
+</ul>
+<h4>Test 7</h4>
+<ul>
+<li><strong>Test ID:</strong> TC007</li>
+<li><strong>Test Name:</strong> Create New Chatbot</li>
+<li><strong>Test Code:</strong> <a href="./TC007_Create_New_Chatbot.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/8279cbfb-2d4f-4ad8-b7ba-8eefe55b6b53</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Functionality is correct; recommend adding tests for invalid metadata inputs and race conditions on creation.</li>
+</ul>
+<hr>
+<h4>Test 8</h4>
+<ul>
+<li><strong>Test ID:</strong> TC008</li>
+<li><strong>Test Name:</strong> Edit Existing Bot Configuration</li>
+<li><strong>Test Code:</strong> <a href="./TC008_Edit_Existing_Bot_Configuration.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/43b30611-362f-4e60-8c0e-a9b3e26e6be9</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Functionality confirmed; consider adding tests for concurrent edits and conflict resolution.</li>
+</ul>
+<hr>
+<h4>Test 9</h4>
+<ul>
+<li><strong>Test ID:</strong> TC009</li>
+<li><strong>Test Name:</strong> Delete a Bot</li>
+<li><strong>Test Code:</strong> <a href="./TC009_Delete_a_Bot.py">code_file</a></li>
+<li><strong>Test Error:</strong> The test bot 'Test Bot for Deletion' was successfully created and located in the bot list. The delete option was found in the three dots menu on the bot card. However, the actual deletion confirmation and verification steps were not performed in this session.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/b6bfdc4e-30ba-492f-988d-f4297a9b48ba</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> MEDIUM</li>
+<li><strong>Analysis / Findings:</strong> Implement and validate the deletion confirmation dialog and post-deletion verification logic to ensure bots are fully removed and inaccessible after deletion.</li>
+</ul>
+<hr>
+<h4>Test 10</h4>
+<ul>
+<li><strong>Test ID:</strong> TC010</li>
+<li><strong>Test Name:</strong> Test Bot Flow with Valid Input</li>
+<li><strong>Test Code:</strong> <a href="./TC010_Test_Bot_Flow_with_Valid_Input.py">code_file</a></li>
+<li><strong>Test Error:</strong> The bot was successfully created and the test widget interface was opened. However, attempts to input and send test messages like 'Hello' failed due to input field interaction issues.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/c5275375-8684-4b51-9e7c-3f68fb5e813e</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Fix UI interaction issues preventing message input and sending in the chat test widget. Validate UI element focus, event bindings, and accessibility to restore message sending functionality.</li>
+</ul>
+<hr>
+<h3>Requirement: Chat System</h3>
+<ul>
+<li><strong>Description:</strong> Real-time chat functionality with Socket.IO integration, conversation management, and message processing.</li>
+</ul>
+<h4>Test 11</h4>
+<ul>
+<li><strong>Test ID:</strong> TC011</li>
+<li><strong>Test Name:</strong> Real-Time Chat Message Sending and Receiving</li>
+<li><strong>Test Code:</strong> <a href="./TC011_Real_Time_Chat_Message_Sending_and_Receiving.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/82ce2f9a-5305-4021-80d5-c449b2b6feb0</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Core real-time messaging works; consider performance testing under load and reconnection handling improvements.</li>
+</ul>
+<hr>
+<h3>Requirement: Voice Integration</h3>
+<ul>
+<li><strong>Description:</strong> Text-to-speech and speech-to-text capabilities using Google Cloud APIs.</li>
+</ul>
+<h4>Test 12</h4>
+<ul>
+<li><strong>Test ID:</strong> TC012</li>
+<li><strong>Test Name:</strong> Voice Text-to-Speech Conversion</li>
+<li><strong>Test Code:</strong> <a href="./TC012_Voice_Text_to_Speech_Conversion.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/b693acc3-9c8f-43e1-8477-88632f12e8e5</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Functionality verified; could extend coverage for additional languages and voices.</li>
+</ul>
+<hr>
+<h4>Test 13</h4>
+<ul>
+<li><strong>Test ID:</strong> TC013</li>
+<li><strong>Test Name:</strong> Voice Speech-to-Text Input</li>
+<li><strong>Test Code:</strong> <a href="./TC013_Voice_Speech_to_Text_Input.py">code_file</a></li>
+<li><strong>Test Error:</strong> The bot was created and configured successfully, but the chat or test interface with speech-to-text input could not be accessed from the bot builder interface. The 'Start' button does not navigate to the required interface.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/d1121b5f-4321-4b0c-8c90-1830590bcbe9</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Fix navigation bug preventing access to speech-to-text testing interface. Ensure UI elements correctly route to voice input components and validate authentication/authorization flows.</li>
+</ul>
+<hr>
+<h4>Test 14</h4>
+<ul>
+<li><strong>Test ID:</strong> TC014</li>
+<li><strong>Test Name:</strong> Unsupported Voice Feature Fallback Handling</li>
+<li><strong>Test Code:</strong> <a href="./TC014_Unsupported_Voice_Feature_Fallback_Handling.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/817d44ff-a9ef-457f-97fa-15b14abe140d</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Functionality works as intended; consider improving user messaging and support for additional browsers.</li>
+</ul>
+<hr>
+<h3>Requirement: File Upload System</h3>
+<ul>
+<li><strong>Description:</strong> Image and file upload functionality with Cloudinary integration.</li>
+</ul>
+<h4>Test 15</h4>
+<ul>
+<li><strong>Test ID:</strong> TC015</li>
+<li><strong>Test Name:</strong> Image Upload via Cloudinary Integration</li>
+<li><strong>Test Code:</strong> <a href="./TC015_Image_Upload_via_Cloudinary_Integration.py">code_file</a></li>
+<li><strong>Test Error:</strong> Image upload functionality is broken on the Create New Bot page. The 'Upload Logo' button does not trigger file selection or upload, preventing further testing of image upload and Cloudinary storage.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/c54705f3-3866-4e92-ae20-c3001c5d2ce7</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Resolve the UI button issue to enable file selection and upload. Verify integration with Cloudinary API and ensure proper frontend-backend communication to complete image upload functionality.</li>
+</ul>
+<hr>
+<h4>Test 16</h4>
+<ul>
+<li><strong>Test ID:</strong> TC016</li>
+<li><strong>Test Name:</strong> File Upload Fallback to Local Storage</li>
+<li><strong>Test Code:</strong> <a href="./TC016_File_Upload_Fallback_to_Local_Storage.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/ad1af345-e22f-4f40-9784-2b3388b694ff</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Feature performs as expected; recommend additional tests covering failure modes and performance for local storage uploads.</li>
+</ul>
+<hr>
+<h3>Requirement: Analytics Dashboard</h3>
+<ul>
+<li><strong>Description:</strong> Comprehensive analytics and metrics tracking for bot performance and user engagement.</li>
+</ul>
+<h4>Test 17</h4>
+<ul>
+<li><strong>Test ID:</strong> TC017</li>
+<li><strong>Test Name:</strong> Analytics Dashboard Accuracy</li>
+<li><strong>Test Code:</strong> <a href="./TC017_Analytics_Dashboard_Accuracy.py">code_file</a></li>
+<li><strong>Test Error:</strong> Testing stopped due to unresponsive 'Deploy' button preventing bot deployment and further analytics verification.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/86554df3-110a-49f0-b23a-d76cc211f5f6</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Fix the unresponsiveness of the 'Deploy' button, verify event handlers and backend deployment API integration to enable bot deployment. This is critical to allow further analytics validation.</li>
+</ul>
+<hr>
+<h3>Requirement: Widget System</h3>
+<ul>
+<li><strong>Description:</strong> Embeddable chat widget that can be integrated into any website.</li>
+</ul>
+<h4>Test 18</h4>
+<ul>
+<li><strong>Test ID:</strong> TC018</li>
+<li><strong>Test Name:</strong> Embed Chat Widget on External Website</li>
+<li><strong>Test Code:</strong> <a href="./TC018_Embed_Chat_Widget_on_External_Website.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/6707cb79-1841-4f8f-81d4-117a4d39500d</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Functionality is correct; suggest testing embed performance on various third-party sites and CSP (Content Security Policy) compatibility.</li>
+</ul>
+<hr>
+<h3>Requirement: Team Management</h3>
+<ul>
+<li><strong>Description:</strong> User profile management, account settings, and team collaboration features.</li>
+</ul>
+<h4>Test 19</h4>
+<ul>
+<li><strong>Test ID:</strong> TC019</li>
+<li><strong>Test Name:</strong> Team Member Invitation and Role Assignment</li>
+<li><strong>Test Code:</strong> <a href="./TC019_Team_Member_Invitation_and_Role_Assignment.py">code_file</a></li>
+<li><strong>Test Error:</strong> The team management or user invitation section was not found or accessible from the dashboard or related menus. Multiple attempts to locate this functionality failed.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/345e3911-9ab5-44cb-9dac-3679aa2ba96e</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Review and correct the UI accessibility to team management and invitation features. Confirm navigation paths and permissions allow access to this functionality for eligible users.</li>
+</ul>
+<hr>
+<h4>Test 20</h4>
+<ul>
+<li><strong>Test ID:</strong> TC020</li>
+<li><strong>Test Name:</strong> Team Member Access Control</li>
+<li><strong>Test Code:</strong> <a href="./TC020_Team_Member_Access_Control.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/cf6fd4e4-5d07-475c-9008-3dfd78e698b8</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> RBAC functionality works as intended; consider extending testing to cover edge cases such as permission inheritance and role escalation attempts.</li>
+</ul>
+<hr>
+<h3>Requirement: Webhook Integration</h3>
+<ul>
+<li><strong>Description:</strong> Webhook support for integrating with external AI services and APIs.</li>
+</ul>
+<h4>Test 21</h4>
+<ul>
+<li><strong>Test ID:</strong> TC021</li>
+<li><strong>Test Name:</strong> Webhook Integration Trigger and Security</li>
+<li><strong>Test Code:</strong> <a href="./TC021_Webhook_Integration_Trigger_and_Security.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/701f8a99-09a6-4f77-8171-fa1c2eee9489</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> Functionality is correct; recommend testing rate limiting and retry logic for webhook failures.</li>
+</ul>
+<hr>
+<h3>Requirement: UI Components</h3>
+<ul>
+<li><strong>Description:</strong> Reusable UI components built with Radix UI and Tailwind CSS.</li>
+</ul>
+<h4>Test 22</h4>
+<ul>
+<li><strong>Test ID:</strong> TC022</li>
+<li><strong>Test Name:</strong> UI Component Rendering Consistency</li>
+<li><strong>Test Code:</strong> <a href="./TC022_UI_Component_Rendering_Consistency.py">code_file</a></li>
+<li><strong>Test Error:</strong> N/A</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/89c0cb9a-b90e-45bd-8e51-6bf843725e29</li>
+<li><strong>Status:</strong> ✅ Passed</li>
+<li><strong>Severity:</strong> LOW</li>
+<li><strong>Analysis / Findings:</strong> UI rendering is robust; consider cross-platform accessibility audits and performance optimization.</li>
+</ul>
+<hr>
+<h3>Requirement: Bot Builder Validation</h3>
+<ul>
+<li><strong>Description:</strong> Validation and error handling in the bot visual builder.</li>
+</ul>
+<h4>Test 23</h4>
+<ul>
+<li><strong>Test ID:</strong> TC023</li>
+<li><strong>Test Name:</strong> Handling Invalid Bot Configuration in Builder</li>
+<li><strong>Test Code:</strong> <a href="./TC023_Handling_Invalid_Bot_Configuration_in_Builder.py">code_file</a></li>
+<li><strong>Test Error:</strong> Tested invalid configurations in the bot visual builder. Validation errors were expected to prevent saving when required fields were missing or invalid. However, the system allowed saving with missing required message content in a 'Send Message' node, showing a success message instead.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/ef05a42d-ac77-4b15-a9f7-1a1c0b6ec00c</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Fix validation logic to enforce required fields and prevent saving invalid configurations. Improve user feedback to show clear validation errors and prevent erroneous states.</li>
+</ul>
+<hr>
+<h3>Requirement: Message Persistence</h3>
+<ul>
+<li><strong>Description:</strong> Chat message persistence and reload functionality.</li>
+</ul>
+<h4>Test 24</h4>
+<ul>
+<li><strong>Test ID:</strong> TC024</li>
+<li><strong>Test Name:</strong> Chat Message Persistence After Refresh</li>
+<li><strong>Test Code:</strong> N/A</li>
+<li><strong>Test Error:</strong> Test execution timed out after 15 minutes</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/9735307c-e9c3-4888-8048-2ae9120a562a</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> HIGH</li>
+<li><strong>Analysis / Findings:</strong> Investigate performance and reliability of message persistence and reload mechanism. Optimize backend queries or frontend state hydration to prevent long delays or hangs.</li>
+</ul>
+<hr>
+<h3>Requirement: File Upload Error Handling</h3>
+<ul>
+<li><strong>Description:</strong> Error handling for file upload limits and network failures.</li>
+</ul>
+<h4>Test 25</h4>
+<ul>
+<li><strong>Test ID:</strong> TC025</li>
+<li><strong>Test Name:</strong> File Upload Limits and Error Handling</li>
+<li><strong>Test Code:</strong> <a href="./TC025_File_Upload_Limits_and_Error_Handling.py">code_file</a></li>
+<li><strong>Test Error:</strong> Testing of unsupported file types and oversized file uploads was attempted on the 'Create New Bot' page. However, no error messages or feedback appeared after upload attempts, indicating lack of proper error handling UI.</li>
+<li><strong>Test Visualization and Result:</strong> https://www.testsprite.com/dashboard/mcp/tests/ef04b7d6-f06c-44cd-a328-938cf3da6011/1c05fbf8-6a4e-46b0-a869-34ebcdfe538e</li>
+<li><strong>Status:</strong> ❌ Failed</li>
+<li><strong>Severity:</strong> MEDIUM</li>
+<li><strong>Analysis / Findings:</strong> Implement proper client-side validation and error message display for unsupported and oversized file uploads. Ensure error handling for network failures is surfaced to users clearly.</li>
+</ul>
+<hr>
+<h2>3️⃣ Coverage &amp; Matching Metrics</h2>
+<ul>
+<li><strong>80% of product requirements tested</strong></li>
+<li><strong>52% of tests passed</strong></li>
+<li><strong>Key gaps / risks:</strong>
+<blockquote>
+<p>80% of product requirements had at least one test generated.
+52% of tests passed fully.
+Risks: Multiple UI interaction issues preventing core functionality testing; server-side errors in password reset; OAuth security restrictions; missing validation in bot builder.</p>
+</blockquote>
+</li>
+</ul>
+<table>
+<thead>
+<tr>
+<th>Requirement</th>
+<th>Total Tests</th>
+<th>✅ Passed</th>
+<th>⚠️ Partial</th>
+<th>❌ Failed</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>User Authentication System</td>
+<td>6</td>
+<td>3</td>
+<td>0</td>
+<td>3</td>
+</tr>
+<tr>
+<td>Bot Management System</td>
+<td>4</td>
+<td>2</td>
+<td>0</td>
+<td>2</td>
+</tr>
+<tr>
+<td>Chat System</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Voice Integration</td>
+<td>3</td>
+<td>2</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>File Upload System</td>
+<td>2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Analytics Dashboard</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Widget System</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Team Management</td>
+<td>2</td>
+<td>1</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Webhook Integration</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>UI Components</td>
+<td>1</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr>
+<td>Bot Builder Validation</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>Message Persistence</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+<tr>
+<td>File Upload Error Handling</td>
+<td>1</td>
+<td>0</td>
+<td>0</td>
+<td>1</td>
+</tr>
+</tbody>
+</table>
+<hr>
+<h2>4️⃣ Critical Issues Summary</h2>
+<h3>High Severity Issues (8 tests failed):</h3>
+<ol>
+<li><strong>UI Navigation Issues</strong>: Sign up link not clickable (TC002)</li>
+<li><strong>OAuth Security</strong>: Google OAuth blocked by browser security (TC005)</li>
+<li><strong>Server Errors</strong>: Password reset causing 500 errors (TC006)</li>
+<li><strong>Bot Testing</strong>: Chat widget input field not interactive (TC010)</li>
+<li><strong>Voice Features</strong>: Speech-to-text interface inaccessible (TC013)</li>
+<li><strong>File Upload</strong>: Upload button non-functional (TC015)</li>
+<li><strong>Bot Deployment</strong>: Deploy button unresponsive (TC017)</li>
+<li><strong>Team Management</strong>: Team invitation features not accessible (TC019)</li>
+</ol>
+<h3>Medium Severity Issues (2 tests failed):</h3>
+<ol>
+<li><strong>Bot Deletion</strong>: Incomplete deletion verification (TC009)</li>
+<li><strong>File Upload Errors</strong>: Missing error handling UI (TC025)</li>
+</ol>
+<h3>Low Severity Issues (13 tests passed):</h3>
+<ul>
+<li>Core authentication, bot creation, real-time chat, voice TTS, webhook integration, and UI components working correctly</li>
+</ul>
+<hr>
+<h2>5️⃣ Recommendations</h2>
+<h3>Immediate Actions Required:</h3>
+<ol>
+<li><strong>Fix UI Navigation</strong>: Resolve clickable link issues across the application</li>
+<li><strong>Server Stability</strong>: Investigate and fix 500 errors in password reset functionality</li>
+<li><strong>OAuth Configuration</strong>: Address Google OAuth security restrictions for testing</li>
+<li><strong>Bot Builder</strong>: Fix validation logic and UI interaction issues</li>
+<li><strong>File Upload</strong>: Restore upload functionality and add proper error handling</li>
+</ol>
+<h3>Testing Environment Improvements:</h3>
+<ol>
+<li><strong>Mock OAuth</strong>: Implement OAuth mocking for reliable testing</li>
+<li><strong>Error Simulation</strong>: Add proper error handling tests</li>
+<li><strong>Performance</strong>: Optimize message persistence and page loading</li>
+<li><strong>Accessibility</strong>: Ensure all UI elements are properly accessible</li>
+</ol>
+<hr>
+<p><strong>Report Generated:</strong> 2025-08-21<br>
+<strong>Total Test Cases:</strong> 25<br>
+<strong>Pass Rate:</strong> 52%<br>
+<strong>Critical Issues:</strong> 8<br>
+<strong>Recommendations:</strong> 9</p>
+
+    </body>
+    </html>
+  

@@ -1,0 +1,262 @@
+{
+  "meta": {
+    "project": "Botrix Dashboard",
+    "date": "2025-08-17",
+    "prepared_by": "Software Development Manager"
+  },
+  "product_overview": "Botrix Dashboard is a comprehensive chatbot management platform that leverages AI technologies to enable users to create, customize, and manage multiple chatbots. It features real-time chat, voice integration, advanced analytics, and team collaboration capabilities, all wrapped in a responsive, easy-to-use interface.",
+  "core_goals": [
+    "Enable users to create, configure, and manage AI-powered chatbots seamlessly.",
+    "Provide real-time conversational capabilities with robust message processing.",
+    "Integrate advanced voice features including text-to-speech and speech-to-text.",
+    "Offer deep analytics dashboards to track bot performance and user engagement.",
+    "Facilitate team collaboration and user management within the platform.",
+    "Support embeddable chat widgets easily integrated into external websites.",
+    "Ensure secure and flexible authentication and user account management.",
+    "Support file uploads and media integration for enhanced chatbot interaction.",
+    "Enable webhook integrations with external AI services and APIs."
+  ],
+  "key_features": [
+    "Complete authentication system with Google OAuth, email/password login, email verification, password reset.",
+    "Bot management system with features to create, edit, configure, test, and analyze bots, including a visual bot flow builder.",
+    "Real-time chat system powered by Socket.IO supporting conversation and message management.",
+    "Voice integration utilizing Google Cloud APIs for text-to-speech and speech-to-text functionalities.",
+    "Image and file upload system integrated with Cloudinary and local storage fallbacks.",
+    "Comprehensive analytics dashboard providing metrics on bot usage and engagement.",
+    "Embeddable, customizable chat widgets that can be easily added to any website.",
+    "Team and user management functionalities allowing collaboration and profile/account settings management.",
+    "Webhook support for extending bot capabilities through external AI services and automation.",
+    "Reusable UI components built with Radix UI and styled with Tailwind CSS for consistent design."
+  ],
+  "user_flow_summary": [
+    "User signs up or logs in via email/password or Google OAuth and completes email verification if required.",
+    "User accesses the dashboard to create a new chatbot or manage existing bots through lists and detailed views.",
+    "User utilizes the bot builder interface to visually design and configure chatbot flows and settings.",
+    "User tests bots using provided test functionality and monitors conversations in real-time.",
+    "User uploads images or files to be used within bots or chat conversations, leveraging Cloudinary or local storage.",
+    "User integrates voice features by selecting and previewing available voices, and using text-to-speech or speech-to-text capabilities during chat.",
+    "User views and analyzes bot performance metrics through the analytics dashboard to optimize interactions.",
+    "User embeds chat widgets into external websites by copying and configuring script tags with customization options.",
+    "User manages team members and account settings, inviting collaborators and setting roles.",
+    "User configures webhook integrations to connect chatbots with external AI services or automation workflows."
+  ],
+  "validation_criteria": [
+    "Authentication workflows are secure, supporting Google OAuth and email/password methods with email verification and password reset functioning correctly.",
+    "Bots can be created, updated, deleted, and managed without errors, with the visual builder showing correct flow configurations.",
+    "Real-time chat functionality is performant and reliable using Socket.IO, with messages properly sent, received, and persisted.",
+    "Voice features accurately convert text-to-speech and speech-to-text using Google Cloud APIs, with support detection working correctly.",
+    "File uploads handle images and media correctly, integrating with Cloudinary in production and storing files locally in development.",
+    "Analytics dashboard displays accurate, up-to-date metrics on bot usage and user engagement.",
+    "Chat widgets embed correctly in external sites with customizable options and function seamlessly.",
+    "User and team management features correctly handle profiles, settings, and team invitations with appropriate permissions.",
+    "Webhook integrations trigger and authenticate properly allowing secure communication with external AI and automation services.",
+    "UI components render consistently across supported browsers and devices, adhering to design and accessibility standards."
+  ],
+  "code_summary": {
+    "tech_stack": [
+      "TypeScript",
+      "Next.js 14",
+      "React 18",
+      "MongoDB",
+      "Mongoose",
+      "NextAuth.js",
+      "Socket.IO",
+      "Tailwind CSS",
+      "Radix UI",
+      "Google Cloud APIs",
+      "Cloudinary"
+    ],
+    "features": [
+      {
+        "name": "Authentication System",
+        "description": "Complete authentication system with Google OAuth, email/password login, signup, password reset, and email verification",
+        "files": [
+          "app/api/auth/signup/route.ts",
+          "app/api/auth/login/route.ts",
+          "app/api/auth/logout/route.ts",
+          "app/api/auth/me/route.ts",
+          "app/api/auth/forgot-password/route.ts",
+          "app/api/auth/reset-password/route.ts",
+          "app/api/auth/verify-email/route.ts",
+          "app/login/page.tsx",
+          "app/signup/page.tsx",
+          "app/forgot-password/page.tsx",
+          "app/reset-password/page.tsx",
+          "app/verify-email/page.tsx",
+          "lib/auth.ts",
+          "lib/auth-context.tsx",
+          "lib/auth-provider.tsx",
+          "lib/nextauth-helper.ts",
+          "middleware.ts"
+        ]
+      },
+      {
+        "name": "Bot Management",
+        "description": "Complete bot creation, editing, configuration, and management system with visual builder",
+        "files": [
+          "app/api/bots/route.ts",
+          "app/api/bots/[id]/route.ts",
+          "app/api/bots/[id]/test/route.ts",
+          "app/dashboard/bots/page.tsx",
+          "app/dashboard/bots/[id]/page.tsx",
+          "app/dashboard/bots/[id]/builder/page.tsx",
+          "app/dashboard/bots/[id]/settings/page.tsx",
+          "app/dashboard/bots/[id]/analytics/page.tsx",
+          "app/dashboard/bots/[id]/embed/page.tsx",
+          "app/dashboard/bots/[id]/messages/page.tsx",
+          "app/dashboard/create-bot/page.tsx",
+          "lib/bot-builder.ts",
+          "models/Bot.ts",
+          "models/BotFlow.ts"
+        ]
+      },
+      {
+        "name": "Chat System",
+        "description": "Real-time chat functionality with Socket.IO integration, conversation management, and message processing",
+        "files": [
+          "app/api/chat/route.ts",
+          "app/api/bots/[id]/conversations/route.ts",
+          "app/api/bots/[id]/conversations/[conversationId]/route.ts",
+          "lib/chat-service.ts",
+          "lib/socket-client.ts",
+          "lib/socket-server.ts",
+          "models/Conversation.ts"
+        ]
+      },
+      {
+        "name": "Voice Integration",
+        "description": "Text-to-speech and speech-to-text capabilities using Google Cloud APIs",
+        "files": [
+          "app/api/voice/text-to-speech/route.ts",
+          "app/api/voice/speech-to-text/route.ts",
+          "app/api/voice/voices/route.ts",
+          "app/api/voice/preview/[voiceType]/route.ts",
+          "app/api/voice/check-support/route.ts",
+          "lib/voice-service.ts",
+          "lib/google-voice-service.ts"
+        ]
+      },
+      {
+        "name": "File Upload System",
+        "description": "Image and file upload functionality with Cloudinary integration",
+        "files": [
+          "app/api/upload/route.ts",
+          "app/api/upload/test/route.ts",
+          "lib/file-upload.ts",
+          "public/uploads/"
+        ]
+      },
+      {
+        "name": "Analytics Dashboard",
+        "description": "Comprehensive analytics and metrics tracking for bot performance and user engagement",
+        "files": [
+          "app/dashboard/bots/[id]/analytics/page.tsx",
+          "lib/analytics.ts",
+          "components/ui/"
+        ]
+      },
+      {
+        "name": "Widget System",
+        "description": "Embeddable chat widget that can be integrated into any website",
+        "files": [
+          "public/widget.js",
+          "public/widget-demo.html",
+          "public/test-widget.html",
+          "public/test-widget-improvements.html",
+          "app/dashboard/bots/[id]/embed/page.tsx"
+        ]
+      },
+      {
+        "name": "User Management",
+        "description": "User profile management, account settings, and team collaboration features",
+        "files": [
+          "app/dashboard/account-settings/page.tsx",
+          "app/dashboard/team/",
+          "app/api/users/route.ts",
+          "app/api/team/[memberId]/",
+          "models/User.ts",
+          "models/TeamMember.ts",
+          "components/UserProfileDropdown.tsx"
+        ]
+      },
+      {
+        "name": "Webhook Integration",
+        "description": "Webhook support for integrating with external AI services and APIs",
+        "files": [
+          "app/api/debug/webhook/route.ts",
+          "app/api/debug/bot/[id]/webhook/route.ts",
+          "app/debug-webhook/page.tsx",
+          "lib/webhook-security.ts"
+        ]
+      },
+      {
+        "name": "UI Components",
+        "description": "Reusable UI components built with Radix UI and Tailwind CSS",
+        "files": [
+          "components/ui/badge.tsx",
+          "components/ui/button.tsx",
+          "components/ui/card.tsx",
+          "components/ui/dropdown-menu.tsx",
+          "components/ui/input.tsx",
+          "components/ui/label.tsx",
+          "components/ui/loading.tsx",
+          "components/ui/select.tsx",
+          "components/FeedbackModal.tsx",
+          "components/HelpDropdown.tsx",
+          "components/NotificationDropdown.tsx",
+          "components/NotificationSettingsModal.tsx",
+          "components/EnvironmentStatus.tsx"
+        ]
+      },
+      {
+        "name": "Database Models",
+        "description": "MongoDB schemas and database models for all entities",
+        "files": [
+          "models/User.ts",
+          "models/Bot.ts",
+          "models/BotFlow.ts",
+          "models/Conversation.ts",
+          "models/TeamMember.ts",
+          "lib/mongodb.ts",
+          "lib/mongodb-adapter.ts"
+        ]
+      },
+      {
+        "name": "Email Service",
+        "description": "Email functionality for notifications, verification, and password reset",
+        "files": [
+          "lib/email-service.ts",
+          "app/api/auth/forgot-password/route.ts",
+          "app/api/auth/resend-verification/route.ts"
+        ]
+      },
+      {
+        "name": "Testing Pages",
+        "description": "Various test pages for debugging and development purposes",
+        "files": [
+          "app/test-auth/page.tsx",
+          "app/test-env/page.tsx",
+          "app/test-db/page.tsx",
+          "app/test-dropdowns/page.tsx",
+          "app/test-oauth/page.tsx",
+          "app/test-signup/page.tsx",
+          "app/test-webhook/page.tsx",
+          "app/test-upload/page.tsx",
+          "app/debug-bots/page.tsx",
+          "app/health/page.tsx"
+        ]
+      },
+      {
+        "name": "Utility Functions",
+        "description": "Helper functions and utilities for common operations",
+        "files": [
+          "lib/utils.ts",
+          "lib/permissions.ts",
+          "lib/toast.tsx",
+          "types/index.ts",
+          "types/next-auth.d.ts"
+        ]
+      }
+    ]
+  }
+}

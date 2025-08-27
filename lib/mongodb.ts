@@ -54,4 +54,7 @@ async function dbConnect(): Promise<typeof mongoose> {
   return cached.conn;
 }
 
-export default dbConnect; 
+export default dbConnect;
+
+// Export connectToDatabase as an alias for dbConnect for backward compatibility
+export const connectToDatabase = dbConnect; 

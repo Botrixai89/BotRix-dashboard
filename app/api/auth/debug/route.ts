@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
         hasSecureNextAuthSessionToken: !!request.cookies.get('__Secure-next-auth.session-token'),
         hasNextAuthCsrfToken: !!request.cookies.get('next-auth.csrf-token'),
         hasSecureNextAuthCsrfToken: !!request.cookies.get('__Host-next-auth.csrf-token'),
-        hasCustomAuthToken: !!request.cookies.get('token'),
+        hasCustomAuthToken: !!request.cookies.get('auth-token'),
         allCookies: Object.fromEntries(request.cookies.getAll().map(c => [c.name, 'Present']))
       },
       headers: {

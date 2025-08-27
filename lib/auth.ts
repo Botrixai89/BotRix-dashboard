@@ -288,4 +288,32 @@ export function validatePassword(password: string): { isValid: boolean; errors: 
     isValid: errors.length === 0,
     errors
   };
-} 
+}
+
+// NextAuth configuration for API routes
+export const authOptions = {
+  providers: [],
+  session: {
+    strategy: 'jwt' as const,
+  },
+  callbacks: {
+    async jwt({ token, user }: any) {
+      if (user) {
+        token.id = user.id;
+      }
+      return token;
+    },
+    async session({ session, token }: any) {
+      if (token) {
+        session.user.id = token.id;
+      }
+      return session;
+    },
+  },
+  secret: process.env.NEXTAUTH_SECRET,
+  pages: {
+    signIn: '/login',
+    error: '/login',
+  },
+  debug: process.env.NODE_ENV === 'development',
+}; 

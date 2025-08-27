@@ -2,7 +2,7 @@
 
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { Plus, Bot, MessageSquare, TrendingUp, Settings, Sparkles, LogOut, User, Trash2, MoreVertical, Search, Bell, List, Grid3X3, HelpCircle, SwitchCamera, Play, Upload, Copy, Wrench, X, Menu } from 'lucide-react'
+import { Plus, Bot, MessageSquare, TrendingUp, Settings, Sparkles, LogOut, User, Trash2, MoreVertical, Search, Bell, List, Grid3X3, HelpCircle, SwitchCamera, Play, Upload, Copy, Wrench, X, Menu, Users } from 'lucide-react'
 import Link from 'next/link'
 import { useEffect, useState } from 'react'
 import { useAuth, useRequireAuth } from '@/lib/auth-context'
@@ -55,10 +55,10 @@ export default function DashboardPage() {
   useEffect(() => {
     // Only proceed if we have a user, not loading, and not logging out
     if (user && !loading && !isLoggingOut) {
-      // Add a small delay to ensure NextAuth session is fully established
+      // Add a longer delay to ensure authentication is fully established
       const timer = setTimeout(() => {
         fetchBots()
-      }, 100)
+      }, 500)
       
       return () => clearTimeout(timer)
     } else if (!loading && !user && !isLoggingOut) {
@@ -109,15 +109,18 @@ export default function DashboardPage() {
 
   const fetchBots = async () => {
     try {
+      console.log('🔍 Fetching bots...')
       const response = await fetch('/api/bots', {
         credentials: 'include'
       })
       const result = await response.json()
 
       if (response.ok) {
+        console.log('✅ Bots fetched successfully:', result.bots?.length || 0)
         setBots(result.bots || [])
       } else if (response.status === 401) {
         // Authentication error - redirect to login
+        console.log('❌ Authentication failed when fetching bots')
         setError('Authentication required')
         // Force logout to clear any stale state
         if (!isLoggingOut) {
@@ -125,10 +128,11 @@ export default function DashboardPage() {
           logout()
         }
       } else {
+        console.log('❌ Failed to fetch bots:', result.error)
         setError(result.error || 'Failed to fetch bots')
       }
     } catch (err) {
-      console.error('Fetch bots error:', err)
+      console.error('❌ Fetch bots error:', err)
       setError('Network error. Please try again.')
     } finally {
       setIsLoading(false)
@@ -466,6 +470,15 @@ export default function DashboardPage() {
                       <span className="xs:hidden">Create</span>
                     </Button>
                   </Link>
+                  <Link href="/dashboard/team">
+                    <Button 
+                      variant="outline" 
+                      className="px-3 sm:px-4 py-2.5 border-gray-200 text-gray-600 hover:bg-gray-50 text-sm sm:text-base rounded-lg font-medium"
+                    >
+                      <Users className="h-4 w-4 sm:mr-2" />
+                      <span className="hidden sm:inline">Team</span>
+                    </Button>
+                  </Link>
                   <Button 
                     variant="outline" 
                     className="px-3 sm:px-4 py-2.5 border-gray-200 text-gray-600 hover:bg-gray-50 text-sm sm:text-base rounded-lg font-medium min-w-[44px] sm:min-w-auto"
@@ -551,7 +564,11 @@ export default function DashboardPage() {
                           <div className="flex flex-col items-center text-center space-y-4 sm:space-y-4">
                             {/* Bot Icon */}
                             {bot.companyLogo ? (
-                              <img src={bot.companyLogo} alt="Company Logo" className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover border" />
+                                <img 
+                                  src={bot.companyLogo} 
+                                  alt="Company Logo" 
+                                  className="w-12 h-12 sm:w-16 sm:h-16 rounded-lg object-cover border" 
+                                />
                             ) : (
                               <div className="w-12 h-12 sm:w-16 sm:h-16 bg-gradient-to-br from-blue-500 to-cyan-500 rounded-lg flex items-center justify-center">
                                 <div className="w-8 h-8 sm:w-12 sm:h-12 bg-white rounded-lg flex items-center justify-center">
@@ -586,7 +603,11 @@ export default function DashboardPage() {
                           <div className="flex items-center justify-between">
                             <div className="flex items-center space-x-3 sm:space-x-4 min-w-0 flex-1">
                               {bot.companyLogo ? (
-                                <img src={bot.companyLogo} alt="Company Logo" className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border flex-shrink-0" />
+                                  <img 
+                                    src={bot.companyLogo} 
+                                    alt="Company Logo" 
+                                    className="w-8 h-8 sm:w-10 sm:h-10 rounded-lg object-cover border flex-shrink-0" 
+                                  />
                               ) : (
                                 <div className="w-8 h-8 sm:w-10 sm:h-10 bg-teal-600 rounded-lg flex items-center justify-center flex-shrink-0">
                                   <Bot className="h-4 w-4 sm:h-5 sm:w-5 text-white" />

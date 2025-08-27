@@ -58,12 +58,11 @@ export default function BotLayout({
   }
 
   const navigation = [
-    { name: 'Overview', href: `/dashboard/bots/${params.id}`, icon: BarChart3 },
     { name: 'Messages', href: `/dashboard/bots/${params.id}/messages`, icon: MessageSquare },
     { name: 'Analytics', href: `/dashboard/bots/${params.id}/analytics`, icon: BarChart3 },
     { name: 'Builder', href: `/dashboard/bots/${params.id}/builder`, icon: Wrench },
-    { name: 'Settings', href: `/dashboard/bots/${params.id}/settings`, icon: Settings },
     { name: 'Embed', href: `/dashboard/bots/${params.id}/embed`, icon: Code },
+    { name: 'Settings', href: `/dashboard/bots/${params.id}/settings`, icon: Settings },
   ]
 
   return (
@@ -81,11 +80,13 @@ export default function BotLayout({
               <div className="flex items-center space-x-2 min-w-0 flex-1">
                 <div className="relative flex-shrink-0">
                   {bot.companyLogo ? (
-                    <img 
-                      src={bot.companyLogo} 
-                      alt="Company Logo" 
-                      className="object-cover w-8 h-8 rounded-lg" 
-                    />
+                    <div className="w-8 h-8 rounded-lg overflow-hidden bg-white shadow-sm border border-gray-100 flex items-center justify-center">
+                      <img 
+                        src={bot.companyLogo} 
+                        alt="Company Logo" 
+                        className="w-6 h-6 object-contain p-0.5" 
+                      />
+                    </div>
                   ) : (
                     <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
                       <Bot className="h-4 w-4 text-white" />
@@ -176,11 +177,11 @@ export default function BotLayout({
               <div className={`flex items-center ${isCollapsed ? '' : 'space-x-3 flex-1 mx-4'}`}>
                 <div className="relative flex-shrink-0 group py-[0.38rem]">
                   {bot.companyLogo ? (
-                    <img 
-                      src={bot.companyLogo} 
-                      alt="Company Logo" 
-                      className={`object-cover rounded-lg ${isCollapsed ? 'w-8 h-8' : 'w-10 h-10'}`}
-                    />
+                      <img 
+                        src={bot.companyLogo} 
+                        alt="Company Logo" 
+                        className={`object-cover rounded-lg ${isCollapsed ? 'w-8 h-8' : 'w-10 h-10'}`}
+                      />
                   ) : (
                     <div className={`rounded-lg bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center ${isCollapsed ? 'w-8 h-8' : 'w-10 h-10'}`}>
                       <Bot className={`text-white ${isCollapsed ? 'h-4 w-4' : 'h-5 w-5'}`} />
@@ -296,8 +297,10 @@ export default function BotLayout({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col h-full pt-16 lg:pt-0">
-        {children}
+      <div className="flex-1 flex flex-col h-full pt-16 lg:pt-0 overflow-hidden">
+        <div className="flex-1 overflow-y-auto">
+          {children}
+        </div>
       </div>
     </div>
   )
