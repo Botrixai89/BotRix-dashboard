@@ -4,6 +4,7 @@ import Bot from '@/models/Bot';
 import Conversation from '@/models/Conversation';
 import { getRandomName } from '@/lib/utils';
 import { ruleBasedBotService } from '@/lib/rule-based-bot';
+import { flowExecutor } from '@/lib/flow-executor';
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -191,7 +192,54 @@ export async function POST(request: NextRequest) {
     const botType = bot.settings.botType || 'webhook';
     console.log('🤖 Bot type:', botType);
 
-    // Handle rule-based bot first
+    // Handle flow-based bot first (highest priority)
+    if (bot.settings.conversationFlows?.paths?.some((path: any) => path.isActive && path.flowData)) {
+      console.log('🔄 Executing flow-based bot logic');
+      
+      // Execute flow with conversation context
+      const context = {
+        message,
+        conversationId: conversation._id.toString(),
+        userInfo: conversation.userInfo,
+        botId: bot._id.toString(),
+        timestamp: new Date().toISOString()
+      };
+
+      const flowResult = await flowExecutor.executeFlowPath(bot, message, context);
+      
+      if (flowResult.success && flowResult.responses.length > 0) {
+        console.log('✅ Flow executed successfully');
+        
+        // Add all bot responses to conversation
+        for (const response of flowResult.responses) {
+          const botMessage = {
+            content: response.content,
+            sender: 'bot' as const,
+            timestamp: new Date(),
+          };
+          conversation.messages.push(botMessage);
+        }
+        await conversation.save();
+
+        // Return all responses
+        const responseData = flowResult.responses.map(response => ({
+          content: response.content,
+          _id: conversation._id,
+          sender: "bot",
+          type: response.type,
+          createdAt: new Date().toISOString(),
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+        }));
+
+        return NextResponse.json(responseData, {
+          headers: corsHeaders,
+        });
+      } else {
+        console.log('❌ Flow execution failed or no responses:', flowResult.error);
+      }
+    }
+
+    // Handle rule-based bot second
     if (botType === 'rule-based' || botType === 'hybrid') {
       if (bot.settings.ruleBasedConfig?.enabled) {
         console.log('🎯 Executing rule-based bot logic');

@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Botrix Embed Demo</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+        
+        * {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        }
+        
+        .hero-pattern {
+            background-image: 
+                radial-gradient(circle at 1px 1px, rgba(20, 184, 166, 0.15) 1px, transparent 0);
+            background-size: 20px 20px;
+        }
+        
+        .card-glow {
+            box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.1), 
+                        0 2px 4px rgba(20, 184, 166, 0.1),
+                        0 8px 16px rgba(20, 184, 166, 0.1);
+        }
+        
+        .card-glow:hover {
+            box-shadow: 0 0 0 1px rgba(20, 184, 166, 0.2), 
+                        0 4px 8px rgba(20, 184, 166, 0.15),
+                        0 16px 32px rgba(20, 184, 166, 0.15);
+        }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <!-- Header -->
+    <header class="bg-white border-b border-gray-200">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between items-center py-4">
+                <div class="flex items-center space-x-3">
+                    <img src="/botrix-logo01.png" alt="Botrix" class="w-18 h-12">
+                    <span class="text-xl font-semibold text-gray-900">Embed Demo</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        <!-- Hero Section -->
+        <div class="text-center mb-12">
+            <h1 class="text-4xl font-bold text-gray-900 mb-4">
+                Botrix Chat Widget Demo
+            </h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                This page demonstrates how the Botrix chat widget looks and works when embedded on a website.
+            </p>
+        </div>
+
+        <!-- Demo Content -->
+        <div class="space-y-8">
+            <!-- Demo Section 1 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 card-glow p-8">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Welcome to Our Demo</h2>
+                <p class="text-gray-600 mb-6">
+                    This is a demonstration page showing how the Botrix chat widget integrates seamlessly with your website. 
+                    The chat widget appears in the bottom-right corner and provides a smooth user experience.
+                </p>
+                
+                <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                    <h3 class="font-semibold text-blue-900 mb-2">💡 Try it out!</h3>
+                    <p class="text-blue-800 text-sm">
+                        Look for the chat widget in the bottom-right corner of this page. Click on it to start a conversation!
+                    </p>
+                </div>
+            </div>
+
+            <!-- Demo Section 2 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 card-glow p-8">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Features Showcase</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium text-gray-900">Real-time Chat</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium text-gray-900">Voice Support</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium text-gray-900">Customizable Design</span>
+                        </div>
+                    </div>
+                    <div class="space-y-3">
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium text-gray-900">Flow Builder</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium text-gray-900">Webhook Integration</span>
+                        </div>
+                        <div class="flex items-center space-x-3">
+                            <div class="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
+                                <svg class="w-4 h-4 text-green-600" fill="currentColor" viewBox="0 0 20 20">
+                                    <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clip-rule="evenodd"/>
+                                </svg>
+                            </div>
+                            <span class="font-medium text-gray-900">Analytics Dashboard</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Section 3 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 card-glow p-8">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">How It Works</h2>
+                <div class="space-y-4">
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
+                            1
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-900 mb-1">Easy Integration</h3>
+                            <p class="text-gray-600">Simply add a few lines of code to your website and the chat widget appears instantly.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
+                            2
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-900 mb-1">Visual Flow Builder</h3>
+                            <p class="text-gray-600">Design conversation flows using our intuitive drag-and-drop interface.</p>
+                        </div>
+                    </div>
+                    
+                    <div class="flex items-start space-x-4">
+                        <div class="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center text-sm font-semibold flex-shrink-0 mt-0.5">
+                            3
+                        </div>
+                        <div>
+                            <h3 class="font-medium text-gray-900 mb-1">Real-time Responses</h3>
+                            <p class="text-gray-600">Your bot responds instantly based on the flows you've created or webhook integrations.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Demo Section 4 -->
+            <div class="bg-white rounded-xl shadow-sm border border-gray-200 card-glow p-8">
+                <h2 class="text-2xl font-semibold text-gray-900 mb-4">Get Started</h2>
+                <p class="text-gray-600 mb-6">
+                    Ready to add a chat widget to your website? It's easy to get started with Botrix.
+                </p>
+                
+                <div class="flex flex-col sm:flex-row space-y-3 sm:space-y-0 sm:space-x-4">
+                    <a href="/dashboard" class="inline-flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-8.707l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13a1 1 0 102 0V9.414l1.293 1.293a1 1 0 001.414-1.414z" clip-rule="evenodd"/>
+                        </svg>
+                        Create Your Bot
+                    </a>
+                    <a href="/dashboard" class="inline-flex items-center justify-center px-6 py-3 border border-gray-300 text-base font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 transition-colors">
+                        <svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+                            <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                        </svg>
+                        View Dashboard
+                    </a>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // This page demonstrates the embed functionality
+        // The actual chat widget will be loaded via the embed code
+        console.log('Botrix Embed Demo Page Loaded');
+        console.log('Look for the chat widget in the bottom-right corner!');
+    </script>
+</body>
+</html>

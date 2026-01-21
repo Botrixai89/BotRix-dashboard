@@ -860,14 +860,46 @@ export default function BotBuilderPage() {
                      <Download className="h-4 w-4 mr-2" />
                      Export
                    </Button>
-                   <Button
-                     variant="outline"
-                     size="sm"
-                     onClick={() => window.open(`/test-widget.html?botId=${params.id}`, '_blank')}
-                   >
-                     <Eye className="h-4 w-4 mr-2" />
-                     Test
-                   </Button>
+                                    <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => window.open(`/test-widget.html?botId=${params.id}`, '_blank')}
+                 >
+                   <Eye className="h-4 w-4 mr-2" />
+                   Test Widget
+                 </Button>
+                 <Button
+                   variant="outline"
+                   size="sm"
+                   onClick={() => {
+                     // Test the flow by sending a test message
+                     fetch(`/api/chat`, {
+                       method: 'POST',
+                       headers: { 'Content-Type': 'application/json' },
+                       body: JSON.stringify({
+                         type: "text",
+                         content: { text: "Hello, this is a test message from the builder!" },
+                         _botId: params.id,
+                         _conversationId: null,
+                         _userInfo: { ip: 'test', userAgent: 'Builder Test' }
+                       })
+                     })
+                     .then(response => response.json())
+                     .then(data => {
+                       if (data && data.length > 0) {
+                         showSuccess(`Flow test successful! Bot responded: "${data[0].content}"`);
+                       } else {
+                         showError('Flow test failed - no response received');
+                       }
+                     })
+                     .catch(error => {
+                       showError('Flow test failed: ' + error.message);
+                     });
+                   }}
+                 >
+                   <TestTube className="h-4 w-4 mr-2" />
+                   Test Flow
+                 </Button>
                    <Button
                      size="sm"
                      onClick={saveFlow}

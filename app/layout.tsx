@@ -3,7 +3,7 @@ import { Inter } from 'next/font/google'
 import './globals.css'
 import { Toaster } from 'react-hot-toast'
 import { AuthProvider as NextAuthProvider } from '@/lib/auth-provider'
-import { AuthProvider } from '@/lib/auth-context'
+import { AuthProvider as CustomAuthProvider } from '@/lib/auth-context'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -32,7 +32,7 @@ export default function RootLayout({
       </head>
       <body className={inter.className}>
         <NextAuthProvider>
-          <AuthProvider>
+          <CustomAuthProvider>
             <div className="min-h-screen bg-gray-50 font-sans antialiased">
               {children}
             </div>
@@ -79,7 +79,7 @@ export default function RootLayout({
                 },
               }}
             />
-          </AuthProvider>
+          </CustomAuthProvider>
         </NextAuthProvider>
       </body>
     </html>

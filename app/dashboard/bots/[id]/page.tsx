@@ -116,7 +116,7 @@ export default function BotOverviewPage() {
       <div className="p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
         {/* Overview Header */}
         <div className="mb-4 sm:mb-8">
-          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Rule-Based Bot Overview</h1>
+          <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Bot Overview</h1>
           <p className="text-gray-600">Manage your rule-based chatbot with visual flow builder</p>
         </div>
 
@@ -138,6 +138,14 @@ export default function BotOverviewPage() {
           >
             <Eye className="mr-2 h-4 w-4" />
             Test Widget
+          </Button>
+          <Button 
+            variant="outline" 
+            className="w-full sm:w-auto border-gray-200 text-gray-600 hover:bg-gray-50 py-2.5 px-4 rounded-lg font-medium min-h-[44px]"
+            onClick={() => window.open(`/api/bots/${params.id}/embed`, '_blank')}
+          >
+            <Code className="mr-2 h-4 w-4" />
+            Get Embed Code
           </Button>
           <Link href={`/dashboard/bots/${params.id}/builder`} className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto bg-blue-600 text-white border-0 hover:bg-blue-700 py-2.5 px-4 rounded-lg font-medium min-h-[44px]">

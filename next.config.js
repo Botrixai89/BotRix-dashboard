@@ -5,6 +5,18 @@ const nextConfig = {
   experimental: {
     serverComponentsExternalPackages: [],
   },
+  // Add webpack configuration to handle chunk loading issues
+  webpack: (config, { dev, isServer }) => {
+    if (dev && !isServer) {
+      // Increase timeout for chunk loading in development
+      config.watchOptions = {
+        ...config.watchOptions,
+        poll: 1000,
+        aggregateTimeout: 300,
+      };
+    }
+    return config;
+  },
   images: {
     domains: ['localhost', 'app.botrixai.com'],
   },
