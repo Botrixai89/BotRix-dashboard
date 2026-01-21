@@ -99,6 +99,20 @@ export interface BotSettings {
   };
   voiceEnabled?: boolean;
   voiceSettings?: VoiceSettings;
+  conversationFlows?: {
+    paths: Array<{
+      id: string;
+      name: string;
+      description: string;
+      isActive: boolean;
+      flowData?: {
+        root: string;
+        nodes: Record<string, any>;
+        edges: Record<string, string[]>;
+      };
+    }>;
+    activePath?: string;
+  };
 }
 
 export interface BotMetrics {

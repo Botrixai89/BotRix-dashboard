@@ -432,7 +432,7 @@ export class FlowExecutor {
       delay?: number;
     }> = [];
 
-    let currentNode = flowData.root;
+    let currentNode: string | null = flowData.root;
     let stepCount = 0;
 
     while (currentNode && stepCount < executionContext.maxSteps) {
