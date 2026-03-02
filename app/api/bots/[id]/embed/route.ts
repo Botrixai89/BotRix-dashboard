@@ -2,6 +2,17 @@ import { NextRequest, NextResponse } from 'next/server';
 import dbConnect from '@/lib/mongodb';
 import Bot from '@/models/Bot';
 
+function getBaseUrl(request: NextRequest): string {
+  try {
+    const url = new URL(request.url);
+    const host = url.host;
+    if (host.includes('localhost') || host.includes('127.0.0.1')) {
+      return `${url.protocol}//${host}`.replace(/\/$/, '');
+    }
+  } catch (_) {}
+  return (process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -17,14 +28,14 @@ export async function GET(
       );
     }
 
-    // Generate embed code
-    const embedCode = generateEmbedCode(bot);
+    const baseUrl = getBaseUrl(request);
+    const embedCode = generateEmbedCode(bot, baseUrl);
     
     return NextResponse.json({
       botId: bot._id,
       botName: bot.name,
       embedCode,
-      widgetUrl: `${process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000'}/widget.js`
+      widgetUrl: `${baseUrl}/widget.js`
     });
   } catch (error) {
     console.error('Error generating embed code:', error);
@@ -35,8 +46,8 @@ export async function GET(
   }
 }
 
-function generateEmbedCode(bot: any): string {
-  const baseUrl = process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000';
+function generateEmbedCode(bot: any, baseUrlOverride?: string): string {
+  const baseUrl = (baseUrlOverride || process.env.NEXT_PUBLIC_BASE_URL || 'http://localhost:3000').replace(/\/$/, '');
   const botId = bot._id;
   
   // Get bot settings

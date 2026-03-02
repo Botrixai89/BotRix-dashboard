@@ -395,17 +395,15 @@
         if (response.ok) {
           const data = await response.json();
           if (data.bot) {
-            // Update bot logo if available (prefer settings.logo)
-            if (data.bot.settings && data.bot.settings.logo) {
-              this.botLogo = data.bot.settings.logo;
-              console.log('Using custom widget logo:', this.botLogo);
-            } else if (data.bot.companyLogo) {
-              this.botLogo = data.bot.companyLogo;
-              console.log('Using company logo:', this.botLogo);
-            } else if (data.bot.avatar) {
-              this.botLogo = data.bot.avatar;
-              console.log('Using bot avatar as logo:', this.botLogo);
+            // Update bot logo if available (prefer settings.logo). Resolve relative URLs so logo works when embedded on other origins (e.g. w3schools).
+            var rawLogo = (data.bot.settings && data.bot.settings.logo) || data.bot.companyLogo || data.bot.avatar || null;
+            if (rawLogo) {
+              this.botLogo = (typeof rawLogo === 'string' && rawLogo.charAt(0) === '/' && this.options.baseUrl)
+                ? (this.options.baseUrl.replace(/\/$/, '') + rawLogo)
+                : rawLogo;
+              console.log('Using widget logo:', this.botLogo);
             } else {
+              this.botLogo = null;
               console.log('No logo available, using fallback icon');
             }
             // Store color and image settings
@@ -2839,8 +2837,14 @@
               console.log('Extracted user name from response:', this.userName);
             }
             
-            if (msg.content && msg.content.text) {
-              this.addMessage(msg.content.text, 'bot');
+            var text = null;
+            if (msg.content && typeof msg.content === 'string') {
+              text = msg.content;
+            } else if (msg.content && msg.content.text) {
+              text = msg.content.text;
+            }
+            if (text) {
+              this.addMessage(text, 'bot');
             } else {
               this.addMessage('I received your message but had trouble processing it. Please try again.', 'bot');
             }
@@ -2921,6 +2925,11 @@
     const scripts = document.querySelectorAll('script[data-botrix-bot-id]');
     scripts.forEach(script => {
       const botId = script.getAttribute('data-botrix-bot-id');
+      // Use script src origin so embedding on external sites (e.g. w3schools) calls your Botrix server, not the host page origin
+      let baseUrl = script.getAttribute('data-botrix-base-url');
+      if (!baseUrl && script.src) {
+        try { baseUrl = new URL(script.src).origin; } catch (e) {}
+      }
       const primaryColor = script.getAttribute('data-botrix-primary-color') || '#8b5cf6';
       const secondaryColor = script.getAttribute('data-botrix-secondary-color') || '#ec4899';
       const position = script.getAttribute('data-botrix-position') || 'bottom-right';
@@ -2931,6 +2940,7 @@
       
       if (botId) {
         window.BotrixChat.createWidget(botId, {
+          baseUrl: baseUrl || '',
           primaryColor,
           secondaryColor,
           position,

@@ -29,79 +29,83 @@ const authOptions: NextAuthOptions = {
   ],
   callbacks: {
     async signIn({ user, account, profile, email }: any) {
-      console.log('🔐 NextAuth signIn callback triggered:', { 
-        provider: account?.provider, 
-        email: user.email,
+      const emailAddr = user?.email ?? profile?.email ?? email?.email
+      console.log('🔐 NextAuth signIn callback triggered:', {
+        provider: account?.provider,
+        email: emailAddr,
         profileId: profile?.sub,
         hasProfile: !!profile,
         hasAccount: !!account
       })
-      
+
       if (account?.provider === 'google') {
+        if (!emailAddr) {
+          console.error('❌ Google sign in: no email in user or profile')
+          return false
+        }
+        const displayName = user?.name ?? profile?.name ?? profile?.email ?? emailAddr
         try {
           console.log('📡 Connecting to database...')
           await dbConnect()
           console.log('✅ Database connected successfully')
-          
-          // Check if user already exists
-          const existingUser = await User.findOne({ email: user.email })
-          console.log('🔍 Existing user check:', { 
-            exists: !!existingUser, 
-            email: user.email,
-            userId: existingUser?._id 
+
+          const existingUser = await User.findOne({
+            $or: [{ email: emailAddr }, { googleId: profile?.sub }]
           })
-          
+          console.log('🔍 Existing user check:', {
+            exists: !!existingUser,
+            email: emailAddr,
+            userId: existingUser?._id
+          })
+
           if (!existingUser) {
-            // Create new user with Google data
             console.log('👤 Creating new Google user...')
             const newUser = new User({
-              email: user.email,
-              name: user.name,
-              avatar: user.image,
-              googleId: profile?.sub, // Store Google ID
-              lastLogin: new Date(),
+              email: emailAddr,
+              name: displayName,
+              avatar: user?.image ?? profile?.picture ?? null,
+              googleId: profile?.sub ?? null,
+              lastLogin: new Date()
             })
-            
+
             await newUser.save()
-            console.log('✅ New Google user created:', { 
-              email: user.email, 
+            console.log('✅ New Google user created:', {
+              email: emailAddr,
               id: newUser._id,
-              googleId: profile?.sub 
+              googleId: profile?.sub
             })
           } else {
-            // Update existing user with Google info if needed
             console.log('🔄 Updating existing user...')
             let updated = false
-            
-            if (!existingUser.googleId) {
-              existingUser.googleId = profile?.sub
+
+            if (profile?.sub && !existingUser.googleId) {
+              existingUser.googleId = profile.sub
               updated = true
               console.log('🔗 Linked existing user with Google ID')
             }
-            
-            if (user.image && existingUser.avatar !== user.image) {
+
+            if (user?.image && existingUser.avatar !== user.image) {
               existingUser.avatar = user.image
               updated = true
               console.log('🖼️ Updated user avatar')
             }
-            
+
             existingUser.lastLogin = new Date()
             updated = true
-            
+
             if (updated) {
               await existingUser.save()
-              console.log('✅ Existing user updated:', { email: user.email })
+              console.log('✅ Existing user updated:', { email: emailAddr })
             } else {
               console.log('ℹ️ No updates needed for existing user')
             }
           }
-          
+
           console.log('✅ Google sign in successful')
           return true
         } catch (error) {
           console.error('❌ Error during Google sign in:', error)
-          
-          // Log specific error details
+
           if (error instanceof Error) {
             console.error('Error details:', {
               message: error.message,
@@ -109,12 +113,14 @@ const authOptions: NextAuthOptions = {
               name: error.name
             })
           }
-          
-          // Return false to prevent sign in
+          if (error && typeof (error as any).code !== 'undefined') {
+            console.error('MongoDB/code:', (error as any).code)
+          }
+
           return false
         }
       }
-      
+
       console.log('✅ Non-Google sign in successful')
       return true
     },

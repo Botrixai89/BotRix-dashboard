@@ -3,8 +3,6 @@ import dbConnect from '@/lib/mongodb';
 import Bot from '@/models/Bot';
 import Conversation from '@/models/Conversation';
 import { getRandomName } from '@/lib/utils';
-import { ruleBasedBotService } from '@/lib/rule-based-bot';
-import { flowExecutor } from '@/lib/flow-executor';
 
 // CORS headers for cross-origin requests
 const corsHeaders = {
@@ -188,187 +186,41 @@ export async function POST(request: NextRequest) {
     // Save conversation
     await conversation.save();
 
-    // Check bot type and handle accordingly
-    const botType = bot.settings.botType || 'webhook';
-    console.log('🤖 Bot type:', botType);
-
-    // Handle flow-based bot first (highest priority)
-    if (bot.settings.conversationFlows?.paths?.some((path: any) => path.isActive && path.flowData)) {
-      console.log('🔄 Executing flow-based bot logic');
-      
-      // Execute flow with conversation context
-      const context = {
-        message,
-        conversationId: conversation._id.toString(),
-        userInfo: conversation.userInfo,
-        botId: bot._id.toString(),
-        timestamp: new Date().toISOString()
-      };
-
-      const flowResult = await flowExecutor.executeFlowPath(bot, message, context);
-      
-      if (flowResult.success && flowResult.responses.length > 0) {
-        console.log('✅ Flow executed successfully');
-        
-        // Add all bot responses to conversation
-        for (const response of flowResult.responses) {
-          const botMessage = {
-            content: response.content,
-            sender: 'bot' as const,
-            timestamp: new Date(),
-          };
-          conversation.messages.push(botMessage);
-        }
-        await conversation.save();
-
-        // Return all responses
-        const responseData = flowResult.responses.map(response => ({
-          content: response.content,
-          _id: conversation._id,
-          sender: "bot",
-          type: response.type,
-          createdAt: new Date().toISOString(),
-          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
-        }));
-
-        return NextResponse.json(responseData, {
-          headers: corsHeaders,
-        });
-      } else {
-        console.log('❌ Flow execution failed or no responses:', flowResult.error);
-      }
-    }
-
-    // Handle rule-based bot second
-    if (botType === 'rule-based' || botType === 'hybrid') {
-      if (bot.settings.ruleBasedConfig?.enabled) {
-        console.log('🎯 Executing rule-based bot logic');
-        
-        // Execute rules with conversation context
-        const context = {
-          message,
-          conversationId: conversation._id.toString(),
-          userInfo: conversation.userInfo,
-          botId: bot._id.toString(),
-          timestamp: new Date().toISOString()
-        };
-
-        const ruleResult = await ruleBasedBotService.executeRules(bot, message, context);
-        
-        if (ruleResult.matched) {
-          console.log('✅ Rule matched, executing actions');
-          
-          // Add bot response to conversation
-          if (ruleResult.response) {
-            const botMessage = {
-              content: ruleResult.response,
-              sender: 'bot' as const,
-              timestamp: new Date(),
-            };
-            conversation.messages.push(botMessage);
-            await conversation.save();
-
-            // Return response
-            const responseData = [
-              {
-                content: ruleResult.response, // Use string content directly
-                _id: conversation._id,
-                sender: "bot",
-                type: "text",
-                createdAt: new Date().toISOString(),
-                voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
-              }
-            ];
-
-            // Add image response if available
-            if (ruleResult.imageUrl) {
-              responseData.push({
-                content: ruleResult.imageUrl, // Use string content for image URL
-                _id: conversation._id,
-                sender: "bot",
-                type: "image",
-                createdAt: new Date().toISOString(),
-                voiceSettings: null
-              });
-            }
-
-            return NextResponse.json(responseData, {
-              headers: corsHeaders,
-            });
-          }
-        } else {
-          console.log('❌ No rules matched');
-        }
-      }
-    }
-
-    // For hybrid bots or when rules don't match, fall back to webhook
-    if (botType === 'webhook' || botType === 'hybrid') {
-      // Check if webhook URL is configured
-      if (!bot.settings.webhookUrl || bot.settings.webhookUrl.trim() === '') {
-        console.log('❌ No webhook URL configured for this bot');
-        
-        // Add fallback response to conversation
-        const fallbackMessage = {
-          content: bot.settings.fallbackMessage || "I'm sorry, I'm not configured to respond right now. Please check the bot settings.",
-          sender: 'bot' as const,
-          timestamp: new Date(),
-        };
-        conversation.messages.push(fallbackMessage);
-        await conversation.save();
-
-        // Return fallback response
-        const responseData = [
-          {
-            content: fallbackMessage.content,
-            _id: conversation._id,
-            sender: "bot",
-            type: "text",
-            createdAt: new Date().toISOString(),
-            voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
-          }
-        ];
-
-        return NextResponse.json(responseData, {
-          headers: corsHeaders,
-        });
-      }
-    } else {
-      // For rule-based only bots with no matching rules
+    // Webhook-only: all bot logic is handled by n8n (or other webhook). No flow builder or rules.
+    if (!bot.settings.webhookUrl || bot.settings.webhookUrl.trim() === '') {
+      console.log('❌ No webhook URL configured for this bot');
       const fallbackMessage = {
-        content: bot.settings.fallbackMessage || "I'm sorry, I didn't understand that. Can you please rephrase?",
+        content: bot.settings.fallbackMessage || "I'm sorry, I'm not configured to respond right now. Please set your n8n webhook URL in bot settings.",
         sender: 'bot' as const,
         timestamp: new Date(),
       };
       conversation.messages.push(fallbackMessage);
       await conversation.save();
-
-      const responseData = [
+      return NextResponse.json([
         {
           content: fallbackMessage.content,
           _id: conversation._id,
           sender: "bot",
           type: "text",
           createdAt: new Date().toISOString(),
-          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null
+          voiceSettings: bot.settings.voiceEnabled ? bot.settings.voiceSettings : null,
+          userInfo: conversation.userInfo
         }
-      ];
-
-      return NextResponse.json(responseData, {
-        headers: corsHeaders,
-      });
+      ], { headers: corsHeaders });
     }
 
-    // Try to call the webhook
+    // Call n8n (or other) webhook with full context
     try {
-      // Create payload matching the exact format from working bot
-      const sessionId = `widget_${botId}_${Date.now()}`;
+      const sessionId = `widget_${botId}_${conversation._id}`;
       const webhookPayload = {
         action: "sendMessage",
-        sessionId: sessionId,
+        sessionId,
         chatInput: message,
-        message: message,
-        timestamp: new Date().toISOString()
+        message,
+        timestamp: new Date().toISOString(),
+        conversationId: conversation._id.toString(),
+        botId: bot._id.toString(),
+        userInfo: conversation.userInfo,
       };
 
       console.log('📤 Calling webhook:', {
@@ -566,9 +418,7 @@ export async function POST(request: NextRequest) {
       // Return fallback response in the same format as the working bot
       const responseData = [
         {
-          content: {
-            text: bot.settings.fallbackMessage
-          },
+          content: bot.settings.fallbackMessage,
           _id: conversation._id,
           sender: "bot",
           type: "text",

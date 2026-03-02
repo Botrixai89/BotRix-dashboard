@@ -660,10 +660,10 @@ export default function DashboardPage() {
           </div>
           
           <div className="py-1">
-            <Link href={`/dashboard/bots/${contextMenuBot._id}/builder`}>
+            <Link href={`/dashboard/bots/${contextMenuBot._id}/webhook`}>
               <button className="w-full px-3 sm:px-4 py-2 text-sm text-gray-700 hover:bg-gray-50 flex items-center space-x-3">
                 <Wrench className="h-4 w-4 flex-shrink-0" />
-                <span>Configure</span>
+                <span>Configure Webhook</span>
               </button>
             </Link>
             

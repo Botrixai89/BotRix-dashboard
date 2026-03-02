@@ -1,7 +1,7 @@
 'use client'
 
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
-import { MessageSquare, TrendingUp, Clock, Users, ArrowUpRight, Bot, Settings, Code, BarChart3, TestTube, AlertTriangle, CheckCircle, XCircle, Eye, Zap, Workflow } from 'lucide-react'
+import { MessageSquare, TrendingUp, Clock, Users, ArrowUpRight, Bot, Settings, Code, BarChart3, TestTube, AlertTriangle, CheckCircle, XCircle, Eye, Zap } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useEffect, useState } from 'react'
@@ -117,7 +117,7 @@ export default function BotOverviewPage() {
         {/* Overview Header */}
         <div className="mb-4 sm:mb-8">
           <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 mb-2">Bot Overview</h1>
-          <p className="text-gray-600">Manage your rule-based chatbot with visual flow builder</p>
+          <p className="text-gray-600">Manage your webhook-powered chatbot (e.g. n8n)</p>
         </div>
 
         {/* Action Buttons */}
@@ -147,10 +147,10 @@ export default function BotOverviewPage() {
             <Code className="mr-2 h-4 w-4" />
             Get Embed Code
           </Button>
-          <Link href={`/dashboard/bots/${params.id}/builder`} className="w-full sm:w-auto">
+          <Link href={`/dashboard/bots/${params.id}/webhook`} className="w-full sm:w-auto">
             <Button className="w-full sm:w-auto bg-blue-600 text-white border-0 hover:bg-blue-700 py-2.5 px-4 rounded-lg font-medium min-h-[44px]">
-              <Workflow className="mr-2 h-4 w-4" />
-              Open Flow Builder
+              <Zap className="mr-2 h-4 w-4" />
+              Configure Webhook
             </Button>
           </Link>
           <Link href={`/dashboard/bots/${params.id}/messages`} className="w-full sm:w-auto">
@@ -315,7 +315,7 @@ export default function BotOverviewPage() {
                     ✓
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm sm:text-base">Create a rule-based bot</div>
+                    <div className="font-medium text-gray-900 text-sm sm:text-base">Create your bot</div>
                   </div>
                 </div>
                 
@@ -324,33 +324,24 @@ export default function BotOverviewPage() {
                     ✓
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm sm:text-base">Design conversation flows with visual builder</div>
-                  </div>
-                </div>
-                
-                <div className="flex items-center space-x-3 sm:space-x-4 p-3 sm:p-4 border border-gray-200 rounded-lg">
-                  <div className="w-8 h-8 bg-yellow-100 text-yellow-600 rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0">
-                    ✓
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="font-medium text-gray-900 text-sm sm:text-base">Configure webhooks and integrations</div>
+                    <div className="font-medium text-gray-900 text-sm sm:text-base">Set your n8n webhook URL</div>
                   </div>
                 </div>
                 
                 <div className="flex items-start space-x-3 sm:space-x-4 p-3 sm:p-4 border border-gray-200 rounded-lg bg-blue-50">
                   <div className="w-8 h-8 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center font-semibold text-sm flex-shrink-0">
-                    4
+                    3
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="font-medium text-gray-900 text-sm sm:text-base">Deploy and test your bot</div>
                     <div className="text-xs sm:text-sm text-gray-600 mt-1">
-                      Use the visual flow builder to create your first conversation flow
+                      Configure your n8n webhook and test the chat widget
                     </div>
                     <div className="mt-3">
-                      <Link href={`/dashboard/bots/${params.id}/builder`}>
+                      <Link href={`/dashboard/bots/${params.id}/webhook`}>
                         <Button className="bg-blue-600 hover:bg-blue-700 text-white py-2.5 px-4 rounded-lg font-medium min-h-[44px] w-full sm:w-auto">
-                          <Workflow className="mr-2 h-4 w-4" />
-                          Open Flow Builder
+                          <Zap className="mr-2 h-4 w-4" />
+                          Configure Webhook
                         </Button>
                       </Link>
                     </div>
@@ -366,7 +357,7 @@ export default function BotOverviewPage() {
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-2 sm:space-y-0">
                 <div>
                   <CardTitle className="text-lg sm:text-xl">Recent Activity</CardTitle>
-                  <CardDescription className="text-gray-600 text-sm sm:text-base">Latest interactions with your rule-based bot</CardDescription>
+                  <CardDescription className="text-gray-600 text-sm sm:text-base">Latest interactions with your bot</CardDescription>
                 </div>
                 <Link href={`/dashboard/bots/${params.id}/messages`}>
                   <Button variant="ghost" size="sm" className="hover:bg-gray-50 text-gray-600 py-2 px-3 rounded-lg min-h-[40px]">
@@ -389,24 +380,24 @@ export default function BotOverviewPage() {
 
         {/* Feature Cards Section */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6 mt-6 sm:mt-8">
-          {/* Flow Builder Card */}
+          {/* Webhook Card */}
           <Card className="border border-gray-200 shadow-sm bg-white rounded-xl">
             <CardHeader className="px-4 sm:px-6">
-              <CardTitle className="text-lg sm:text-xl font-semibold">Visual Flow Builder</CardTitle>
+              <CardTitle className="text-lg sm:text-xl font-semibold">n8n Webhook</CardTitle>
               <CardDescription className="text-gray-600 text-sm sm:text-base">
-                Create complex conversation flows with our intuitive drag-and-drop interface. Connect nodes, add conditions, and integrate webhooks seamlessly.
+                All replies are handled by your n8n workflow. Set your webhook URL and build flows in n8n.
               </CardDescription>
             </CardHeader>
             <CardContent className="px-4 sm:px-6">
               <div className="text-center py-6 sm:py-8">
-                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
-                  <Workflow className="h-6 w-6 sm:h-8 sm:w-8" />
+                <div className="w-12 h-12 sm:w-16 sm:h-16 bg-indigo-100 text-indigo-600 rounded-full flex items-center justify-center mx-auto mb-3 sm:mb-4">
+                  <Zap className="h-6 w-6 sm:h-8 sm:w-8" />
                 </div>
-                <p className="text-gray-500 text-sm sm:text-base mb-4">Drag-and-drop conversation designer</p>
-                <Link href={`/dashboard/bots/${params.id}/builder`}>
+                <p className="text-gray-500 text-sm sm:text-base mb-4">Configure webhook URL for this bot</p>
+                <Link href={`/dashboard/bots/${params.id}/webhook`}>
                   <Button variant="outline" className="w-full">
-                    <Workflow className="mr-2 h-4 w-4" />
-                    Open Builder
+                    <Zap className="mr-2 h-4 w-4" />
+                    Configure Webhook
                   </Button>
                 </Link>
               </div>
@@ -418,7 +409,7 @@ export default function BotOverviewPage() {
             <CardHeader className="px-4 sm:px-6">
               <CardTitle className="text-lg sm:text-xl font-semibold">Analytics & Insights</CardTitle>
               <CardDescription className="text-gray-600 text-sm sm:text-base">
-                Monitor bot performance, track user engagement, and analyze conversation flows to optimize your rule-based bot.
+                Monitor bot performance, track user engagement, and analyze conversation data.
               </CardDescription>
             </CardHeader>
             <CardContent className="px-4 sm:px-6">

@@ -3,7 +3,7 @@
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { ArrowLeft, Bot, BarChart3, MessageSquare, Settings, Code, Wrench, Menu, ChevronLeft, ChevronRight, X, Home } from 'lucide-react'
+import { ArrowLeft, Bot, BarChart3, MessageSquare, Settings, Code, Globe, Menu, ChevronLeft, ChevronRight, X, Home } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useParams, usePathname } from 'next/navigation'
 
@@ -60,7 +60,7 @@ export default function BotLayout({
   const navigation = [
     { name: 'Messages', href: `/dashboard/bots/${params.id}/messages`, icon: MessageSquare },
     { name: 'Analytics', href: `/dashboard/bots/${params.id}/analytics`, icon: BarChart3 },
-    { name: 'Builder', href: `/dashboard/bots/${params.id}/builder`, icon: Wrench },
+    { name: 'Webhook', href: `/dashboard/bots/${params.id}/webhook`, icon: Globe },
     { name: 'Embed', href: `/dashboard/bots/${params.id}/embed`, icon: Code },
     { name: 'Settings', href: `/dashboard/bots/${params.id}/settings`, icon: Settings },
   ]

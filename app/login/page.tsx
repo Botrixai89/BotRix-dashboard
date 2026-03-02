@@ -31,6 +31,8 @@ export default function LoginPage() {
     const error = searchParams.get('error')
     if (error === 'OAuthAccountNotLinked') {
       showError('This Google account is not linked to any existing account. Please sign up first or use a different email.')
+    } else if (error === 'AccessDenied') {
+      showError('Google sign-in was denied. This can be due to a server or database error—check the terminal logs, or try again. If it persists, sign in with email/password.')
     }
   }, [searchParams])
 
@@ -74,21 +76,22 @@ export default function LoginPage() {
     try {
       setIsLoading(true)
       console.log('🔐 Initiating Google sign in from login...')
-      
-      const result = await signIn('google', { 
+
+      const result = await signIn('google', {
         callbackUrl: '/dashboard',
         redirect: false
       })
-      
+
       console.log('📡 Google sign in result:', result)
-      
+
       if (result?.error) {
         console.error('❌ Google sign in error:', result.error)
-        
-        // Handle specific error cases
         switch (result.error) {
           case 'OAuthAccountNotLinked':
             showError('This Google account is not linked to any existing account. Please sign up first or use a different email.')
+            break
+          case 'AccessDenied':
+            showError('Google sign-in was denied. Check server logs or try again.')
             break
           case 'OAuthSignin':
             showError('Failed to initiate Google sign in. Please try again.')
@@ -115,9 +118,12 @@ export default function LoginPage() {
         console.log('✅ Google sign in successful, redirecting...')
         showSuccess('Google sign in successful! Redirecting to dashboard...')
         router.push('/dashboard')
+      } else if (result?.url) {
+        // With redirect: false, NextAuth returns the OAuth URL — send user to Google
+        window.location.href = result.url
+        return
       } else {
         console.log('⏳ Google sign in in progress...')
-        // The sign in is still in progress, NextAuth will handle the redirect
       }
     } catch (error) {
       console.error('❌ Google sign in error:', error)

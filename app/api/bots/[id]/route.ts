@@ -6,6 +6,17 @@ import BotFlow from '@/models/BotFlow';
 import TeamMember from '@/models/TeamMember';
 import mongoose from 'mongoose';
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Access-Control-Max-Age': '86400',
+};
+
+export async function OPTIONS() {
+  return new Response(null, { status: 204, headers: corsHeaders });
+}
+
 export async function GET(
   request: NextRequest,
   { params }: { params: { id: string } }
@@ -17,19 +28,19 @@ export async function GET(
     if (!bot) {
       return NextResponse.json(
         { error: 'Bot not found' },
-        { status: 404 }
+        { status: 404, headers: corsHeaders }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      bot,
-    });
+    return NextResponse.json(
+      { success: true, bot },
+      { headers: corsHeaders }
+    );
   } catch (error) {
     console.error('Error fetching bot:', error);
     return NextResponse.json(
       { error: 'Failed to fetch bot' },
-      { status: 500 }
+      { status: 500, headers: corsHeaders }
     );
   }
 }
@@ -42,7 +53,7 @@ export async function PUT(
     await dbConnect();
     
     const body = await request.json();
-    const { settings, name, description, status } = body;
+    const { settings, name, description, status, companyLogo } = body;
 
     const bot = await Bot.findById(params.id);
     if (!bot) {
@@ -56,6 +67,7 @@ export async function PUT(
     if (name !== undefined) bot.name = name;
     if (description !== undefined) bot.description = description;
     if (status !== undefined) bot.status = status;
+    if (companyLogo !== undefined) bot.companyLogo = companyLogo;
 
     // Update bot settings
     if (settings) {
@@ -97,6 +109,9 @@ export async function PUT(
       }
       if (settings.bodyColor !== undefined) {
         bot.settings.bodyColor = settings.bodyColor;
+      }
+      if (settings.theme !== undefined) {
+        bot.settings.theme = settings.theme;
       }
       if (settings.logo !== undefined) {
         bot.settings.logo = settings.logo;

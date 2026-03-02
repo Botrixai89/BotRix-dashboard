@@ -345,11 +345,11 @@ export default function CreateBotPage() {
                         id="webhookUrl"
                         name="webhookUrl"
                         type="url"
-                        placeholder="https://your-automation.com/webhook/your-webhook-id"
+                        placeholder="https://your-n8n.com/webhook/..."
                         className="h-12 sm:h-12 border-gray-200 focus:border-green-300 focus:ring-green-200 text-base rounded-lg px-4"
                       />
                       <p className="text-sm text-gray-500">
-                        Your automation webhook URL for processing bot conversations. You can change this to use a different webhook if needed.
+                        Your n8n (or other) webhook URL. Every user message is sent here; your workflow should return the bot reply.
                       </p>
                     </div>
                   </div>

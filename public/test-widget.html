@@ -359,10 +359,8 @@
                     // Show content
                     document.getElementById('content').classList.remove('hidden');
                     
-                    // Load embed code
-                    loadEmbedCode(bot._id);
-                    
-                    // Don't auto-load the chat widget - only load when user clicks "Test Embed"
+                    // Load embed code into textarea and auto-load the same widget as embed (so test page = same bot as w3schools)
+                    loadEmbedCodeAndWidget(bot._id);
                 })
                 .catch(error => {
                     document.getElementById('loading').classList.add('hidden');
@@ -371,38 +369,50 @@
                 });
         }
         
-                        function loadEmbedCode(botId) {
-                    // Don't auto-fill the embed code - let user paste it manually
-                    // Just show a placeholder message
-                    document.getElementById('embedCode').value = '';
-                    document.getElementById('embedCode').placeholder = 'Paste your embed code here...';
-                }
+        function loadEmbedCodeAndWidget(botId) {
+            fetch(window.location.origin + '/api/bots/' + botId + '/embed')
+                .then(function(res) { return res.json(); })
+                .then(function(data) {
+                    if (!data.embedCode) return;
+                    document.getElementById('embedCode').value = data.embedCode;
+                    var baseUrl = (data.widgetUrl && data.widgetUrl.replace(/\/widget\.js.*$/, '')) || window.location.origin;
+                    injectWidgetFromEmbedCode(data.embedCode, baseUrl);
+                })
+                .catch(function() {
+                    document.getElementById('embedCode').placeholder = 'Paste your embed code here or click Get Embed Code.';
+                });
+        }
         
-        function loadChatWidget(bot) {
-            // Load the widget script
-            const script = document.createElement('script');
-            script.src = '/widget.js';
-            script.onload = function() {
-                // Wait a bit for the script to fully load
-                setTimeout(() => {
-                    // Initialize the widget directly with demoMode: false to use real webhook
-                    if (window.BotrixChat) {
-                        window.BotrixChat.createWidget(bot._id, {
-                            primaryColor: bot.settings.primaryColor,
-                            secondaryColor: bot.settings.secondaryColor || bot.settings.primaryColor,
-                            position: 'bottom-right',
-                            welcomeMessage: bot.settings.welcomeMessage,
-                            enableVoice: true,
-                            theme: bot.settings.theme || 'modern',
-                            demoMode: false // Disable demo mode to use real webhook responses
-                        });
-                    } else {
-                        console.error('BotrixChat not available');
-                    }
-                }, 100);
+        function injectWidgetFromEmbedCode(embedCode, baseUrl) {
+            if (!embedCode || !baseUrl) return;
+            var temp = document.createElement('div');
+            temp.innerHTML = embedCode;
+            var scriptTag = temp.querySelector('script');
+            if (!scriptTag) return;
+            var botId = scriptTag.getAttribute('data-botrix-bot-id');
+            if (!botId) return;
+            var options = {
+                baseUrl: baseUrl,
+                primaryColor: scriptTag.getAttribute('data-botrix-primary-color') || '#8b5cf6',
+                secondaryColor: scriptTag.getAttribute('data-botrix-secondary-color') || '#ec4899',
+                position: scriptTag.getAttribute('data-botrix-position') || 'bottom-right',
+                welcomeMessage: scriptTag.getAttribute('data-botrix-welcome-message') || '',
+                enableVoice: scriptTag.getAttribute('data-botrix-enable-voice') !== 'false',
+                theme: scriptTag.getAttribute('data-botrix-theme') || 'modern',
+                demoMode: scriptTag.getAttribute('data-botrix-demo-mode') === 'true'
             };
-            script.async = true;
-            document.head.appendChild(script);
+            var scriptSrc = scriptTag.getAttribute('src') || (baseUrl + '/widget.js');
+            if (window.BotrixChat) {
+                window.BotrixChat.createWidget(botId, options);
+                return;
+            }
+            var s = document.createElement('script');
+            s.src = scriptSrc;
+            s.onload = function() {
+                window.BotrixChat.createWidget(botId, options);
+            };
+            s.async = true;
+            document.head.appendChild(s);
         }
         
         // Add event listeners for embed code functionality
@@ -454,81 +464,33 @@
                 }
             });
             
-                                // Test embed code button
+                                // Test embed code button – same widget as when pasted on another site
                     document.getElementById('testEmbedCode').addEventListener('click', function() {
-                        const embedCode = document.getElementById('embedCode').value;
-                        
-                        // Remove existing widget if any
-                        const existingWidget = document.querySelector('.botrix-widget');
-                        if (existingWidget) {
-                            existingWidget.remove();
+                        var embedCode = document.getElementById('embedCode').value;
+                        if (!embedCode || embedCode.indexOf('data-botrix-bot-id') === -1) {
+                            alert('Please click "Get Embed Code" first, or paste your embed code in the box.');
+                            return;
                         }
-                        
-                        const existingToggle = document.querySelector('.botrix-toggle-button');
-                        if (existingToggle) {
-                            existingToggle.remove();
-                        }
-                        
-                        // Parse the embed code to extract botId and options
-                        const tempDiv = document.createElement('div');
+                        var existingWidget = document.querySelector('.botrix-widget');
+                        if (existingWidget) existingWidget.remove();
+                        var existingToggle = document.querySelector('.botrix-toggle-button');
+                        if (existingToggle) existingToggle.remove();
+                        var tempDiv = document.createElement('div');
                         tempDiv.innerHTML = embedCode;
-                        const script = tempDiv.querySelector('script');
-                        
-                        if (script) {
-                            const botId = script.getAttribute('data-botrix-bot-id');
-                            const primaryColor = script.getAttribute('data-botrix-primary-color') || '#8b5cf6';
-                            const secondaryColor = script.getAttribute('data-botrix-secondary-color') || '#ec4899';
-                            const position = script.getAttribute('data-botrix-position') || 'bottom-right';
-                            const welcomeMessage = script.getAttribute('data-botrix-welcome-message');
-                            const enableVoice = script.getAttribute('data-botrix-enable-voice') !== 'false';
-                            const theme = script.getAttribute('data-botrix-theme') || 'modern';
-                            const demoMode = script.getAttribute('data-botrix-demo-mode') === 'true';
-                            
-                            if (botId) {
-                                // Ensure widget.js is loaded
-                                if (!window.BotrixChat) {
-                                    const widgetScript = document.createElement('script');
-                                    widgetScript.src = script.src;
-                                    widgetScript.onload = function() {
-                                        // Initialize widget after script loads
-                                        window.BotrixChat.createWidget(botId, {
-                                            primaryColor,
-                                            secondaryColor,
-                                            position,
-                                            welcomeMessage,
-                                            enableVoice,
-                                            theme,
-                                            demoMode
-                                        });
-                                    };
-                                    document.head.appendChild(widgetScript);
-                                } else {
-                                    // Widget script already loaded, create widget directly
-                                    window.BotrixChat.createWidget(botId, {
-                                        primaryColor,
-                                        secondaryColor,
-                                        position,
-                                        welcomeMessage,
-                                        enableVoice,
-                                        theme,
-                                        demoMode
-                                    });
-                                }
-                                
-                                // Show success message
-                                this.textContent = 'Widget Loaded!';
-                                this.style.backgroundColor = '#10b981';
-                                setTimeout(() => {
-                                    this.textContent = 'Test Embed';
-                                    this.style.backgroundColor = '';
-                                }, 2000);
-                            } else {
-                                alert('Invalid embed code: Bot ID not found');
-                            }
+                        var scriptTag = tempDiv.querySelector('script');
+                        if (scriptTag && scriptTag.getAttribute('data-botrix-bot-id')) {
+                            var scriptSrc = scriptTag.getAttribute('src') || (window.location.origin + '/widget.js');
+                            var baseUrl = scriptSrc.replace(/\/widget\.js.*$/, '');
+                            injectWidgetFromEmbedCode(embedCode, baseUrl);
+                            this.textContent = 'Widget Loaded!';
+                            this.style.backgroundColor = '#10b981';
+                            setTimeout(function() {
+                                this.textContent = 'Test Embed';
+                                this.style.backgroundColor = '';
+                            }.bind(this), 2000);
                         } else {
-                            alert('Invalid embed code: Script tag not found');
+                            alert('Invalid embed code: Script tag or Bot ID not found');
                         }
-                        
                         tempDiv.remove();
                     });
         });
